@@ -236,7 +236,7 @@ func sync(tx *sql.Tx) error{
 				return nil
 			}
 		}
-		if isSet {
+		if !isSet {
 			s , err := tx.Prepare("insert into block_CurrHeight (height) values(?)")
 			if err != nil {
 				return err
