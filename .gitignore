@@ -1,0 +1,5 @@
+*.lock
+nohup.out
+sync*
+vendor/*
+*.db
