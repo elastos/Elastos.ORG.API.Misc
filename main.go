@@ -43,14 +43,14 @@ type Block_transaction_history struct {
 
 const (
 	BbName = "chain.db"
- 	BlockHeight = "/api/v1/block/height"
- 	BlockDetail = "/api/v1/block/details/height/"
- 	TransactionDetail = "/api/v1/transaction/"
- 	INCOME = "income"
- 	SPEND = "spend"
- 	ERROR_REQUEST = "Error Request :"
- 	ELA = 100000000
- 	MINEING_ADDR = "0000000000000000000000000000000000"
+	BlockHeight = "/api/v1/block/height"
+	BlockDetail = "/api/v1/block/details/height/"
+	TransactionDetail = "/api/v1/transaction/"
+	INCOME = "income"
+	SPEND = "spend"
+	ERROR_REQUEST = "Error Request :"
+	ELA = 100000000
+	MINEING_ADDR = "0000000000000000000000000000000000"
 )
 
 func main(){
@@ -69,7 +69,7 @@ func SyncChain() {
 		}else{
 			tx.Commit()
 		}
-		<-time.After(time.Second * 30)
+		<-time.After(time.Second * 10)
 	}
 }
 
@@ -97,16 +97,11 @@ func sync(tx *sql.Tx) error{
 		if storeHeight == int(chainHeight.(float64)) {
 			return nil
 		}
-		s , err := tx.Prepare("insert into block_CurrHeight (height) values(?)")
-		if err != nil {
-			return err
-		}
-		defer s.Close()
-		_ , err = s.Exec(chainHeight)
-		if err != nil {
-			return err
-		}
+
+		count := 0
+		isSet := false
 		for curr := storeHeight + 1 ; curr <= int(chainHeight.(float64)) ; curr++{
+			count++
 			resp , err = Get(Conf.Node + BlockDetail + strconv.FormatInt(int64(curr),10))
 			txArr := (resp["Result"].(map[string]interface{}))["tx"].([]interface{})
 			if len(txArr) == 0 {
@@ -169,12 +164,12 @@ func sync(tx *sql.Tx) error{
 						if err != nil {
 							return err
 						}
-						 v , ok := spend[address]
-						 if ok {
-							 spend[address] = v + value
-						 }else {
-							 spend[address] = value
-						 }
+						v , ok := spend[address]
+						if ok {
+							spend[address] = v + value
+						}else {
+							spend[address] = value
+						}
 						from += address + ","
 					}
 					vout :=  vm["vout"].([]interface{})
@@ -226,6 +221,30 @@ func sync(tx *sql.Tx) error{
 						}
 					}
 				}
+			}
+			if count % 5000 == 0 {
+				isSet = true
+				s , err := tx.Prepare("insert into block_CurrHeight (height) values(?)")
+				if err != nil {
+					return err
+				}
+				defer s.Close()
+				_ , err = s.Exec(curr)
+				if err != nil {
+					return err
+				}
+				return nil
+			}
+		}
+		if isSet {
+			s , err := tx.Prepare("insert into block_CurrHeight (height) values(?)")
+			if err != nil {
+				return err
+			}
+			defer s.Close()
+			_ , err = s.Exec(chainHeight)
+			if err != nil {
+				return err
 			}
 		}
 	}
