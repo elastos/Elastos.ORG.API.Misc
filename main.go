@@ -33,10 +33,10 @@ type Address_history struct{
 type Block_transaction_history struct {
 	Txid string
 	Type string
-	Value string
-	CreateTime string
+	Value int64
+	CreateTime int64
 	Height int
-	Fee string
+	Fee int64
 	Inputs  []string
 	Outputs []string
 }
@@ -51,6 +51,7 @@ const (
 	ERROR_REQUEST = "Error Request :"
 	ELA = 100000000
 	MINEING_ADDR = "0000000000000000000000000000000000"
+	CROSS_CHAIN_FEE = 10000
 )
 
 func main(){
@@ -127,7 +128,11 @@ func sync(tx *sql.Tx) error{
 						value := vvm["value"].(string)
 						address := vvm["address"].(string)
 						coinbaseMap := make(map[string]interface{})
-						coinbaseMap["value"] = value
+						fv , err := strconv.ParseFloat(value,64)
+						if err != nil {
+							return err
+						}
+						coinbaseMap["value"] = int64(fv * ELA)
 						coinbaseMap["address"] = address
 						coinbase = append(coinbase,coinbaseMap)
 						to += address +","
@@ -191,7 +196,10 @@ func sync(tx *sql.Tx) error{
 						}
 						to += address +","
 					}
-					fee := math.Round((totalInput - totalOutput)*ELA)/ELA
+					fee := int64(math.Round((totalInput - totalOutput)*ELA))
+					if fee < 0 {
+						fee = CROSS_CHAIN_FEE
+					}
 					for k , r := range receive {
 						_type = INCOME
 						s , ok := spend[k]
@@ -207,7 +215,7 @@ func sync(tx *sql.Tx) error{
 						}else {
 							value = math.Round(r*ELA)
 						}
-						_ , err := stmt.Exec(k,txid,_type,strconv.FormatFloat(value/ELA,'f',8,64),strconv.FormatFloat(time,'f',0,64),curr,fee,from,to)
+						_ , err := stmt.Exec(k,txid,_type,int64(value),strconv.FormatFloat(time,'f',0,64),curr,fee,from,to)
 						if err != nil {
 							return err
 						}
@@ -215,7 +223,7 @@ func sync(tx *sql.Tx) error{
 
 					for k , r := range spend {
 						_type = SPEND
-						_ , err := stmt.Exec(k,txid,_type,strconv.FormatFloat(r,'f',8,64),strconv.FormatFloat(time,'f',0,64),curr,fee,from,to)
+						_ , err := stmt.Exec(k,txid,_type,int64(r*ELA),strconv.FormatFloat(time,'f',0,64),curr,fee,from,to)
 						if err != nil {
 							return err
 						}
@@ -255,7 +263,7 @@ func sync(tx *sql.Tx) error{
 
 func init(){
 	router = mux.NewRouter()
-	router.HandleFunc("/history/{addr}",history).Methods("GET")
+	router.HandleFunc("/api/1/history/{addr}",history).Methods("GET")
 	initDb()
 	initConfig()
 }
@@ -376,7 +384,7 @@ func initializeTable(){
 	createTableSqlStmtArr := []string{
 		`create table IF not exists block_currHeight (id integer not null primary key , height integer not null);`,
 		`create table IF not exists block_transaction_history (id integer not null primary key , address varchar(34) not null ,
-		txid varchar(64) not null ,type blob not null, value DECIMAL(18,8) not null, createTime blob not null , height integer not null,fee blob not null,
+		txid varchar(64) not null ,type blob not null, value integer not null, createTime integer not null , height integer not null,fee integer not null,
 		inputs blob  not null ,outputs blob not null);`,
 	}
 
