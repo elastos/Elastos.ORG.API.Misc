@@ -60,11 +60,11 @@ func InitLog(lever int , maxSize int64) {
 	go func() {
 		for {
 			select {
-				case <-time.Tick(1 * time.Second):
-					overSized := isOverSized(Log)
-					if overSized {
-						return
-					}
+			case <-time.Tick(1 * time.Second):
+				overSized := isOverSized(Log)
+				if overSized {
+					return
+				}
 			}
 		}
 	}()

@@ -4,3 +4,6 @@ nohup.out
 sync*
 vendor/*
 *.db
+back
+*/logs/*
+glide.lock
