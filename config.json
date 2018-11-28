@@ -1,5 +1,5 @@
 {
-  "NodeUrl":"http://localhost:21334",
+  "Node":"http://localhost:21604",
   "ServerPort":"8080",
   "DbDriverName":"mysql",
   "DbDriverSource":"root:12345678@tcp(127.0.0.1:3306)/chain"

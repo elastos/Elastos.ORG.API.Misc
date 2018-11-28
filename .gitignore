@@ -1,9 +1,8 @@
 *.lock
-chain*
 nohup.out
-sync*
+sync
 vendor/*
 *.db
 back
-*/logs/*
+logs/*
 glide.lock
