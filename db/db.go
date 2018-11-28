@@ -4,8 +4,12 @@ import (
 	"container/list"
 	"database/sql"
 	"errors"
+	"github.com/elastos/Elastos.ORG.API.Misc/config"
 	"github.com/elastos/Elastos.ORG.API.Misc/log"
+	"github.com/elastos/Elastos.ORG.API.Misc/tools"
 	_ "github.com/go-sql-driver/mysql"
+	"reflect"
+	"strconv"
 	"time"
 )
 
@@ -16,6 +20,15 @@ type Dialect struct {
 	maxIdles        int
 	connMaxLifeTime time.Duration
 
+}
+
+func NewInstance() (*Dialect){
+	var dia = new(Dialect)
+	err := dia.Create(config.Conf.DbDriverSource)
+	if err != nil {
+		log.Fatalf("init Db Error : %s ",err.Error())
+	}
+	return dia
 }
 
 //Create create a db instance .
@@ -138,7 +151,7 @@ func (dia *Dialect) Query(s string) (*list.List, error) {
 
 	// Fetch rows
 	for rows.Next() {
-		retMap := make(map[string]string)
+		retMap := make(map[string]interface{})
 		retList.PushBack(retMap)
 		// get RawBytes from data
 		err = rows.Scan(scanArgs...)
@@ -162,6 +175,53 @@ func (dia *Dialect) Query(s string) (*list.List, error) {
 
 	return retList, nil
 }
+
+func (dia *Dialect) ToStruct(sql string,strct interface{}) ([]interface{},error){
+	l , err := dia.Query(sql)
+	if err != nil {
+		return nil,err
+	}
+	i := 0
+	r := make([]interface{},l.Len())
+	for e := l.Front(); e != nil ; e = e.Next() {
+		v := reflect.New(reflect.TypeOf(strct))
+		src := e.Value.(map[string]interface{})
+		vi := v.Interface()
+		tools.Map2Struct(src,vi)
+		r[i] = reflect.ValueOf(vi).Interface()
+		i++
+	}
+	return r,nil
+}
+
+func (dia *Dialect) ToInt(sql string) (int , error){
+
+	l , err := dia.Query(sql)
+	if err != nil {
+		return -1 , err
+	}
+	m := l.Front().Value.(map[string]interface{})
+	for _ , v := range m {
+		return strconv.Atoi(v.(string))
+	}
+
+	return  -1 , err
+}
+
+func (dia *Dialect) ToString(sql string) (string , error){
+
+	l , err := dia.Query(sql)
+	if err != nil {
+		return "" , err
+	}
+	m := l.Front().Value.(map[string]interface{})
+	for _ , v := range m {
+		return v.(string),nil
+	}
+
+	return  "" , err
+}
+
 
 func (dia *Dialect) Close() error {
 	return dia.db.Close()

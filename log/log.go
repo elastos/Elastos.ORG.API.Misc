@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-var outputDir = "./log/"
+var outputDir = "./logs/"
 
 const (
 	DEBUG = iota
@@ -103,60 +103,60 @@ func newfile() (*os.File,error){
 	return f , nil
 }
 
-func Debugf(format string, a ...string){
-	Log.printMsgf(DEBUG,format ,a)
+func Debugf(format string, a ...interface{}){
+	Log.printMsgf(DEBUG,format ,a...)
 }
 
-func Infof(format string , a ...string){
-	Log.printMsgf(INFO, format ,a)
+func Infof(format string , a ...interface{}){
+	Log.printMsgf(INFO, format ,a...)
 }
 
-func Warnf(format string , a ...string){
-	Log.printMsgf(WARN,format,a)
+func Warnf(format string , a ...interface{}){
+	Log.printMsgf(WARN,format,a...)
 }
 
-func Errorf(format string ,a ...string){
-	Log.printMsgf(ERROR,format ,a)
+func Errorf(format string ,a ...interface{}){
+	Log.printMsgf(ERROR,format ,a...)
 }
 
-func Fatalf(format string ,a ...string){
-	Log.printMsgf(FATAL,format ,a)
+func Fatalf(format string ,a ...interface{}){
+	Log.printMsgf(FATAL,format ,a...)
 }
 
 
-func Debug( a ...string){
-	Log.printMsg(DEBUG,a)
+func Debug( a ...interface{}){
+	Log.printMsg(DEBUG,a...)
 }
 
-func Info(a ...string){
-	Log.printMsg(INFO,a)
+func Info(a ...interface{}){
+	Log.printMsg(INFO,a...)
 }
 
-func Warn(a ...string){
-	Log.printMsg(WARN,a)
+func Warn(a ...interface{}){
+	Log.printMsg(WARN,a...)
 }
 
-func Error(a ...string){
-	Log.printMsg(ERROR,a)
+func Error(a ...interface{}){
+	Log.printMsg(ERROR,a...)
 }
 
-func Fatal(a ...string){
-	Log.printMsg(FATAL,a)
+func Fatal(a ...interface{}){
+	Log.printMsg(FATAL,a...)
 }
 
-func (logger *Logger) printMsg(lever int , a []string){
+func (logger *Logger) printMsg(lever int , a ...interface{}){
 	if logger.lever <= lever {
 		logger.lock.Lock()
 		defer logger.lock.Unlock()
-		logger.log.Output(2,levers[lever]+fmt.Sprint(a))
+		logger.log.Output(2,levers[lever]+fmt.Sprint(a...))
 	}
 }
 
-func (logger *Logger) printMsgf(lever int ,format string, a []string){
+func (logger *Logger) printMsgf(lever int ,format string, a ...interface{}){
 	if logger.lever <= lever {
 		logger.lock.Lock()
 		defer logger.lock.Unlock()
-		logger.log.Output(2,levers[lever]+fmt.Sprintf(format,a))
+		logger.log.Output(2,levers[lever]+fmt.Sprintf(format,a...))
 		if lever == FATAL {
 			os.Exit(-1)
 		}

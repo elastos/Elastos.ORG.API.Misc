@@ -5,5 +5,5 @@ sync*
 vendor/*
 *.db
 back
-*/logs/*
+logs/*
 glide.lock
