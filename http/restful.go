@@ -55,7 +55,7 @@ func searchKey(w http.ResponseWriter,r *http.Request){
 		w.Write([]byte(`{"result":"did is discarded or property key is discarded","status":200}`))
 		return
 	}
-	v , err := dba.ToStruct("select Did,Did_status,Public_key,Property_key,property_value,txid,block_time,height from chain_did_property where did ='" + did +"' and property_key = '" + key +"' and did_status = 1 and property_key_status = 1 limit 1",chain.Did_Property{})
+	v , err := dba.ToStruct("select Did,Did_status,Public_key,Property_key,property_value,txid,block_time,height from chain_did_property where did ='" + did +"' and property_key = '" + key +"' and did_status = 1 and property_key_status = 1 order by id desc limit 1",chain.Did_Property{})
 	if err != nil {
 		w.Write([]byte(`{"result":"` + err.Error() + `","status":500}`))
 		return
@@ -92,7 +92,10 @@ func history(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(`{"result":"` + err.Error() + `","status":400}`))
 			return
 		}
-		from := num * (size - 1)
+		if num <= 0 {
+			num = 1
+		}
+		from := (num -1) * size
 		sql = "select txid,type,value,createTime,height,inputs,outputs,fee from chain_block_transaction_history where address = '"+address+"' limit " + strconv.FormatInt(from, 10) + "," + strconv.FormatInt(size, 10)
 	} else {
 		sql = "select txid,type,value,createTime,height,inputs,outputs,fee from chain_block_transaction_history where address = '"+address+"'"

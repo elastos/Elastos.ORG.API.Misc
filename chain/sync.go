@@ -293,7 +293,7 @@ func handleMemo(memo string,height int , txid string , createTime int,tx *sql.Tx
 	sig , ok2 := mm["sig"].(string)
 
 	if !(ok0 && ok1 && ok2) {
-		return errors.New("No 'msg' or 'pub' or 'sig' key in memo")
+		return errors.New("invalid 'msg' or 'pub' or 'sig' key in memo")
 	}
 
 	pubKey, err := hex.DecodeString(pub)
@@ -323,7 +323,7 @@ func handleMemo(memo string,height int , txid string , createTime int,tx *sql.Tx
 	props , ko1 := raw["Properties"].([]interface{})
 
 	if !(ko && ko1) {
-		return errors.New("Can not find Status or Properties in did msg")
+		return errors.New("invalid Status or Properties in did msg")
 	}
 	istats := int64(fstats)
 	for _ , v := range props {
@@ -338,7 +338,7 @@ func handleMemo(memo string,height int , txid string , createTime int,tx *sql.Tx
 		val , ko5 :=in["Value"].(string)
 		keyStats , ko6 := in["Status"].(float64)
 		if !(ko4 && ko5 && ko6) {
-			log.Warn("Can not find Key or Value or Status in properties")
+			log.Warn("invalid Key or Value or Status in properties")
 			continue
 		}
 
