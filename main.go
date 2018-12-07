@@ -292,7 +292,10 @@ func history(w http.ResponseWriter, r *http.Request){
 			w.Write([]byte(`{"result":"`+err.Error()+`",status:400}`))
 			return
 		}
-		from := num * (size-1)
+		if num <= 0 {
+			num = 1
+		}
+		from := (num -1) * size
 		sql = "select txid,type,value,createTime,height,inputs,outputs,fee from block_transaction_history where address = ? limit " + strconv.FormatInt(from,10) + "," + strconv.FormatInt(size,10)
 	}else{
 		sql = "select txid,type,value,createTime,height,inputs,outputs,fee from block_transaction_history where address = ?"
