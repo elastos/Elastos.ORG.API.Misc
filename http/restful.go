@@ -23,6 +23,9 @@ var (
 		"/api/1/did/{did}/{key}":{
 			"GET":searchKey,
 		},
+		"/api/1/ping":{
+			"GET":ping,
+		},
 	}
 	router = mux.NewRouter()
 	dba = db.NewInstance()
@@ -60,7 +63,11 @@ func searchKey(w http.ResponseWriter,r *http.Request){
 		w.Write([]byte(`{"result":"` + err.Error() + `","status":500}`))
 		return
 	}
-	b , err := json.Marshal(v)
+	if len(v) == 0 {
+		w.Write([]byte(`{"status":200}`))
+		return
+	}
+	b , err := json.Marshal(v[0])
 	if err != nil {
 		w.Write([]byte(`{"result":"` + err.Error() + `","status":500}`))
 		return
@@ -134,4 +141,8 @@ func history(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Write([]byte(`{"result":` + string(buf) + `,"status":200}`))
+}
+
+func ping(w http.ResponseWriter,r *http.Request){
+	w.Write([]byte(`{"result":"pong","status":200}`))
 }
