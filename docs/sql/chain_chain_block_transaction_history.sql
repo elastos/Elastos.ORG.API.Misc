@@ -49,3 +49,6 @@ CREATE TABLE `chain_block_transaction_history` (
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2018-12-10 10:32:03
+
+CREATE INDEX idx_chain_block_transaction_history_address ON chain_block_transaction_history (address);
+CREATE INDEX idx_chain_block_transaction_history_txid ON chain_block_transaction_history (txid);

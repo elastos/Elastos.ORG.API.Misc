@@ -48,3 +48,4 @@ CREATE TABLE `chain_did_property` (
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2018-12-10 10:32:03
+CREATE INDEX idx_chain_did_property_property_key ON chain_did_property (property_key);
