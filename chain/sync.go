@@ -27,7 +27,33 @@ const (
 	ELA               = 100000000
 	MINEING_ADDR      = "0000000000000000000000000000000000"
 	CROSS_CHAIN_FEE   = 10000
+
 )
+
+
+const (
+	CoinBase                int = iota
+	RegisterAsset
+	TransferAsset
+	Record
+	Deploy
+	SideChainPow
+	RechargeToSideChain
+	WithdrawFromSideChain
+	TransferCrossChainAsset
+)
+
+var txTypeMap = map[int]string{
+	CoinBase:"CoinBase",
+	RegisterAsset:"RegisterAsset",
+	TransferAsset:"TransferAsset",
+	Record:"Record",
+	Deploy:"Deploy",
+	SideChainPow:"SideChainPow",
+	RechargeToSideChain:"RechargeToSideChain",
+	WithdrawFromSideChain:"WithdrawFromSideChain",
+	TransferCrossChainAsset:"TransferCrossChainAsset",
+}
 
 var dba = db.NewInstance()
 
@@ -45,6 +71,7 @@ type Block_transaction_history struct {
 	Fee        int64
 	Inputs     []string
 	Outputs    []string
+	TxType	   string
 }
 
 type Did_Property struct{
@@ -138,7 +165,7 @@ func handleHeight(curr int,tx *sql.Tx) error{
 		return nil
 	}
 	for _, v := range txArr {
-		stmt, err := tx.Prepare("insert into chain_block_transaction_history (address,txid,type,value,createTime,height,fee,inputs,outputs,memo) values(?,?,?,?,?,?,?,?,?,?)")
+		stmt, err := tx.Prepare("insert into chain_block_transaction_history (address,txid,type,value,createTime,height,fee,inputs,outputs,memo,txType) values(?,?,?,?,?,?,?,?,?,?,?)")
 		if err != nil {
 			return err
 		}
@@ -161,7 +188,7 @@ func handleHeight(curr int,tx *sql.Tx) error{
 				log.Warnf("Error parsing error memo = %v , error = %s", attrArr[0], err.Error())
 			}
 		}
-		if t == 0 {
+		if int(t) == CoinBase {
 			vout := vm["vout"].([]interface{})
 			coinbase := make([]map[string]interface{}, 0)
 			to := ""
@@ -182,7 +209,7 @@ func handleHeight(curr int,tx *sql.Tx) error{
 			}
 
 			for _, v := range coinbase {
-				_, err := stmt.Exec(v["address"], txid, _type, v["value"], strconv.FormatFloat(time, 'f', 0, 64), curr, 0, MINEING_ADDR, to,"")
+				_, err := stmt.Exec(v["address"], txid, _type, v["value"], strconv.FormatFloat(time, 'f', 0, 64), curr, 0, MINEING_ADDR, to,"",txTypeMap[CoinBase])
 				if err != nil {
 					return err
 				}
@@ -257,7 +284,7 @@ func handleHeight(curr int,tx *sql.Tx) error{
 				} else {
 					value = math.Round(r * ELA)
 				}
-				_, err := stmt.Exec(k, txid, _type, int64(value), strconv.FormatFloat(time, 'f', 0, 64), curr, fee, from, to,"")
+				_, err := stmt.Exec(k, txid, _type, int64(value), strconv.FormatFloat(time, 'f', 0, 64), curr, fee, from, to,"",txTypeMap[int(t)])
 				if err != nil {
 					return err
 				}
@@ -265,7 +292,7 @@ func handleHeight(curr int,tx *sql.Tx) error{
 
 			for k, r := range spend {
 				_type = SPEND
-				_, err := stmt.Exec(k, txid, _type, int64(r*ELA), strconv.FormatFloat(time, 'f', 0, 64), curr, fee, from, to,memo)
+				_, err := stmt.Exec(k, txid, _type, int64(r*ELA), strconv.FormatFloat(time, 'f', 0, 64), curr, fee, from, to,memo,txTypeMap[int(t)])
 				if err != nil {
 					return err
 				}

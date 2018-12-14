@@ -103,9 +103,9 @@ func history(w http.ResponseWriter, r *http.Request) {
 			num = 1
 		}
 		from := (num -1) * size
-		sql = "select txid,type,value,createTime,height,inputs,outputs,fee from chain_block_transaction_history where address = '"+address+"' limit " + strconv.FormatInt(from, 10) + "," + strconv.FormatInt(size, 10)
+		sql = "select txid,type,value,createTime,height,inputs,outputs,fee,txType from chain_block_transaction_history where address = '"+address+"' limit " + strconv.FormatInt(from, 10) + "," + strconv.FormatInt(size, 10)
 	} else {
-		sql = "select txid,type,value,createTime,height,inputs,outputs,fee from chain_block_transaction_history where address = '"+address+"'"
+		sql = "select txid,type,value,createTime,height,inputs,outputs,fee,txType from chain_block_transaction_history where address = '"+address+"'"
 	}
 	l, err := dba.Query(sql)
 	if err != nil {
