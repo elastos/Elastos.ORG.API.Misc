@@ -271,12 +271,14 @@ func handleHeight(curr int,tx *sql.Tx) error{
 			}
 			for k, r := range receive {
 				_type = INCOME
+				m := ""
 				s, ok := spend[k]
 				var value float64
 				if ok {
 					if s > r {
 						value = math.Round((s - r) * ELA)
 						_type = SPEND
+						m = memo
 					} else {
 						value = math.Round((r - s) * ELA)
 					}
@@ -284,7 +286,7 @@ func handleHeight(curr int,tx *sql.Tx) error{
 				} else {
 					value = math.Round(r * ELA)
 				}
-				_, err := stmt.Exec(k, txid, _type, int64(value), strconv.FormatFloat(time, 'f', 0, 64), curr, fee, from, to,"",txTypeMap[int(t)])
+				_, err := stmt.Exec(k, txid, _type, int64(value), strconv.FormatFloat(time, 'f', 0, 64), curr, fee, from, to,m,txTypeMap[int(t)])
 				if err != nil {
 					return err
 				}
