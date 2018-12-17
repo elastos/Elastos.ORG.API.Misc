@@ -1,0 +1,1 @@
+set global max_prepared_stmt_count=1 * 1024 * 1024;

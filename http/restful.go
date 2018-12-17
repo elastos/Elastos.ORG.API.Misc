@@ -1,6 +1,7 @@
 package http
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"github.com/elastos/Elastos.ORG.API.Misc/chain"
 	"github.com/elastos/Elastos.ORG.API.Misc/config"
@@ -103,9 +104,9 @@ func history(w http.ResponseWriter, r *http.Request) {
 			num = 1
 		}
 		from := (num -1) * size
-		sql = "select txid,type,value,createTime,height,inputs,outputs,fee,txType from chain_block_transaction_history where address = '"+address+"' limit " + strconv.FormatInt(from, 10) + "," + strconv.FormatInt(size, 10)
+		sql = "select txid,type,value,createTime,height,inputs,outputs,fee,txType,memo from chain_block_transaction_history where address = '"+address+"' limit " + strconv.FormatInt(from, 10) + "," + strconv.FormatInt(size, 10)
 	} else {
-		sql = "select txid,type,value,createTime,height,inputs,outputs,fee,txType from chain_block_transaction_history where address = '"+address+"'"
+		sql = "select txid,type,value,createTime,height,inputs,outputs,fee,txType,memo from chain_block_transaction_history where address = '"+address+"'"
 	}
 	l, err := dba.Query(sql)
 	if err != nil {
@@ -126,6 +127,12 @@ func history(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(`{"result":"` + ERROR_REQUEST + err.Error() + `","status":500}`))
 			return
 		}
+		rawMemo, err := hex.DecodeString(history.Memo)
+		if err != nil {
+			w.Write([]byte(`{"result":"` + ERROR_REQUEST + err.Error() + `","status":500}`))
+			return
+		}
+		history.Memo = string(rawMemo)
 		bhs = append(bhs, *history)
 	}
 	l, err = dba.Query("select count(*) as count from chain_block_transaction_history where address = '"+address+"'")

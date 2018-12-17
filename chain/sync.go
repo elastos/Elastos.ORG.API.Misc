@@ -15,6 +15,7 @@ import (
 	"math"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -72,6 +73,7 @@ type Block_transaction_history struct {
 	Inputs     []string
 	Outputs    []string
 	TxType	   string
+	Memo       string
 }
 
 type Did_Property struct{
@@ -85,6 +87,7 @@ type Did_Property struct{
 	Block_time			int
 	Height 				int
 }
+
 
 //Sync sync chain data
 func Sync() {
@@ -244,7 +247,9 @@ func handleHeight(curr int,tx *sql.Tx) error{
 				} else {
 					spend[address] = value
 				}
-				from += address + ","
+				if from == "" || strings.Index(from,address) != -1 {
+					from += address + ","
+				}
 			}
 			vout := vm["vout"].([]interface{})
 			receive := make(map[string]float64)
@@ -263,7 +268,9 @@ func handleHeight(curr int,tx *sql.Tx) error{
 				} else {
 					receive[address] = value
 				}
-				to += address + ","
+				if to == "" || strings.Index(to,address) != -1 {
+					to += address + ","
+				}
 			}
 			fee := int64(math.Round((totalInput - totalOutput) * ELA))
 			if fee < 0 {
