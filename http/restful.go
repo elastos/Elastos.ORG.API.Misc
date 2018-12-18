@@ -215,7 +215,7 @@ var (
 
 func list(w http.ResponseWriter,r *http.Request)  {
 
-	list , err := dba.ToStruct("select * from chain_block_transaction_history order by id desc limit 20",chain.Block_transaction_history{})
+	list , err := dba.ToStruct("select * from chain_block_transaction_history order by id desc limit 100",chain.Block_transaction_history{})
 
 	if err != nil {
 		w.Write([]byte(`{"result":"` + err.Error() + `","status":500}`))
