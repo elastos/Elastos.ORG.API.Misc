@@ -64,6 +64,7 @@ type Address_history struct {
 }
 
 type Block_transaction_history struct {
+	Address    string
 	Txid       string
 	Type       string
 	Value      int64

@@ -8,6 +8,7 @@ import (
 	"github.com/elastos/Elastos.ORG.API.Misc/db"
 	"github.com/elastos/Elastos.ORG.API.Misc/tools"
 	"github.com/gorilla/mux"
+	"html/template"
 	"net/http"
 	"strconv"
 	"strings"
@@ -26,6 +27,10 @@ var (
 		},
 		"/api/1/ping":{
 			"GET":ping,
+		},
+		//frontend
+		"/api/1/list":{
+			"Get":list,
 		},
 	}
 	router = mux.NewRouter()
@@ -152,4 +157,75 @@ func history(w http.ResponseWriter, r *http.Request) {
 
 func ping(w http.ResponseWriter,r *http.Request){
 	w.Write([]byte(`{"result":"pong","status":200}`))
+}
+
+const tpl = `
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="refresh" content="15">
+	</head>
+	<body>
+		<table border='1'>
+			<tr>
+				<th>address</th>
+				<th>txid</th>
+				<th>type</th>
+				<th>value</th>
+				<th>createTime</th>
+				<th>height</th>
+				<th>fee</th>
+				<th>inputs</th>
+				<th>outputs</th>
+				<th>memo</th>
+				<th>txType</th>
+			</tr>
+			{{ range . }}
+			<tr>
+				<td>{{ .Address }}</td>
+				<td>{{ .Txid }}</td>
+				<td>{{ .Type }}</td>
+				<td>{{ .Value }}</td>
+				<td>{{ .CreateTime }}</td>
+				<td>{{ .Height }}</td>
+				<td>{{ .Fee }}</td>
+				<td>{{ .Inputs }}</td>
+				<td>{{ .Outputs }}</td>
+				<td>{{ .Memo | hexToStr}}</td>
+				<td>{{ .TxType }}</td>
+			</tr>
+			{{ end }}
+		</table>
+	</body>
+</html>`
+
+var (
+	tplFuncMap   = template.FuncMap{
+		"hexToStr": func(in string) (out string) {
+			b , err := hex.DecodeString(in)
+			if err != nil {
+				return ""
+			}
+			return string(b)
+		},
+	}
+	t, _ = template.New("webpage").Funcs(tplFuncMap).Parse(tpl)
+)
+
+func list(w http.ResponseWriter,r *http.Request)  {
+
+	list , err := dba.ToStruct("select * from chain_block_transaction_history order by id desc limit 20",chain.Block_transaction_history{})
+
+	if err != nil {
+		w.Write([]byte(`{"result":"` + err.Error() + `","status":500}`))
+		return
+	}
+
+	err = t.Execute(w, list)
+
+	if err != nil {
+		w.Write([]byte(`{"result":"` + err.Error() + `","status":500}`))
+		return
+	}
 }
