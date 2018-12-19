@@ -77,6 +77,15 @@ func Map2Struct(src map[string]interface{}, destStrct interface{}) {
 					f.Set(reflect.ValueOf(r))
 				}
 			}
+
+			// make string and string[] more friendly
+			if mvt == "string" && sft == "slice" {
+				_ , ok := f.Interface().([]string)
+				if ok {
+					f.Set(reflect.ValueOf(strings.Split(v.(string),",")))
+				}
+			}
+
 			continue
 		}
 		f.Set(mv)
