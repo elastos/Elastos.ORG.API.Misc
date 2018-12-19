@@ -5,11 +5,12 @@ import (
 	"testing"
 )
 
-func Test_Config(t *testing.T){
+func Test_Config(t *testing.T) {
 	println(1)
-	log.Info(Conf.ServerPort,Conf.Node,Conf.DbDriverName,Conf.DbDriverSource)
+	var c = Conf
+	log.Info(c,Conf.Ela.ServerPort, Conf.Db.DbDriverSource, Conf.Btc.Host)
 }
 
-func init(){
-	log.InitLog(1,0)
+func init() {
+	log.InitLog(1, 0)
 }

@@ -6,11 +6,11 @@ import (
 	"github.com/elastos/Elastos.ORG.API.Misc/log"
 )
 
-func main(){
+func main() {
 	go chain.Sync()
 	http.StartServer()
 }
 
-func init(){
-	log.InitLog(0,50)
+func init() {
+	log.InitLog(0, 50)
 }

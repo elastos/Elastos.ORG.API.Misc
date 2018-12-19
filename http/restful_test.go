@@ -5,11 +5,11 @@ import (
 	"testing"
 )
 
-func Test_Start(t *testing.T){
+func Test_Start(t *testing.T) {
 	log.Debug("start server")
 	StartServer()
 }
 
-func init(){
-	log.InitLog(0,0)
+func init() {
+	log.InitLog(0, 0)
 }

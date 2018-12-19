@@ -5,20 +5,20 @@ import (
 	"testing"
 )
 
-func Test_typeConverter(t *testing.T){
+func Test_typeConverter(t *testing.T) {
 
-	var tt struct{
+	var tt struct {
 		Name string
-		Age int64
+		Age  int64
 	}
 
-	m :=map[string]interface{}{
-		"Name":"clark",
-		"Age":10,
+	m := map[string]interface{}{
+		"Name": "clark",
+		"Age":  10,
 	}
 
-	Map2Struct(m,&tt)
+	Map2Struct(m, &tt)
 
-	fmt.Printf("%v",tt)
+	fmt.Printf("%v", tt)
 
 }

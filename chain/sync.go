@@ -28,12 +28,10 @@ const (
 	ELA               = 100000000
 	MINEING_ADDR      = "0000000000000000000000000000000000"
 	CROSS_CHAIN_FEE   = 10000
-
 )
 
-
 const (
-	CoinBase                int = iota
+	CoinBase int = iota
 	RegisterAsset
 	TransferAsset
 	Record
@@ -45,15 +43,15 @@ const (
 )
 
 var txTypeMap = map[int]string{
-	CoinBase:"CoinBase",
-	RegisterAsset:"RegisterAsset",
-	TransferAsset:"TransferAsset",
-	Record:"Record",
-	Deploy:"Deploy",
-	SideChainPow:"SideChainPow",
-	RechargeToSideChain:"RechargeToSideChain",
-	WithdrawFromSideChain:"WithdrawFromSideChain",
-	TransferCrossChainAsset:"TransferCrossChainAsset",
+	CoinBase:                "CoinBase",
+	RegisterAsset:           "RegisterAsset",
+	TransferAsset:           "TransferAsset",
+	Record:                  "Record",
+	Deploy:                  "Deploy",
+	SideChainPow:            "SideChainPow",
+	RechargeToSideChain:     "RechargeToSideChain",
+	WithdrawFromSideChain:   "WithdrawFromSideChain",
+	TransferCrossChainAsset: "TransferCrossChainAsset",
 }
 
 var dba = db.NewInstance()
@@ -73,22 +71,21 @@ type Block_transaction_history struct {
 	Fee        int64
 	Inputs     []string
 	Outputs    []string
-	TxType	   string
+	TxType     string
 	Memo       string
 }
 
-type Did_Property struct{
-	Did 				string
-	Did_status  		int
-	Public_key  		string
-	Property_key    	string
+type Did_Property struct {
+	Did                 string
+	Did_status          int
+	Public_key          string
+	Property_key        string
 	property_key_status int
-	Property_value 		string
-	Txid				string
-	Block_time			int
-	Height 				int
+	Property_value      string
+	Txid                string
+	Block_time          int
+	Height              int
 }
-
 
 //Sync sync chain data
 func Sync() {
@@ -122,7 +119,7 @@ func get(url string) (map[string]interface{}, error) {
 
 func doSync(tx *sql.Tx) error {
 
-	resp, err := get(config.Conf.Node + BlockHeight)
+	resp, err := get("http://" + config.Conf.Ela.Host + BlockHeight)
 
 	if err != nil {
 		return err
@@ -145,7 +142,7 @@ func doSync(tx *sql.Tx) error {
 		}
 		count := 0
 		for curr := storeHeight + 1; curr <= int(chainHeight.(float64)); curr++ {
-			err = handleHeight(curr,tx)
+			err = handleHeight(curr, tx)
 			if err != nil {
 				return err
 			}
@@ -159,8 +156,8 @@ func doSync(tx *sql.Tx) error {
 	return nil
 }
 
-func handleHeight(curr int,tx *sql.Tx) error{
-	resp, err := get(config.Conf.Node + BlockDetail + strconv.FormatInt(int64(curr), 10))
+func handleHeight(curr int, tx *sql.Tx) error {
+	resp, err := get("http://" + config.Conf.Ela.Host + BlockDetail + strconv.FormatInt(int64(curr), 10))
 	if err != nil {
 		return err
 	}
@@ -183,11 +180,11 @@ func handleHeight(curr int,tx *sql.Tx) error{
 		memo := ""
 		if len(attrArr) != 0 {
 			var ok bool
-			memo , ok = attrArr[0].(map[string]interface{})["data"].(string)
+			memo, ok = attrArr[0].(map[string]interface{})["data"].(string)
 			if !ok {
 				log.Warn("wrong data format")
 			}
-			err := handleMemo(memo,curr,txid,int(time),tx)
+			err := handleMemo(memo, curr, txid, int(time), tx)
 			if err != nil {
 				log.Warnf("Error parsing error memo = %v , error = %s", attrArr[0], err.Error())
 			}
@@ -213,7 +210,7 @@ func handleHeight(curr int,tx *sql.Tx) error{
 			}
 
 			for _, v := range coinbase {
-				_, err := stmt.Exec(v["address"], txid, _type, v["value"], strconv.FormatFloat(time, 'f', 0, 64), curr, 0, MINEING_ADDR, to,"",txTypeMap[CoinBase])
+				_, err := stmt.Exec(v["address"], txid, _type, v["value"], strconv.FormatFloat(time, 'f', 0, 64), curr, 0, MINEING_ADDR, to, "", txTypeMap[CoinBase])
 				if err != nil {
 					return err
 				}
@@ -230,7 +227,7 @@ func handleHeight(curr int,tx *sql.Tx) error{
 				vvm := vv.(map[string]interface{})
 				vintxid := vvm["txid"].(string)
 				vinindex := vvm["vout"].(float64)
-				txResp, err := get(config.Conf.Node + TransactionDetail + vintxid)
+				txResp, err := get("http://" + config.Conf.Ela.Host + TransactionDetail + vintxid)
 				if err != nil {
 					return err
 				}
@@ -248,7 +245,7 @@ func handleHeight(curr int,tx *sql.Tx) error{
 				} else {
 					spend[address] = value
 				}
-				if from == "" || strings.Index(from,address) != -1 {
+				if from == "" || strings.Index(from, address) != -1 {
 					from += address + ","
 				}
 			}
@@ -269,7 +266,7 @@ func handleHeight(curr int,tx *sql.Tx) error{
 				} else {
 					receive[address] = value
 				}
-				if to == "" || strings.Index(to,address) != -1 {
+				if to == "" || strings.Index(to, address) != -1 {
 					to += address + ","
 				}
 			}
@@ -292,7 +289,7 @@ func handleHeight(curr int,tx *sql.Tx) error{
 				} else {
 					value = math.Round(r * ELA)
 				}
-				_, err := stmt.Exec(k, txid, _type, int64(value), strconv.FormatFloat(time, 'f', 0, 64), curr, fee, from, to,memo,txTypeMap[int(t)])
+				_, err := stmt.Exec(k, txid, _type, int64(value), strconv.FormatFloat(time, 'f', 0, 64), curr, fee, from, to, memo, txTypeMap[int(t)])
 				if err != nil {
 					return err
 				}
@@ -300,7 +297,7 @@ func handleHeight(curr int,tx *sql.Tx) error{
 
 			for k, r := range spend {
 				_type = SPEND
-				_, err := stmt.Exec(k, txid, _type, int64(r*ELA), strconv.FormatFloat(time, 'f', 0, 64), curr, fee, from, to,memo,txTypeMap[int(t)])
+				_, err := stmt.Exec(k, txid, _type, int64(r*ELA), strconv.FormatFloat(time, 'f', 0, 64), curr, fee, from, to, memo, txTypeMap[int(t)])
 				if err != nil {
 					return err
 				}
@@ -312,20 +309,20 @@ func handleHeight(curr int,tx *sql.Tx) error{
 	return nil
 }
 
-func handleMemo(memo string,height int , txid string , createTime int,tx *sql.Tx) error{
-	b , err := hex.DecodeString(memo)
+func handleMemo(memo string, height int, txid string, createTime int, tx *sql.Tx) error {
+	b, err := hex.DecodeString(memo)
 	if err != nil {
 		return err
 	}
 	mm := make(map[string]interface{})
-	err = json.Unmarshal(b,&mm)
+	err = json.Unmarshal(b, &mm)
 	if err != nil {
 		return errors.New("Not a valid string")
 	}
 
-	msg , ok0 := mm["msg"].(string)
-	pub , ok1 := mm["pub"].(string)
-	sig , ok2 := mm["sig"].(string)
+	msg, ok0 := mm["msg"].(string)
+	pub, ok1 := mm["pub"].(string)
+	sig, ok2 := mm["sig"].(string)
 
 	if !(ok0 && ok1 && ok2) {
 		return errors.New("invalid 'msg' or 'pub' or 'sig' key in memo")
@@ -349,45 +346,45 @@ func handleMemo(memo string,height int , txid string , createTime int,tx *sql.Tx
 	}
 
 	raw := make(map[string]interface{})
-	err = json.Unmarshal(data,&raw)
+	err = json.Unmarshal(data, &raw)
 	if err != nil {
 		return errors.New("RawData is not Json")
 	}
 
-	fstats , ko := raw["Status"].(float64)
-	props , ko1 := raw["Properties"].([]interface{})
+	fstats, ko := raw["Status"].(float64)
+	props, ko1 := raw["Properties"].([]interface{})
 
 	if !(ko && ko1) {
 		return errors.New("invalid Status or Properties in did msg")
 	}
 	istats := int64(fstats)
-	for _ , v := range props {
-		in , ko3 := v.(map[string]interface{})
+	for _, v := range props {
+		in, ko3 := v.(map[string]interface{})
 
 		if !ko3 {
 			log.Warn("Properties is not valid ")
 			continue
 		}
 
-		key , ko4 :=in["Key"].(string)
-		val , ko5 :=in["Value"].(string)
-		keyStats , ko6 := in["Status"].(float64)
+		key, ko4 := in["Key"].(string)
+		val, ko5 := in["Value"].(string)
+		keyStats, ko6 := in["Status"].(float64)
 		if !(ko4 && ko5 && ko6) {
 			log.Warn("invalid Key or Value or Status in properties")
 			continue
 		}
 
-		did , _ := getDid(pub)
+		did, _ := getDid(pub)
 		if err != nil {
 			log.Warn(err.Error())
 			continue
 		}
-		stmt , err := tx.Prepare("insert into chain_did_property(did,did_status,public_key,property_key,property_key_status,property_value,txid,block_time,height) values(?,?,?,?,?,?,?,?,?)")
+		stmt, err := tx.Prepare("insert into chain_did_property(did,did_status,public_key,property_key,property_key_status,property_value,txid,block_time,height) values(?,?,?,?,?,?,?,?,?)")
 		if err != nil {
 			log.Warn(err.Error())
 			continue
 		}
-		_ , err = stmt.Exec(did,istats,pub,key,keyStats,val,txid,createTime,height)
+		_, err = stmt.Exec(did, istats, pub, key, keyStats, val, txid, createTime, height)
 		if err != nil {
 			log.Warn(err)
 			continue
@@ -397,28 +394,28 @@ func handleMemo(memo string,height int , txid string , createTime int,tx *sql.Tx
 	return nil
 }
 
-func getDid(pub string) (string , error){
+func getDid(pub string) (string, error) {
 	pubKey, err := hex.DecodeString(pub)
 	if err != nil {
-		return "",err
+		return "", err
 	}
 	publicKey, err := crypto.DecodePoint(pubKey)
 	if err != nil {
-		return "",err
+		return "", err
 	}
-	redeemScript , err := CreateRegistedRedeemedScript(publicKey)
+	redeemScript, err := CreateRegistedRedeemedScript(publicKey)
 	if err != nil {
-		return "",err
+		return "", err
 	}
-	uint168 , err := crypto.ToProgramHash(redeemScript)
+	uint168, err := crypto.ToProgramHash(redeemScript)
 	if err != nil {
-		return "",err
+		return "", err
 	}
-	did , err := uint168.ToAddress()
+	did, err := uint168.ToAddress()
 	if err != nil {
-		return "",err
+		return "", err
 	}
-	return did,nil
+	return did, nil
 }
 
 func CreateRegistedRedeemedScript(publicKey *crypto.PublicKey) ([]byte, error) {

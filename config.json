@@ -1,6 +1,15 @@
 {
-  "Node":"http://localhost:21604",
-  "ServerPort":"8080",
-  "DbDriverName":"mysql",
-  "DbDriverSource":"root:12345678@tcp(127.0.0.1:3306)/chain"
+  "Db":{
+      "DbDriverName":"mysql",
+      "DbDriverSource":"root:87654321@tcp(127.0.0.1:3306)/chain"
+  },
+  "Ela":{
+      "Host":"127.0.0.1:21334",
+      "ServerPort":"8080"
+  },
+  "Btc":{
+    "Host":"127.0.0.1:18333",
+    "Rpcuser":"clark",
+    "Rpcpasswd":"DrGhlxKuqP02m47TnDRAeZqir6Gt5V0secCHajUKW-0="
+  }
 }

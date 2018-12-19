@@ -19,14 +19,13 @@ type Dialect struct {
 	maxConns        int
 	maxIdles        int
 	connMaxLifeTime time.Duration
-
 }
 
-func NewInstance() (*Dialect){
+func NewInstance() *Dialect {
 	var dia = new(Dialect)
-	err := dia.Create(config.Conf.DbDriverSource)
+	err := dia.Create(config.Conf.Db.DbDriverSource)
 	if err != nil {
-		log.Fatalf("init Db Error : %s ",err.Error())
+		log.Fatalf("init Db Error : %s ", err.Error())
 	}
 	return dia
 }
@@ -36,7 +35,7 @@ func (dia *Dialect) Create(driverSource string) error {
 	if driverSource == "" {
 		return errors.New("driver source can not be blank")
 	}
-	db, err := sql.Open("mysql",
+	db, err := sql.Open(config.Conf.Db.DbDriverName,
 		driverSource)
 	if err != nil {
 		return err
@@ -176,52 +175,51 @@ func (dia *Dialect) Query(s string) (*list.List, error) {
 	return retList, nil
 }
 
-func (dia *Dialect) ToStruct(sql string,strct interface{}) ([]interface{},error){
-	l , err := dia.Query(sql)
+func (dia *Dialect) ToStruct(sql string, strct interface{}) ([]interface{}, error) {
+	l, err := dia.Query(sql)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 	i := 0
-	r := make([]interface{},l.Len())
-	for e := l.Front(); e != nil ; e = e.Next() {
+	r := make([]interface{}, l.Len())
+	for e := l.Front(); e != nil; e = e.Next() {
 		v := reflect.New(reflect.TypeOf(strct))
 		src := e.Value.(map[string]interface{})
 		vi := v.Interface()
-		tools.Map2Struct(src,vi)
+		tools.Map2Struct(src, vi)
 		r[i] = reflect.ValueOf(vi).Interface()
 		i++
 	}
-	return r,nil
+	return r, nil
 }
 
-func (dia *Dialect) ToInt(sql string) (int , error){
+func (dia *Dialect) ToInt(sql string) (int, error) {
 
-	l , err := dia.Query(sql)
+	l, err := dia.Query(sql)
 	if err != nil {
-		return -1 , err
+		return -1, err
 	}
 	m := l.Front().Value.(map[string]interface{})
-	for _ , v := range m {
+	for _, v := range m {
 		return strconv.Atoi(v.(string))
 	}
 
-	return  -1 , err
+	return -1, err
 }
 
-func (dia *Dialect) ToString(sql string) (string , error){
+func (dia *Dialect) ToString(sql string) (string, error) {
 
-	l , err := dia.Query(sql)
+	l, err := dia.Query(sql)
 	if err != nil {
-		return "" , err
+		return "", err
 	}
 	m := l.Front().Value.(map[string]interface{})
-	for _ , v := range m {
-		return v.(string),nil
+	for _, v := range m {
+		return v.(string), nil
 	}
 
-	return  "" , err
+	return "", err
 }
-
 
 func (dia *Dialect) Close() error {
 	return dia.db.Close()

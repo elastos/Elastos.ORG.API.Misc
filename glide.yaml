@@ -4,3 +4,6 @@ import:
 - package: github.com/elastos/Elastos.ELA.Utility
   version: 65287209cf49bdf76222c87f8b711d68543f2c5e
 - package: github.com/go-sql-driver/mysql
+- package: github.com/btcsuite/btcd
+- package: github.com/btcsuite/btcutil
+- package: github.com/btcsuite/btclog
