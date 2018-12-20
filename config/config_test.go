@@ -8,7 +8,7 @@ import (
 func Test_Config(t *testing.T) {
 	println(1)
 	var c = Conf
-	log.Info(c,Conf.Ela.ServerPort, Conf.Db.DbDriverSource, Conf.Btc.Host)
+	log.Info(c,Conf.ServerPort, Conf.Db.DbDriverSource, Conf.Btc.Host)
 }
 
 func init() {

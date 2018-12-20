@@ -23,7 +23,7 @@ var (
 )
 
 func StartServer() {
-	http.ListenAndServe(":"+config.Conf.Ela.ServerPort, router)
+	http.ListenAndServe(":"+config.Conf.ServerPort, router)
 }
 
 func init() {
@@ -211,8 +211,37 @@ var (
 
 //list list the transaction history data
 func list(w http.ResponseWriter, r *http.Request) {
+	pageNum := r.FormValue("pageNum")
+	var sql string
+	if pageNum != "" {
+		pageSize := r.FormValue("pageSize")
+		var size int64
+		if pageSize != "" {
+			var err error
+			size, err = strconv.ParseInt(pageSize, 10, 64)
+			if err != nil {
+				w.Write([]byte(`{"result":"` + err.Error() + `","status":400}`))
+				return
+			}
+		} else {
+			size = 10
+		}
+		num, err := strconv.ParseInt(pageNum, 10, 64)
+		if err != nil {
+			w.Write([]byte(`{"result":"` + err.Error() + `","status":400}`))
+			return
+		}
+		if num <= 0 {
+			num = 1
+		}
+		from := (num - 1) * size
+		sql = "select * from chain_block_transaction_history where txType = 'TransferAsset' order by id desc limit " + strconv.FormatInt(from, 10) + "," + strconv.FormatInt(size, 10)
+	} else {
+		sql = "select * from chain_block_transaction_history where txType = 'TransferAsset' order by id desc limit 100"
+	}
 
-	list, err := dba.ToStruct("select * from chain_block_transaction_history order by id desc limit 100", chain.Block_transaction_history{})
+
+	list, err := dba.ToStruct(sql, chain.Block_transaction_history{})
 
 	if err != nil {
 		w.Write([]byte(`{"result":"` + err.Error() + `","status":500}`))

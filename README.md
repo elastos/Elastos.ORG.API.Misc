@@ -14,13 +14,13 @@ Install golang version 1.10 or above , install glide to manage package dependenc
 change config.json
 ```
 {
+  "ServerPort":"8080",                                           //misc restful server port  
   "Db":{
       "DbDriverName":"mysql",
       "DbDriverSource":"root:87654321@tcp(127.0.0.1:3306)/chain" //mysql datasource
   },
   "Ela":{
       "Host":"127.0.0.1:21334",                                  //<nodeIp>:<restful-port>
-      "ServerPort":"8080"                                        //misc restful server port
   },
   // if you don't have btc node remove this part of configuration
   "Btc":{

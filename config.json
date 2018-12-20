@@ -4,12 +4,12 @@
       "DbDriverSource":"root:87654321@tcp(127.0.0.1:3306)/chain"
   },
   "Ela":{
-      "Host":"127.0.0.1:21334",
-      "ServerPort":"8080"
+      "Host":"127.0.0.1:21334"
   },
   "Btc":{
     "Host":"127.0.0.1:18333",
     "Rpcuser":"clark",
     "Rpcpasswd":"DrGhlxKuqP02m47TnDRAeZqir6Gt5V0secCHajUKW-0="
-  }
+  },
+  "ServerPort":"8080"
 }

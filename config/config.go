@@ -7,9 +7,10 @@ import (
 )
 
 type config struct {
-	Db DB
-	Ela ELA
-	Btc BTC
+	ServerPort string
+	Db  	   DB
+	Ela 	   ELA
+	Btc 	   BTC
 }
 
 type DB struct {
@@ -19,7 +20,6 @@ type DB struct {
 
 type ELA struct {
 	Host       string
-	ServerPort string
 }
 
 type BTC struct {
