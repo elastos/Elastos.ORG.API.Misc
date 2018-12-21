@@ -34,6 +34,12 @@ var (
 		"/api/1/btc/transaction/{txid}": {
 			"Get": getBtcTransaction,
 		},
+		"/api/1/btc/balance/{addr}": {
+			"Get": getBtcBalance,
+		},
+		"/api/1/btc/detail/block/{height}": {
+			"Get": getBtcBlock,
+		},
 	}
 	router = mux.NewRouter()
 )

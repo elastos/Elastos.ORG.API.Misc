@@ -23,9 +23,11 @@ type ELA struct {
 }
 
 type BTC struct {
-	Host      string
-	Rpcuser   string
-	Rpcpasswd string
+	Host       string
+	Rpcuser    string
+	Rpcpasswd  string
+	MinConfirm int
+	Net 	   string
 }
 
 var Conf *config

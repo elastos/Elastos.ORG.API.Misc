@@ -3,12 +3,9 @@ package http
 import (
 	"encoding/hex"
 	"encoding/json"
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/rpcclient"
 	"github.com/elastos/Elastos.ORG.API.Misc/chain"
 	"github.com/elastos/Elastos.ORG.API.Misc/config"
 	"github.com/elastos/Elastos.ORG.API.Misc/db"
-	"github.com/elastos/Elastos.ORG.API.Misc/log"
 	"github.com/elastos/Elastos.ORG.API.Misc/tools"
 	"github.com/gorilla/mux"
 	"html/template"
@@ -18,30 +15,11 @@ import (
 )
 
 var (
-	dba    = db.NewInstance()
-	client *rpcclient.Client
+	dba    		= db.NewInstance()
 )
 
 func StartServer() {
 	http.ListenAndServe(":"+config.Conf.ServerPort, router)
-}
-
-func init() {
-	if config.Conf.Btc.Host != "" {
-		go func() {
-			var err error
-			client, err = rpcclient.New(&rpcclient.ConnConfig{
-				HTTPPostMode: true,
-				DisableTLS:   true,
-				Host:         config.Conf.Btc.Host,
-				User:         config.Conf.Btc.Rpcuser,
-				Pass:         config.Conf.Btc.Rpcpasswd,
-			}, nil)
-			if err != nil {
-				log.Error("Error Connect to Bitcoin node :" , err.Error())
-			}
-		}()
-	}
 }
 
 //searchKey search did property key
@@ -258,32 +236,48 @@ func list(w http.ResponseWriter, r *http.Request) {
 
 //getBtcBlockHeight get bitcoin current blockchain height
 func getBtcBlockHeight(w http.ResponseWriter, r *http.Request) {
-	blockHeight , err := client.GetBlockCount()
+	helper := rpchelper{}
+	height , err , status := helper.getBestheight()
 	if err != nil {
-		w.Write([]byte(`{"result":"` + err.Error() + `","status":500}`))
+		w.Write([]byte(`{"result":"` + err.Error() + `","status":`+strconv.Itoa(status)+`}`))
 		return
 	}
-	w.Write([]byte(`{"result":` + strconv.Itoa(int(blockHeight)) + `,"status":200}`))
+	w.Write([]byte(`{"result":` + strconv.Itoa(int(height)) + `,"status":200}`))
 }
 
 //getBtcTransaction get bitcoin transaction
 func getBtcTransaction(w http.ResponseWriter, r *http.Request) {
 	param := mux.Vars(r)
-	txid := param["txid"]
-	btxid , err := hex.DecodeString(txid)
-	if err != nil || len(btxid) != 32{
-		w.Write([]byte(`{"result":"Invalid txid","status":400}`))
-		return
-	}
-
-	hash := &chainhash.Hash{}
-	hash.SetBytes(tools.ReverseBytes(btxid))
-	tx , err := client.GetRawTransactionVerbose(hash)
-
+	helper := rpchelper{param}
+	transaction , err , status := helper.getTransaction()
 	if err != nil {
-		w.Write([]byte(`{"result":"` + err.Error() + `","status":500}`))
+		w.Write([]byte(`{"result":"` + err.Error() + `","status":`+strconv.Itoa(status)+`}`))
 		return
 	}
-	buf , _ :=json.Marshal(tx)
-	w.Write([]byte(`{"result":` + string(buf) + `,"status":200}`))
+	w.Write([]byte(`{"result":` + transaction + `,"status":200}`))
+}
+
+//getBtcBalance get bitcoin balance of the requested address
+func getBtcBalance(w http.ResponseWriter,r *http.Request) {
+	param := mux.Vars(r)
+	helper := rpchelper{param}
+	balance , err , status := helper.getBalance()
+	if err != nil {
+		w.Write([]byte(`{"result":"` + err.Error() + `","status":`+strconv.Itoa(status)+`}`))
+		return
+	}
+	w.Write([]byte(`{"result":` + strconv.FormatFloat(balance,'f',8,64) + `,"status":200}`))
+}
+
+//getBtcBlock get bitcoin block info
+func getBtcBlock(w http.ResponseWriter,r *http.Request) {
+	param := mux.Vars(r)
+	helper := rpchelper{param}
+	block , err , status := helper.getBlockDetail()
+	if err != nil {
+		w.Write([]byte(`{"result":"` + err.Error() + `","status":`+strconv.Itoa(status)+`}`))
+		return
+	}
+	w.Write([]byte(`{"result":` + block + `,"status":200}`))
+
 }
