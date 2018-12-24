@@ -190,6 +190,7 @@ var (
 //list list the transaction history data
 func list(w http.ResponseWriter, r *http.Request) {
 	pageNum := r.FormValue("pageNum")
+	txId := r.FormValue("txId")
 	var sql string
 	if pageNum != "" {
 		pageSize := r.FormValue("pageSize")
@@ -213,9 +214,17 @@ func list(w http.ResponseWriter, r *http.Request) {
 			num = 1
 		}
 		from := (num - 1) * size
-		sql = "select * from chain_block_transaction_history where txType = 'TransferAsset' order by id desc limit " + strconv.FormatInt(from, 10) + "," + strconv.FormatInt(size, 10)
+		if txId != "" {
+			sql = "select * from chain_block_transaction_history where txType = 'TransferAsset' and txid = '"+txId+"' order by id desc limit " + strconv.FormatInt(from, 10) + "," + strconv.FormatInt(size, 10)
+		}else {
+			sql = "select * from chain_block_transaction_history where txType = 'TransferAsset' order by id desc limit " + strconv.FormatInt(from, 10) + "," + strconv.FormatInt(size, 10)
+		}
 	} else {
-		sql = "select * from chain_block_transaction_history where txType = 'TransferAsset' order by id desc limit 100"
+		if txId != "" {
+			sql = "select * from chain_block_transaction_history where txType = 'TransferAsset' and txid = '"+txId+"' order by id desc limit 100"
+		}else {
+			sql = "select * from chain_block_transaction_history where txType = 'TransferAsset' order by id desc limit 100"
+		}
 	}
 
 
