@@ -54,6 +54,15 @@ var txTypeMap = map[int]string{
 	TransferCrossChainAsset: "TransferCrossChainAsset",
 }
 
+const (
+	Nonce          int = 0x00
+	Script         int = 0x20
+	Memo           int = 0x81
+	Description    int = 0x90
+	DescriptionUrl int = 0x91
+	Confirmations  int = 0x92
+)
+
 var dba = db.NewInstance()
 
 type Address_history struct {
@@ -180,13 +189,18 @@ func handleHeight(curr int, tx *sql.Tx) error {
 		memo := ""
 		if len(attrArr) != 0 {
 			var ok bool
-			memo, ok = attrArr[0].(map[string]interface{})["data"].(string)
-			if !ok {
-				log.Warn("wrong data format")
-			}
-			err := handleMemo(memo, curr, txid, int(time), tx)
-			if err != nil {
-				log.Warnf("Error parsing error memo = %v , error = %s", attrArr[0], err.Error())
+			attr := attrArr[0].(map[string]interface{})
+			usage := attr["usage"].(float64)
+
+			if int(usage) == Memo || int(usage) == DescriptionUrl {
+				memo, ok = attr["data"].(string)
+				if !ok {
+					log.Warn("wrong data format")
+				}
+				err := handleMemo(memo, curr, txid, int(time), tx)
+				if err != nil {
+					log.Warnf("Error parsing error memo = %v , error = %s", attrArr[0], err.Error())
+				}
 			}
 		}
 		if int(t) == CoinBase {
