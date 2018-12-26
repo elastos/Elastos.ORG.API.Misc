@@ -1,6 +1,10 @@
 {
-  "Node":"@NODE_REST_API@",
   "ServerPort":"8080",
-  "DbDriverName":"mysql",
-  "DbDriverSource":"@DB_USER@:@DB_PASS@@tcp(@DB_HOST@:3306)/@DB_NAME@"
+  "Db":{
+      "DbDriverName":"mysql",
+      "DbDriverSource":"@DB_USER@:@DB_PASS@@tcp(@DB_HOST@:3306)/@DB_NAME@"
+  },
+  "Ela":{
+      "Host":"@NODE_REST_API@"
+  }
 }
