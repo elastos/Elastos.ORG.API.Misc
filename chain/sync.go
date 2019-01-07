@@ -366,6 +366,18 @@ func handleMemo(memo string, height int, txid string, createTime int, tx *sql.Tx
 	}
 
 	fstats, ko := raw["Status"].(float64)
+	// compatible string
+	if !ko {
+		sstats := ""
+		sstats , ko = raw["Status"].(string)
+		if sstats == "Normal" {
+			fstats = 1
+		} else if sstats == "Deprecated" {
+			fstats = 0
+		}else {
+			ko = false
+		}
+	}
 	props, ko1 := raw["Properties"].([]interface{})
 
 	if !(ko && ko1) {
@@ -383,6 +395,17 @@ func handleMemo(memo string, height int, txid string, createTime int, tx *sql.Tx
 		key, ko4 := in["Key"].(string)
 		val, ko5 := in["Value"].(string)
 		keyStats, ko6 := in["Status"].(float64)
+		if !ko6 {
+			skeyStats := ""
+			skeyStats , ko6 = in["Status"].(string)
+			if skeyStats == "Normal" {
+				keyStats = 1
+			} else if skeyStats == "Deprecated" {
+				keyStats = 0
+			}else {
+				ko6 = false
+			}
+		}
 		if !(ko4 && ko5 && ko6) {
 			log.Warn("invalid Key or Value or Status in properties")
 			continue
