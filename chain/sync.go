@@ -11,6 +11,7 @@ import (
 	"github.com/elastos/Elastos.ORG.API.Misc/config"
 	"github.com/elastos/Elastos.ORG.API.Misc/db"
 	"github.com/elastos/Elastos.ORG.API.Misc/log"
+	"github.com/elastos/Elastos.ORG.API.Misc/tools"
 	"io/ioutil"
 	"math"
 	"net/http"
@@ -26,8 +27,7 @@ const (
 	INCOME            = "income"
 	SPEND             = "spend"
 	ELA               = 100000000
-	MINEING_ADDR      = "0000000000000000000000000000000000"
-	CROSS_CHAIN_FEE   = 10000
+	MINING_ADDR      = "0000000000000000000000000000000000"
 )
 
 const (
@@ -37,8 +37,11 @@ const (
 	Record
 	Deploy
 	SideChainPow
+	// cross chain transfer tx in did chain
 	RechargeToSideChain
+	// cross chain transfer tx in main chain
 	WithdrawFromSideChain
+	// cross chain transfer the initial chain
 	TransferCrossChainAsset
 )
 
@@ -94,6 +97,23 @@ type Did_Property struct {
 	Txid                string
 	Block_time          int
 	Height              int
+}
+
+type Block_header struct {
+	Hash 				string
+	Size 				int64
+	Weight 				int64
+	Height 				int64
+	Version 			int64
+	Merkleroot  		string
+	Time 				int64
+	Nonce				int64
+	Bits  				int64
+	Difficulty  		string
+	Chainwork   		string
+	Previousblockhash 	string	`json:previous_block_hash`
+	Nextblockhash		string  `json:next_block_hash`
+	Minerinfo			string	`json:miner_info`
 }
 
 //Sync sync chain data
@@ -174,6 +194,21 @@ func handleHeight(curr int, tx *sql.Tx) error {
 	if len(txArr) == 0 {
 		return nil
 	}
+	result := resp["Result"].(map[string]interface{})
+	// header
+	header := Block_header{}
+	tools.Map2Struct(result,&header)
+
+	stmt , err := tx.Prepare("insert into chain_block_header (hash,weight,height,version,merkleroot,`time`,nonce,bits,difficulty,chainwork,previous_block_hash,next_block_hash,miner_info) values(?,?,?,?,?,?,?,?,?,?,?,?,?)")
+	if err != nil {
+		return err
+	}
+
+	_ , err = stmt.Exec(header.Hash,header.Weight,header.Height,header.Version,header.Merkleroot,header.Time,header.Nonce,header.Bits,header.Difficulty,header.Chainwork,header.Previousblockhash,header.Nextblockhash,header.Minerinfo)
+	if err != nil {
+		return err
+	}
+
 	for _, v := range txArr {
 		stmt, err := tx.Prepare("insert into chain_block_transaction_history (address,txid,type,value,createTime,height,fee,inputs,outputs,memo,txType) values(?,?,?,?,?,?,?,?,?,?,?)")
 		if err != nil {
@@ -224,14 +259,17 @@ func handleHeight(curr int, tx *sql.Tx) error {
 			}
 
 			for _, v := range coinbase {
-				_, err := stmt.Exec(v["address"], txid, _type, v["value"], strconv.FormatFloat(time, 'f', 0, 64), curr, 0, MINEING_ADDR, to, "", txTypeMap[CoinBase])
+				_, err := stmt.Exec(v["address"], txid, _type, v["value"], strconv.FormatFloat(time, 'f', 0, 64), curr, 0, MINING_ADDR, to, "", txTypeMap[CoinBase])
 				if err != nil {
 					return err
 				}
 			}
 
 		} else {
-
+			isCrossTx := false
+			if int(t) == TransferCrossChainAsset {
+				isCrossTx = true
+			}
 			vin := vm["vin"].([]interface{})
 			spend := make(map[string]float64)
 			totalInput := 0.0
@@ -245,14 +283,15 @@ func handleHeight(curr int, tx *sql.Tx) error {
 				if err != nil {
 					return err
 				}
-				vout := ((txResp["Result"].(map[string]interface{}))["vout"].([]interface{}))[int(vinindex)]
+				result := (txResp["Result"].(map[string]interface{}))
+				vout := (result["vout"].([]interface{}))[int(vinindex)]
 				voutm := vout.(map[string]interface{})
 				address := voutm["address"].(string)
 				value, err := strconv.ParseFloat(voutm["value"].(string), 64)
-				totalInput += value
 				if err != nil {
 					return err
 				}
+				totalInput += value
 				v, ok := spend[address]
 				if ok {
 					spend[address] = v + value
@@ -268,12 +307,21 @@ func handleHeight(curr int, tx *sql.Tx) error {
 			totalOutput := 0.0
 			for _, vv := range vout {
 				vvm := vv.(map[string]interface{})
+				address := vvm["address"].(string)
+				var valueCross float64
+				if isCrossTx == true && (address == MINING_ADDR || strings.Index(address,"X") == 0) {
+					payload := vm["payload"].(map[string]interface{})
+					valueCross = payload["CrossChainAmounts"].([]interface{})[0].(float64) / ELA
+				}
 				value, err := strconv.ParseFloat(vvm["value"].(string), 64)
-				totalOutput += value
 				if err != nil {
 					return err
 				}
-				address := vvm["address"].(string)
+				if valueCross != 0 {
+					totalOutput += valueCross
+				}else{
+					totalOutput += value
+				}
 				v, ok := receive[address]
 				if ok {
 					receive[address] = v + value
@@ -285,9 +333,6 @@ func handleHeight(curr int, tx *sql.Tx) error {
 				}
 			}
 			fee := int64(math.Round((totalInput - totalOutput) * ELA))
-			if fee < 0 {
-				fee = CROSS_CHAIN_FEE
-			}
 			for k, r := range receive {
 				_type = INCOME
 				s, ok := spend[k]
@@ -303,7 +348,11 @@ func handleHeight(curr int, tx *sql.Tx) error {
 				} else {
 					value = math.Round(r * ELA)
 				}
-				_, err := stmt.Exec(k, txid, _type, int64(value), strconv.FormatFloat(time, 'f', 0, 64), curr, fee, from, to, memo, txTypeMap[int(t)])
+				realFee := fee
+				if _type == INCOME {
+					realFee = 0
+				}
+				_, err := stmt.Exec(k, txid, _type, int64(value), strconv.FormatFloat(time, 'f', 0, 64), curr, realFee, from, to, memo, txTypeMap[int(t)])
 				if err != nil {
 					return err
 				}

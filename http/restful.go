@@ -82,9 +82,9 @@ func history(w http.ResponseWriter, r *http.Request) {
 			num = 1
 		}
 		from := (num - 1) * size
-		sql = "select txid,type,value,createTime,height,inputs,outputs,fee,txType,memo from chain_block_transaction_history where address = '" + address + "' limit " + strconv.FormatInt(from, 10) + "," + strconv.FormatInt(size, 10)
+		sql = "select address,txid,type,value,createTime,height,inputs,outputs,fee,txType,memo from chain_block_transaction_history where address = '" + address + "' limit " + strconv.FormatInt(from, 10) + "," + strconv.FormatInt(size, 10)
 	} else {
-		sql = "select txid,type,value,createTime,height,inputs,outputs,fee,txType,memo from chain_block_transaction_history where address = '" + address + "'"
+		sql = "select address,txid,type,value,createTime,height,inputs,outputs,fee,txType,memo from chain_block_transaction_history where address = '" + address + "'"
 	}
 	l, err := dba.Query(sql)
 	if err != nil {
@@ -128,9 +128,11 @@ func history(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(`{"result":` + string(buf) + `,"status":200}`))
 }
 
+var version = "1.0.1"
+
 //ping ping can be used as a heart beat
 func ping(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte(`{"result":"pong","status":200}`))
+	w.Write([]byte(`{"result":"pong "`+version+`,"status":200}`))
 }
 
 const tpl = `
