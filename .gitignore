@@ -6,3 +6,5 @@ vendor/*
 back
 logs/*
 glide.lock
+go.mod
+go.sum

@@ -2,7 +2,11 @@ package chain
 
 import (
 	"encoding/hex"
+	"encoding/json"
+	"fmt"
 	"github.com/elastos/Elastos.ORG.API.Misc/log"
+	"github.com/elastos/Elastos.ORG.API.Misc/tools"
+	"reflect"
 	"testing"
 )
 
@@ -36,6 +40,28 @@ func Test_handleMemo(t *testing.T) {
 
 	println(a)
 
+}
+
+func Test_TypeConverter(t *testing.T){
+
+	header := Block_header{}
+	result := make(map[string]interface{})
+	jsonStr := `{"hash":"71b422e09dcd2f749d2adc0086735c210084cdb6b59bd4cd42e50455d024a662",
+"confirmations":196504,"strippedsize":498,"size":498,"weight":1992,"height":1,"version":0,"minerinfo":"ELA"}`
+	err := json.Unmarshal([]byte(jsonStr),&result)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	tools.Map2Struct(result,&header)
+
+	fmt.Println(header)
+}
+
+func Test_(t *testing.T){
+	var b float64 = 100000000
+	a := b/ELA
+	println(a,reflect.TypeOf(a).Name())
 }
 
 func init() {

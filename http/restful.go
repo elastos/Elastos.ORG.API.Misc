@@ -132,7 +132,7 @@ var version = "1.0.1"
 
 //ping ping can be used as a heart beat
 func ping(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte(`{"result":"pong "`+version+`,"status":200}`))
+	w.Write([]byte(`{"result":"pong `+version+`","status":200}`))
 }
 
 const tpl = `

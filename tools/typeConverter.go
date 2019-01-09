@@ -86,6 +86,10 @@ func Map2Struct(src map[string]interface{}, destStrct interface{}) {
 				}
 			}
 
+			// make float64 and int64 more friendly
+			if mvt == "float64" && sft == "int64" {
+				f.Set(reflect.ValueOf(int64(v.(float64))))
+			}
 			continue
 		}
 		f.Set(mv)

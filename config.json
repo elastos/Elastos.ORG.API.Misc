@@ -5,7 +5,7 @@
       "DbDriverSource":"root:87654321@tcp(127.0.0.1:3306)/chain"
   },
   "Ela":{
-      "Host":"127.0.0.1:21334"
+      "Host":"node-testnet-002.elastos.org:21334"
   },
   "Btc":{
     "Host":"127.0.0.1:18332",
