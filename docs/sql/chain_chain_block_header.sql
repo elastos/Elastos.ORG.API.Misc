@@ -39,7 +39,7 @@ CREATE TABLE `chain_block_header` (
   `miner_info` varchar(64) COLLATE utf8mb4_bin NOT NULL COMMENT ' miner name',
   `local_system_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=963 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='block header';
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='block header';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -52,3 +52,6 @@ CREATE TABLE `chain_block_header` (
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2019-01-09 14:53:22
+
+CREATE INDEX idx_chain_block_header_height ON chain_block_header (height);
+CREATE INDEX idx_chain_block_header_hash ON chain_block_header (hash);
