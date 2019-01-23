@@ -55,3 +55,4 @@ CREATE TABLE `chain_block_header` (
 
 CREATE INDEX idx_chain_block_header_height ON chain_block_header (height);
 CREATE INDEX idx_chain_block_header_hash ON chain_block_header (hash);
+alter table chain_block_header add size int(64) default 0;

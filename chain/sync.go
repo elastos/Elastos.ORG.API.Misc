@@ -199,15 +199,17 @@ func handleHeight(curr int, tx *sql.Tx) error {
 	header := Block_header{}
 	tools.Map2Struct(result,&header)
 
-	stmt , err := tx.Prepare("insert into chain_block_header (hash,weight,height,version,merkleroot,`time`,nonce,bits,difficulty,chainwork,previous_block_hash,next_block_hash,miner_info) values(?,?,?,?,?,?,?,?,?,?,?,?,?)")
+	stmt , err := tx.Prepare("insert into chain_block_header (hash,weight,height,version,merkleroot,`time`,nonce,bits,difficulty,chainwork,previous_block_hash,next_block_hash,miner_info,`size`) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
 	if err != nil {
 		return err
 	}
 
-	_ , err = stmt.Exec(header.Hash,header.Weight,header.Height,header.Version,header.Merkleroot,header.Time,header.Nonce,header.Bits,header.Difficulty,header.Chainwork,header.Previousblockhash,header.Nextblockhash,header.Minerinfo)
+	_ , err = stmt.Exec(header.Hash,header.Weight,header.Height,header.Version,header.Merkleroot,header.Time,header.Nonce,header.Bits,header.Difficulty,header.Chainwork,header.Previousblockhash,header.Nextblockhash,header.Minerinfo,header.Size)
 	if err != nil {
 		return err
 	}
+
+	stmt.Close()
 
 	for _, v := range txArr {
 		stmt, err := tx.Prepare("insert into chain_block_transaction_history (address,txid,type,value,createTime,height,fee,inputs,outputs,memo,txType) values(?,?,?,?,?,?,?,?,?,?,?)")
@@ -475,6 +477,7 @@ func handleMemo(memo string, height int, txid string, createTime int, tx *sql.Tx
 			log.Warn(err)
 			continue
 		}
+		stmt.Close()
 	}
 
 	return nil
