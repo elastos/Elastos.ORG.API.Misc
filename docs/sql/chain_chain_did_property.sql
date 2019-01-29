@@ -49,3 +49,4 @@ CREATE TABLE `chain_did_property` (
 
 -- Dump completed on 2018-12-10 10:32:03
 CREATE INDEX idx_chain_did_property_property_key ON chain_did_property (property_key);
+CREATE INDEX idx_chain_did_property_txid ON chain_did_property (txid);
