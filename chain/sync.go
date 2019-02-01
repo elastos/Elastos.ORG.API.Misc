@@ -374,6 +374,19 @@ func handleHeight(curr int, tx *sql.Tx) error {
 	return nil
 }
 
+type Properties struct{
+	Key  	string
+	Value 	string
+	Status  interface{}
+}
+
+type Did_info struct {
+	Tag 	   string
+	Ver 	   string
+	Status     interface{}
+	Properties []Properties
+}
+
 func handleMemo(memo string, height int, txid string, createTime int, tx *sql.Tx) error {
 	b, err := hex.DecodeString(memo)
 	if err != nil {
@@ -410,17 +423,23 @@ func handleMemo(memo string, height int, txid string, createTime int, tx *sql.Tx
 		return err
 	}
 
-	raw := make(map[string]interface{})
+	//raw := make(map[string]interface{})
+	raw := Did_info{}
 	err = json.Unmarshal(data, &raw)
 	if err != nil {
 		return errors.New("RawData is not Json")
 	}
 
-	fstats, ko := raw["Status"].(float64)
+	err = json.Unmarshal(data, &raw)
+	if err != nil {
+		return errors.New("RawData is not Json")
+	}
+
+	fstats, ko := raw.Status.(float64)
 	// compatible string
 	if !ko {
 		sstats := ""
-		sstats , ko = raw["Status"].(string)
+		sstats , ko = raw.Status.(string)
 		if sstats == "Normal" {
 			fstats = 1
 		} else if sstats == "Deprecated" {
@@ -429,26 +448,12 @@ func handleMemo(memo string, height int, txid string, createTime int, tx *sql.Tx
 			ko = false
 		}
 	}
-	props, ko1 := raw["Properties"].([]interface{})
-
-	if !(ko && ko1) {
-		return errors.New("invalid Status or Properties in did msg")
-	}
 	istats := int64(fstats)
-	for _, v := range props {
-		in, ko3 := v.(map[string]interface{})
-
-		if !ko3 {
-			log.Warn("Properties is not valid ")
-			continue
-		}
-
-		key, ko4 := in["Key"].(string)
-		val, ko5 := in["Value"].(string)
-		keyStats, ko6 := in["Status"].(float64)
+	for _, v := range raw.Properties {
+		keyStats, ko6 := v.Status.(float64)
 		if !ko6 {
 			skeyStats := ""
-			skeyStats , ko6 = in["Status"].(string)
+			skeyStats , ko6 = v.Status.(string)
 			if skeyStats == "Normal" {
 				keyStats = 1
 			} else if skeyStats == "Deprecated" {
@@ -457,7 +462,7 @@ func handleMemo(memo string, height int, txid string, createTime int, tx *sql.Tx
 				ko6 = false
 			}
 		}
-		if !(ko4 && ko5 && ko6) {
+		if !(ko6) {
 			log.Warn("invalid Key or Value or Status in properties")
 			continue
 		}
@@ -472,7 +477,7 @@ func handleMemo(memo string, height int, txid string, createTime int, tx *sql.Tx
 			log.Warn(err.Error())
 			continue
 		}
-		_, err = stmt.Exec(did, istats, pub, key, keyStats, val, txid, createTime, height)
+		_, err = stmt.Exec(did, istats, pub, v.Key, keyStats, v.Value, txid, createTime, height)
 		if err != nil {
 			log.Warn(err)
 			continue
