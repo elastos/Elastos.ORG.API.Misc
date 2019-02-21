@@ -256,8 +256,9 @@ func handleHeight(curr int, tx *sql.Tx) error {
 				coinbaseMap["value"] = int64(fv * ELA)
 				coinbaseMap["address"] = address
 				coinbase = append(coinbase, coinbaseMap)
-				to += address + ","
-
+				if to == "" || strings.Index(to, address) == -1 {
+					to += address + ","
+				}
 			}
 
 			for _, v := range coinbase {
@@ -300,7 +301,7 @@ func handleHeight(curr int, tx *sql.Tx) error {
 				} else {
 					spend[address] = value
 				}
-				if from == "" || strings.Index(from, address) != -1 {
+				if from == "" || strings.Index(from, address) == -1 {
 					from += address + ","
 				}
 			}
@@ -330,7 +331,7 @@ func handleHeight(curr int, tx *sql.Tx) error {
 				} else {
 					receive[address] = value
 				}
-				if to == "" || strings.Index(to, address) != -1 {
+				if to == "" || strings.Index(to, address) == -1 {
 					to += address + ","
 				}
 			}
@@ -425,11 +426,6 @@ func handleMemo(memo string, height int, txid string, createTime int, tx *sql.Tx
 
 	//raw := make(map[string]interface{})
 	raw := Did_info{}
-	err = json.Unmarshal(data, &raw)
-	if err != nil {
-		return errors.New("RawData is not Json")
-	}
-
 	err = json.Unmarshal(data, &raw)
 	if err != nil {
 		return errors.New("RawData is not Json")
