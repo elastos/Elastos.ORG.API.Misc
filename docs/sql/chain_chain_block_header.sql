@@ -30,7 +30,7 @@ CREATE TABLE `chain_block_header` (
   `version` int(2) NOT NULL,
   `merkleroot` varchar(64) COLLATE utf8mb4_bin NOT NULL COMMENT 'merkle root',
   `time` int(64) NOT NULL COMMENT 'block time',
-  `nonce` int(64) NOT NULL,
+  `nonce` BIGINT(64) NOT NULL,
   `bits` int(64) NOT NULL,
   `difficulty` varchar(64) COLLATE utf8mb4_bin NOT NULL,
   `chainwork` varchar(64) COLLATE utf8mb4_bin NOT NULL,
