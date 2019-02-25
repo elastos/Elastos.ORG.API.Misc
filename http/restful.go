@@ -1,8 +1,11 @@
 package http
 
 import (
+	"bytes"
+	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"engo.io/engo/math"
 	"github.com/elastos/Elastos.ORG.API.Misc/chain"
 	"github.com/elastos/Elastos.ORG.API.Misc/config"
 	"github.com/elastos/Elastos.ORG.API.Misc/db"
@@ -12,6 +15,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var (
@@ -291,4 +295,62 @@ func getBtcBlock(w http.ResponseWriter,r *http.Request) {
 	}
 	w.Write([]byte(`{"result":` + block + `,"status":200}`))
 
+}
+
+//getCmcPrice get price from cmc
+func getCmcPrice(w http.ResponseWriter,r *http.Request){
+	apiKey := r.Header["Apikey"]
+	tp_param := r.Header["Timestamp"]
+	if len(apiKey) == 0 || len(tp_param) == 0{
+		http.Error(w, "invalid request param : apiKey or timestamp can not be blank" , http.StatusBadRequest)
+		return
+	}
+	itp_param , err := strconv.ParseInt(tp_param[0],10,64)
+	if err != nil {
+		http.Error(w, "invalid request param : invalid timestamp" , http.StatusBadRequest)
+		return
+	}
+	tp_local := time.Now().UTC().Unix() * 1000
+	if math.Abs(float32(tp_local - itp_param))/(1000 * 60) > 5 {
+		http.Error(w, "invalid request param : apiKey out of date " , http.StatusBadRequest)
+		return
+	}
+	keyHash := sha256.Sum256([]byte(config.Conf.VisitKey+tp_param[0]))
+	if hex.EncodeToString(keyHash[:]) != apiKey[0] {
+		http.Error(w, "invalid request param : validate apiKey Error" , http.StatusBadRequest)
+		return
+	}
+	limit := r.FormValue("limit")
+	if limit == "" {
+		http.Error(w, "invalid request param : limit can not be blank" , http.StatusBadRequest)
+		return
+	}
+	_id , err := dba.ToInt("select _id from chain_cmc_price where symbol = 'BTC' order by id desc")
+	if err != nil {
+		http.Error(w,"internal error " + err.Error(), http.StatusInternalServerError)
+	}
+	l , err := dba.Query("select * from chain_cmc_price limit " +strconv.Itoa(_id-1) + "," + limit)
+	if err != nil {
+		http.Error(w,"internal error " + err.Error(), http.StatusInternalServerError)
+		return
+	}
+	ret := [][]byte{
+		[]byte("["),
+	}
+	i := 0
+	for e := l.Front() ; e !=nil ;e = e.Next(){
+		m := e.Value.(map[string]interface{})
+		buf , err := json.Marshal(m)
+		if err != nil {
+			http.Error(w,"internal error " + err.Error(), http.StatusInternalServerError )
+			return
+		}
+		ret = append(ret,buf)
+		if i != l.Len() - 1 {
+			ret = append(ret,[]byte(","))
+		}
+		i++
+	}
+	ret = append(ret,[]byte("]"))
+	w.Write(bytes.Join(ret,nil))
 }

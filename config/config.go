@@ -11,6 +11,13 @@ type config struct {
 	Db  	   DB
 	Ela 	   ELA
 	Btc 	   BTC
+	Cmc  	   Cmc
+	VisitKey   string
+}
+
+type Cmc struct {
+	ApiKey  []string
+	Inteval int
 }
 
 type DB struct {

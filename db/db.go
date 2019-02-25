@@ -86,13 +86,13 @@ func (dia *Dialect) Rollback(tx *sql.Tx) error {
 }
 
 //Execute data manipulate language
-func (dia *Dialect) Execute(sql string) (int64, error) {
+func (dia *Dialect) Execute(sql string,args ...string) (int64, error) {
 	log.Info(sql)
 	stmt, err := dia.db.Prepare(sql)
 	if err != nil {
 		return 0, err
 	}
-	result, err := stmt.Exec()
+	result, err := stmt.Exec(args)
 	if err != nil {
 		return 0, err
 	}

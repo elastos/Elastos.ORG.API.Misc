@@ -40,6 +40,11 @@ var (
 		"/api/1/btc/detail/block/{height}": {
 			"Get": getBtcBlock,
 		},
+
+		//CoinMarketCap
+		"/api/1/cmc":{
+			"Get":getCmcPrice,
+		},
 	}
 	router = mux.NewRouter()
 )
