@@ -1,3 +1,5 @@
+.idea
+elaChain
 *.lock
 nohup.out
 sync
@@ -8,3 +10,4 @@ logs/*
 glide.lock
 go.mod
 go.sum
+*.backup
