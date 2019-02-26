@@ -330,6 +330,10 @@ func getCmcPrice(w http.ResponseWriter,r *http.Request){
 		http.Error(w, `{"result":"invalid request param : limit must be a number " ,"status":`+strconv.Itoa(http.StatusBadRequest)+`}` , http.StatusBadRequest)
 		return
 	}
+	if ilimit > config.Conf.Cmc.NumOfCoin {
+		http.Error(w, `{"result":"invalid request param : limit exceed maximum value " ,"status":`+strconv.Itoa(http.StatusBadRequest)+`}` , http.StatusBadRequest)
+		return
+	}
 	_id , err := dba.ToInt("select _id from chain_cmc_price where symbol = 'BTC' order by _id desc limit 1")
 	if err != nil {
 		http.Error(w,`{"result":"internal error : `+ err.Error()+`","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusInternalServerError)

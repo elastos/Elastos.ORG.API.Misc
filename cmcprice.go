@@ -150,7 +150,7 @@ func saveToDb(cmcResponseUSD , cmcResponseCNY , cmcResponseBTC CmcResponse) erro
 }
 
 func fetchPrice(i int,curr string) (CmcResponse,error){
-	url := fmt.Sprintf(CMC_ENDPOINT_URL, 200, curr)
+	url := fmt.Sprintf(CMC_ENDPOINT_URL, config.Conf.Cmc.NumOfCoin, curr)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return CmcResponse{},err

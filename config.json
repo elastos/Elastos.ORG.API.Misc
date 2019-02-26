@@ -9,7 +9,8 @@
   },
   "Cmc":{
     "ApiKey":["d72b4bf0-00f3-4bab-8dca-45df2b0fb14c","cfa976fc-7642-4946-a0b2-858619fb2802"],
-    "Inteval":"30m"
+    "Inteval":"30m",
+    "NumOfCoin":200
   },
   "Btc":{
     "Host":"127.0.0.1:18332",
