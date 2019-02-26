@@ -71,37 +71,38 @@ var dba = db.NewInstance()
 func init() {
 	go func() {
 		i := 0
+		sleepy , err := time.ParseDuration(config.Conf.Cmc.Inteval)
+		if err != nil {
+			fmt.Printf("%s",err.Error())
+			os.Exit(-1)
+		}
 		for{
-			sleepy , err := time.ParseDuration(config.Conf.Cmc.Inteval)
-			if err != nil {
-				fmt.Printf("%s",err.Error())
-				os.Exit(-1)
-			}
-			<- time.After(sleepy)
 			cmcResponseUSD , err := fetchPrice(i,"USD")
 			if err != nil {
-				fmt.Printf("Error init cmc price %s", err.Error())
-				continue
+				fmt.Printf("Error in cmc price %s", err.Error())
+				break
 			}
 			cmcResponseCNY , err := fetchPrice(i,"CNY")
 			if err != nil {
-				fmt.Printf("Error init cmc price %s", err.Error())
-				continue
+				fmt.Printf("Error in cmc price %s", err.Error())
+				break
 			}
 			cmcResponseBTC , err := fetchPrice(i,"BTC")
 			if err != nil {
-				fmt.Printf("Error init cmc price %s", err.Error())
-				continue
+				fmt.Printf("Error in cmc price %s", err.Error())
+				break
 			}
 			err = saveToDb(cmcResponseUSD,cmcResponseCNY,cmcResponseBTC)
 			if err != nil {
-				fmt.Printf("Error init cmc price %s", err.Error())
+				fmt.Printf("Error in cmc price %s", err.Error())
+				break
 			}
 			if i == len(config.Conf.Cmc.ApiKey) -1 {
 				i = 0
 			}else{
 				i++
 			}
+			<- time.After(sleepy)
 		}
 	}()
 }
