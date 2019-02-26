@@ -325,12 +325,17 @@ func getCmcPrice(w http.ResponseWriter,r *http.Request){
 		http.Error(w, `{"result":"invalid request param : limit can not be blank" ,"status":`+strconv.Itoa(http.StatusBadRequest)+`}` , http.StatusBadRequest)
 		return
 	}
+	ilimit , err := strconv.Atoi(limit)
+	if err != nil {
+		http.Error(w, `{"result":"invalid request param : limit must be a number " ,"status":`+strconv.Itoa(http.StatusBadRequest)+`}` , http.StatusBadRequest)
+		return
+	}
 	_id , err := dba.ToInt("select _id from chain_cmc_price where symbol = 'BTC' order by _id desc limit 1")
 	if err != nil {
 		http.Error(w,`{"result":"internal error : `+ err.Error()+`","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusInternalServerError)
 		return
 	}
-	l , err := dba.Query("select * from chain_cmc_price limit " +strconv.Itoa(_id-1) + "," + limit)
+	l , err := dba.Query("select * from chain_cmc_price where _id between " +strconv.Itoa(_id) + " and " + strconv.Itoa(ilimit + _id - 1))
 	if err != nil {
 		http.Error(w,`{"result":"internal error : `+ err.Error()+`","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusInternalServerError)
 		return

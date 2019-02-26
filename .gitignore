@@ -11,3 +11,4 @@ glide.lock
 go.mod
 go.sum
 *.backup
+misc
