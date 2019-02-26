@@ -5,11 +5,11 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	"engo.io/engo/math"
 	"github.com/elastos/Elastos.ORG.API.Misc/chain"
 	"github.com/elastos/Elastos.ORG.API.Misc/config"
 	"github.com/elastos/Elastos.ORG.API.Misc/db"
 	"github.com/elastos/Elastos.ORG.API.Misc/tools"
+	"github.com/engoengine/math"
 	"github.com/gorilla/mux"
 	"html/template"
 	"net/http"
@@ -301,37 +301,38 @@ func getBtcBlock(w http.ResponseWriter,r *http.Request) {
 func getCmcPrice(w http.ResponseWriter,r *http.Request){
 	apiKey := r.Header["Apikey"]
 	tp_param := r.Header["Timestamp"]
-	if len(apiKey) == 0 || len(tp_param) == 0{
-		http.Error(w, "invalid request param : apiKey or timestamp can not be blank" , http.StatusBadRequest)
+	if len(apiKey) == 0 || len(tp_param) == 0 {
+		http.Error(w, `{"result":"invalid request param : apiKey or timestamp can not be blank" ,"status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 		return
 	}
 	itp_param , err := strconv.ParseInt(tp_param[0],10,64)
 	if err != nil {
-		http.Error(w, "invalid request param : invalid timestamp" , http.StatusBadRequest)
+		http.Error(w, `{"result":"invalid request param : invalid timestamp","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 		return
 	}
 	tp_local := time.Now().UTC().Unix() * 1000
 	if math.Abs(float32(tp_local - itp_param))/(1000 * 60) > 5 {
-		http.Error(w, "invalid request param : apiKey out of date " , http.StatusBadRequest)
+		http.Error(w, `{"result":"invalid request param : apiKey out of date","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 		return
 	}
 	keyHash := sha256.Sum256([]byte(config.Conf.VisitKey+tp_param[0]))
 	if hex.EncodeToString(keyHash[:]) != apiKey[0] {
-		http.Error(w, "invalid request param : validate apiKey Error" , http.StatusBadRequest)
+		http.Error(w, `{"result":"invalid request param : apiKey not correct ","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 		return
 	}
 	limit := r.FormValue("limit")
 	if limit == "" {
-		http.Error(w, "invalid request param : limit can not be blank" , http.StatusBadRequest)
+		http.Error(w, `{"result":"invalid request param : limit can not be blank" ,"status":`+strconv.Itoa(http.StatusBadRequest)+`}` , http.StatusBadRequest)
 		return
 	}
-	_id , err := dba.ToInt("select _id from chain_cmc_price where symbol = 'BTC' order by id desc")
+	_id , err := dba.ToInt("select _id from chain_cmc_price where symbol = 'BTC' order by _id desc limit 1")
 	if err != nil {
-		http.Error(w,"internal error " + err.Error(), http.StatusInternalServerError)
+		http.Error(w,`{"result":"internal error : `+ err.Error()+`","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusInternalServerError)
+		return
 	}
 	l , err := dba.Query("select * from chain_cmc_price limit " +strconv.Itoa(_id-1) + "," + limit)
 	if err != nil {
-		http.Error(w,"internal error " + err.Error(), http.StatusInternalServerError)
+		http.Error(w,`{"result":"internal error : `+ err.Error()+`","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusInternalServerError)
 		return
 	}
 	ret := [][]byte{
@@ -342,7 +343,7 @@ func getCmcPrice(w http.ResponseWriter,r *http.Request){
 		m := e.Value.(map[string]interface{})
 		buf , err := json.Marshal(m)
 		if err != nil {
-			http.Error(w,"internal error " + err.Error(), http.StatusInternalServerError )
+			http.Error(w,`{"result":"internal error : `+ err.Error()+`","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusInternalServerError)
 			return
 		}
 		ret = append(ret,buf)

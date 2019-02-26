@@ -17,7 +17,7 @@ type config struct {
 
 type Cmc struct {
 	ApiKey  []string
-	Inteval int
+	Inteval string
 }
 
 type DB struct {

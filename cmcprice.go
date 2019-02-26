@@ -72,7 +72,7 @@ func init() {
 	go func() {
 		i := 0
 		for{
-			sleepy , err := time.ParseDuration(strconv.Itoa(config.Conf.Cmc.Inteval)+"m")
+			sleepy , err := time.ParseDuration(config.Conf.Cmc.Inteval)
 			if err != nil {
 				fmt.Printf("%s",err.Error())
 				os.Exit(-1)
