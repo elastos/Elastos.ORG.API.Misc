@@ -5,14 +5,19 @@ import (
 	"fmt"
 	"github.com/elastos/Elastos.ORG.API.Misc/config"
 	"github.com/elastos/Elastos.ORG.API.Misc/db"
+	"github.com/pkg/errors"
 	"io/ioutil"
+	"math"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
 )
 
-const CMC_ENDPOINT_URL = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?limit=%d&convert=%s"
+const (
+	CMC_ENDPOINT_URL = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?limit=%d&convert=%s"
+	BGX_ENDPOINT_URL = "https://www.gaex.com/svc/portal/api/v2/publicinfo"
+)
 
 type Status struct {
 	Timestamp     string
@@ -33,14 +38,14 @@ type Price struct {
 }
 
 type Quote struct {
-	USD, CNY,BTC Price
+	USD, CNY, BTC Price
 }
 
 type Plateform struct {
-	Id int64
-	Name string
-	Symbol string
-	Slug   			string
+	Id            int64
+	Name          string
+	Symbol        string
+	Slug          string
 	Token_Address string
 }
 
@@ -71,89 +76,241 @@ var dba = db.NewInstance()
 func init() {
 	go func() {
 		i := 0
-		sleepy , err := time.ParseDuration(config.Conf.Cmc.Inteval)
+		sleepy, err := time.ParseDuration(config.Conf.Cmc.Inteval)
 		if err != nil {
-			fmt.Printf("%s",err.Error())
+			fmt.Printf("%s", err.Error())
 			os.Exit(-1)
 		}
-		for{
-			cmcResponseUSD , err := fetchPrice(i,"USD")
+		for {
+			cmcResponseUSD, err := fetchPrice(i, "USD")
 			if err != nil {
 				fmt.Printf("Error in cmc price %s", err.Error())
 				break
 			}
-			cmcResponseCNY , err := fetchPrice(i,"CNY")
+			cmcResponseCNY, err := fetchPrice(i, "CNY")
 			if err != nil {
 				fmt.Printf("Error in cmc price %s", err.Error())
 				break
 			}
-			cmcResponseBTC , err := fetchPrice(i,"BTC")
+			cmcResponseBTC, err := fetchPrice(i, "BTC")
 			if err != nil {
 				fmt.Printf("Error in cmc price %s", err.Error())
 				break
 			}
-			err = saveToDb(cmcResponseUSD,cmcResponseCNY,cmcResponseBTC)
+			cmcResponseBGX, err := fetchBGXPrice()
+			if err != nil {
+				fmt.Printf("Error in bgx price %s", err.Error())
+				break
+			}
+			err = saveToDb(cmcResponseUSD, cmcResponseCNY, cmcResponseBTC, cmcResponseBGX)
 			if err != nil {
 				fmt.Printf("Error in cmc price %s", err.Error())
 				break
 			}
-			if i == len(config.Conf.Cmc.ApiKey) -1 {
+			if i == len(config.Conf.Cmc.ApiKey)-1 {
 				i = 0
-			}else{
+			} else {
 				i++
 			}
-			<- time.After(sleepy)
+			<-time.After(sleepy)
 		}
 	}()
 }
 
-func saveToDb(cmcResponseUSD , cmcResponseCNY , cmcResponseBTC CmcResponse) error{
-	tx , err := dba.Begin()
+func saveToDb(cmcResponseUSD, cmcResponseCNY, cmcResponseBTC, cmcResponseBGX CmcResponse) error {
+	tx, err := dba.Begin()
 	if err != nil {
 		return err
 	}
 	data := cmcResponseUSD.Data
-	for i:=0;i<len(data);i++ {
-		_ , err = tx.Exec("insert into chain_cmc_price(id,name,symbol,`rank`,price_usd,price_cny,price_btc,24h_volume_usd,market_cap_usd,available_supply,total_supply,max_supply,percent_change_1h,percent_change_24h,percent_change_7d,last_updated,24h_volume_btc,market_cap_btc,local_system_time,24h_volume_cny,market_cap_cny,platform_symbol,platform_token_address,num_market_pairs) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+	for i := 0; i < len(data); i++ {
+		_, err = tx.Exec("insert into chain_cmc_price(id,name,symbol,`rank`,price_usd,price_cny,price_btc,24h_volume_usd,market_cap_usd,available_supply,total_supply,max_supply,percent_change_1h,percent_change_24h,percent_change_7d,last_updated,24h_volume_btc,market_cap_btc,local_system_time,24h_volume_cny,market_cap_cny,platform_symbol,platform_token_address,num_market_pairs) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
 			strconv.Itoa(int(data[i].Id)),
 			data[i].Name,
 			data[i].Symbol,
 			strconv.Itoa(data[i].Cmc_rank),
-			strconv.FormatFloat(data[i].Quote.USD.Price,'f',8,64),
-			strconv.FormatFloat(cmcResponseCNY.Data[i].Quote.CNY.Price,'f',8,64),
-			strconv.FormatFloat(cmcResponseBTC.Data[i].Quote.BTC.Price,'f',8,64),
-			strconv.FormatFloat(data[i].Quote.USD.Volume_24h,'f',8,64),
-			strconv.FormatFloat(data[i].Quote.USD.Market_cap,'f',8,64),
-			strconv.FormatFloat(data[i].Circulating_supply,'f',8,64),
-			strconv.FormatFloat(data[i].Total_supply,'f',8,64),
-			strconv.FormatFloat(data[i].Max_supply,'f',8,64),
-			strconv.FormatFloat(data[i].Quote.USD.Percent_change_1h,'f',8,64),
-			strconv.FormatFloat(data[i].Quote.USD.Percent_change_24h,'f',8,64),
-			strconv.FormatFloat(data[i].Quote.USD.Percent_change_7d,'f',8,64),
+			strconv.FormatFloat(data[i].Quote.USD.Price, 'f', 8, 64),
+			strconv.FormatFloat(cmcResponseCNY.Data[i].Quote.CNY.Price, 'f', 8, 64),
+			strconv.FormatFloat(cmcResponseBTC.Data[i].Quote.BTC.Price, 'f', 8, 64),
+			strconv.FormatFloat(data[i].Quote.USD.Volume_24h, 'f', 8, 64),
+			strconv.FormatFloat(data[i].Quote.USD.Market_cap, 'f', 8, 64),
+			strconv.FormatFloat(data[i].Circulating_supply, 'f', 8, 64),
+			strconv.FormatFloat(data[i].Total_supply, 'f', 8, 64),
+			strconv.FormatFloat(data[i].Max_supply, 'f', 8, 64),
+			strconv.FormatFloat(data[i].Quote.USD.Percent_change_1h, 'f', 8, 64),
+			strconv.FormatFloat(data[i].Quote.USD.Percent_change_24h, 'f', 8, 64),
+			strconv.FormatFloat(data[i].Quote.USD.Percent_change_7d, 'f', 8, 64),
 			data[i].Quote.USD.Last_updated,
-			strconv.FormatFloat(cmcResponseBTC.Data[i].Quote.BTC.Volume_24h,'f',8,64),
-			strconv.FormatFloat(cmcResponseBTC.Data[i].Quote.BTC.Market_cap,'f',8,64),
+			strconv.FormatFloat(cmcResponseBTC.Data[i].Quote.BTC.Volume_24h, 'f', 8, 64),
+			strconv.FormatFloat(cmcResponseBTC.Data[i].Quote.BTC.Market_cap, 'f', 8, 64),
 			time.Now(),
-			strconv.FormatFloat(cmcResponseCNY.Data[i].Quote.CNY.Volume_24h,'f',8,64),
-			strconv.FormatFloat(cmcResponseCNY.Data[i].Quote.CNY.Market_cap,'f',8,64),
+			strconv.FormatFloat(cmcResponseCNY.Data[i].Quote.CNY.Volume_24h, 'f', 8, 64),
+			strconv.FormatFloat(cmcResponseCNY.Data[i].Quote.CNY.Market_cap, 'f', 8, 64),
 			data[i].Platform.Symbol,
 			data[i].Platform.Token_Address,
 			data[i].Num_market_pairs)
 		if err != nil {
 			dba.Rollback(tx)
 			return err
-			return nil
+		}
+		// put price that not in the cmc at rank 100
+		if i == 99 {
+			_, err = tx.Exec("insert into chain_cmc_price(id,name,symbol,`rank`,price_usd,price_cny,price_btc,24h_volume_usd,market_cap_usd,available_supply,total_supply,max_supply,percent_change_1h,percent_change_24h,percent_change_7d,last_updated,24h_volume_btc,market_cap_btc,local_system_time,24h_volume_cny,market_cap_cny,platform_symbol,platform_token_address,num_market_pairs) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+				strconv.Itoa(int(cmcResponseBGX.Data[0].Id)),
+				cmcResponseBGX.Data[0].Name,
+				cmcResponseBGX.Data[0].Symbol,
+				strconv.Itoa(cmcResponseBGX.Data[0].Cmc_rank),
+				strconv.FormatFloat(cmcResponseBGX.Data[0].Quote.USD.Price, 'f', 8, 64),
+				strconv.FormatFloat(cmcResponseBGX.Data[0].Quote.CNY.Price, 'f', 8, 64),
+				strconv.FormatFloat(cmcResponseBGX.Data[0].Quote.BTC.Price, 'f', 8, 64),
+				strconv.FormatFloat(cmcResponseBGX.Data[0].Quote.USD.Volume_24h, 'f', 8, 64),
+				strconv.FormatFloat(cmcResponseBGX.Data[0].Quote.USD.Market_cap, 'f', 8, 64),
+				strconv.FormatFloat(cmcResponseBGX.Data[0].Circulating_supply, 'f', 8, 64),
+				strconv.FormatFloat(cmcResponseBGX.Data[0].Total_supply, 'f', 8, 64),
+				strconv.FormatFloat(cmcResponseBGX.Data[0].Max_supply, 'f', 8, 64),
+				strconv.FormatFloat(cmcResponseBGX.Data[0].Quote.USD.Percent_change_1h, 'f', 8, 64),
+				strconv.FormatFloat(cmcResponseBGX.Data[0].Quote.USD.Percent_change_24h, 'f', 8, 64),
+				strconv.FormatFloat(cmcResponseBGX.Data[0].Quote.USD.Percent_change_7d, 'f', 8, 64),
+				data[i].Quote.USD.Last_updated,
+				strconv.FormatFloat(cmcResponseBGX.Data[0].Quote.BTC.Volume_24h, 'f', 8, 64),
+				strconv.FormatFloat(cmcResponseBGX.Data[0].Quote.BTC.Market_cap, 'f', 8, 64),
+				time.Now(),
+				strconv.FormatFloat(cmcResponseBGX.Data[0].Quote.CNY.Volume_24h, 'f', 8, 64),
+				strconv.FormatFloat(cmcResponseBGX.Data[0].Quote.CNY.Market_cap, 'f', 8, 64),
+				cmcResponseBGX.Data[0].Platform.Symbol,
+				cmcResponseBGX.Data[0].Platform.Token_Address,
+				cmcResponseBGX.Data[0].Num_market_pairs)
+		}
+		if err != nil {
+			dba.Rollback(tx)
+			return err
 		}
 	}
 	dba.Commit(tx)
 	return nil
 }
 
-func fetchPrice(i int,curr string) (CmcResponse,error){
+func fetchBGXPrice() (CmcResponse, error) {
+	url := fmt.Sprintf(BGX_ENDPOINT_URL)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return CmcResponse{}, err
+	}
+	req.Header["Accept-Language"] = []string{"*"}
+	client := http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return CmcResponse{}, err
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return CmcResponse{}, err
+	}
+	id := 5000
+	name := "BIT GAME EXCHANGE"
+	symbol := "BGX"
+	slug := "BIG GAME"
+	circulating_supply := 2000000000
+	total_supply := 5000000000
+	max_supply := 0
+	date_added := "2019-02-27T13:53:00.000Z"
+	num_market_pairs := 1
+	platform_symbol := "ETH"
+	platform_token_address := "0xbf3f09e4eba5f7805e5fac0ee09fd6ee8eebe4cb"
+	bgxRespMap := new(map[string]interface{})
+	err = json.Unmarshal(body, &bgxRespMap)
+	if err != nil {
+		return CmcResponse{}, err
+	}
+	data, ok := (*bgxRespMap)["data"].(map[string]interface{})
+	if !ok {
+		return CmcResponse{}, errors.New("BGX Price Error")
+	}
+	rate, ok := data["rate"].(map[string]interface{})
+	if !ok {
+		return CmcResponse{}, errors.New("BGX Price Error")
+	}
+	enUS, ok := rate["en_US"].(map[string]interface{})
+	if !ok {
+		return CmcResponse{}, errors.New("BGX Price Error")
+	}
+	zhCN, ok := rate["zh_CN"].(map[string]interface{})
+	if !ok {
+		return CmcResponse{}, errors.New("BGX Price Error")
+	}
+	bgxUs, ok1 := enUS["BGX"].(float64)
+	btcUs, ok2 := enUS["BTC"].(float64)
+	bgxCn, ok3 := zhCN["BGX"].(float64)
+	if !(ok1 && ok2 && ok3) {
+		return CmcResponse{}, errors.New("BGX Price Error")
+	}
+	bgxbtc := math.Round(bgxUs/btcUs*100000000) / 100000000
+	now := time.Now().Format("2006-01-02T15:04:05.000Z")
+	return CmcResponse{
+		Status: Status{
+			Timestamp:     now,
+			Error_code:    0,
+			Error_message: "",
+			Elapsed:       0,
+			Credit_count:  0,
+		},
+		Data: []Data{
+			Data{
+				Id:                 int64(id),
+				Name:               name,
+				Symbol:             symbol,
+				Slug:               slug,
+				Circulating_supply: float64(circulating_supply),
+				Total_supply:       float64(total_supply),
+				Max_supply:         float64(max_supply),
+				Date_added:         date_added,
+				Num_market_pairs:   int64(num_market_pairs),
+				Tags:               nil,
+				Platform: Plateform{
+					Symbol:        platform_symbol,
+					Token_Address: platform_token_address,
+				},
+				Cmc_rank:     0,
+				Last_updated: date_added,
+				Quote: Quote{
+					CNY: Price{
+						Price:              bgxCn,
+						Volume_24h:         float64(0),
+						Percent_change_1h:  float64(0),
+						Percent_change_24h: float64(0),
+						Percent_change_7d:  float64(0),
+						Market_cap:         float64(0),
+						Last_updated:       now,
+					},
+					USD: Price{
+						Price:              bgxUs,
+						Volume_24h:         float64(0),
+						Percent_change_1h:  float64(0),
+						Percent_change_24h: float64(0),
+						Percent_change_7d:  float64(0),
+						Market_cap:         float64(0),
+						Last_updated:       now,
+					},
+					BTC: Price{
+						Price:              bgxbtc,
+						Volume_24h:         float64(0),
+						Percent_change_1h:  float64(0),
+						Percent_change_24h: float64(0),
+						Percent_change_7d:  float64(0),
+						Market_cap:         float64(0),
+						Last_updated:       now,
+					},
+				},
+			},
+		},
+	}, nil
+}
+
+func fetchPrice(i int, curr string) (CmcResponse, error) {
 	url := fmt.Sprintf(CMC_ENDPOINT_URL, config.Conf.Cmc.NumOfCoin, curr)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return CmcResponse{},err
+		return CmcResponse{}, err
 	}
 	println(config.Conf.Cmc.ApiKey[i])
 	req.Header = map[string][]string{
@@ -162,16 +319,16 @@ func fetchPrice(i int,curr string) (CmcResponse,error){
 	client := http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return CmcResponse{},err
+		return CmcResponse{}, err
 	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return CmcResponse{},err
+		return CmcResponse{}, err
 	}
 	cmcResp := CmcResponse{}
 	err = json.Unmarshal(body, &cmcResp)
 	if err != nil {
-		return CmcResponse{},err
+		return CmcResponse{}, err
 	}
-	return cmcResp,nil
+	return cmcResp, nil
 }
