@@ -117,6 +117,18 @@ type Block_header struct {
 	Minerinfo			string	`json:miner_info`
 }
 
+type Vote_info struct {
+	Producer_public_key string
+	Vote_type           string
+	Txid			    string
+	N					int
+	Value 				string
+	Outputlock			int
+	Address 			string
+	Block_time			int64
+	Height				int64
+}
+
 //Sync sync chain data
 func Sync() {
 	for {

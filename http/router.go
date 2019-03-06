@@ -16,6 +16,12 @@ var (
 		"/api/1/did/{did}/{key}": {
 			"GET": searchKey,
 		},
+		"/api/1/dpos/producer/{producer}": {
+			"GET": producerStatistic,
+		},
+		"/api/1/dpos/address/{address}": {
+			"GET": voterStatistic,
+		},
 
 		//heartbeat
 		"/api/1/ping": {

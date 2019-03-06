@@ -132,6 +132,46 @@ func history(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(`{"result":` + string(buf) + `,"status":200}`))
 }
 
+func producerStatistic(w http.ResponseWriter,r *http.Request){
+	params := mux.Vars(r)
+	pub := params["producer"]
+	if pub == "" || len(pub) != 66 {
+		http.Error(w,`{"result":"invalid public key","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
+		return
+	}
+	rst , err := dba.ToStruct("select * from chain_vote_info where producer_public_key = '"+pub+"' and (outputlock = 0 or outputlock >= height)",chain.Vote_info{})
+	if err != nil {
+		http.Error(w,`{"result":"internal error : `+ err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+		return
+	}
+	buf , err := json.Marshal(&rst)
+	if err != nil {
+		http.Error(w,`{"result":"internal error : `+ err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+		return
+	}
+	w.Write([]byte(`{"result":` + string(buf) + `,"status":200}`))
+}
+
+func voterStatistic(w http.ResponseWriter,r *http.Request){
+	params := mux.Vars(r)
+	addr := params["address"]
+	if addr == "" || len(addr) != 34 {
+		http.Error(w,`{"result":"invalid address","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
+		return
+	}
+	rst , err := dba.ToStruct("select * from chain_vote_info where address = '"+addr+"' and (outputlock = 0 or outputlock >= height)",chain.Vote_info{})
+	if err != nil {
+		http.Error(w,`{"result":"internal error : `+ err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+		return
+	}
+	buf , err := json.Marshal(&rst)
+	if err != nil {
+		http.Error(w,`{"result":"internal error : `+ err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+		return
+	}
+	w.Write([]byte(`{"result":` + string(buf) + `,"status":200}`))
+}
+
 var version = "1.0.1"
 
 //ping ping can be used as a heart beat
@@ -336,12 +376,12 @@ func getCmcPrice(w http.ResponseWriter,r *http.Request){
 	}
 	_id , err := dba.ToInt("select _id from chain_cmc_price where symbol = 'BTC' order by _id desc limit 1")
 	if err != nil {
-		http.Error(w,`{"result":"internal error : `+ err.Error()+`","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusInternalServerError)
+		http.Error(w,`{"result":"internal error : `+ err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 		return
 	}
 	l , err := dba.Query("select * from chain_cmc_price where _id between " +strconv.Itoa(_id) + " and " + strconv.Itoa(ilimit + _id - 1))
 	if err != nil {
-		http.Error(w,`{"result":"internal error : `+ err.Error()+`","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusInternalServerError)
+		http.Error(w,`{"result":"internal error : `+ err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 		return
 	}
 	ret := [][]byte{
@@ -352,7 +392,7 @@ func getCmcPrice(w http.ResponseWriter,r *http.Request){
 		m := e.Value.(map[string]interface{})
 		buf , err := json.Marshal(m)
 		if err != nil {
-			http.Error(w,`{"result":"internal error : `+ err.Error()+`","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusInternalServerError)
+			http.Error(w,`{"result":"internal error : `+ err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 			return
 		}
 		ret = append(ret,buf)
