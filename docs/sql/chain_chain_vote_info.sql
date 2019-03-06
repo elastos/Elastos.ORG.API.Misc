@@ -48,3 +48,6 @@ CREATE TABLE `chain_vote_info` (
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2019-03-06 13:53:23
+
+CREATE INDEX idx_chain_vote_info_address ON chain_vote_info (address);
+CREATE INDEX idx_chain_vote_info_producer_public_key ON chain_vote_info (producer_public_key);
