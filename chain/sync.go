@@ -432,24 +432,23 @@ func handleHeight(curr int, tx *sql.Tx) error {
 				}
 			}
 			stmt.Close()
-
-			// remove canceled vote
-			vin := txm["vin"].([]interface{})
-			stmt, err = tx.Prepare("delete from chain_vote_info where txid = ? and n = ? ")
+		}
+		// remove canceled vote
+		vin := txm["vin"].([]interface{})
+		stmt, err = tx.Prepare("delete from chain_vote_info where txid = ? and n = ? ")
+		if err != nil {
+			return err
+		}
+		for _ , v :=range vin {
+			vm := v.(map[string]interface{})
+			txhash := vm["txid"]
+			vout := vm["vout"]
+			_ , err := stmt.Exec(txhash,vout)
 			if err != nil {
 				return err
 			}
-			for _ , v :=range vin {
-				vm := v.(map[string]interface{})
-				txhash := vm["txid"]
-				vout := vm["vout"]
-				_ , err := stmt.Exec(txhash,vout)
-				if err != nil {
-					return err
-				}
-			}
-			stmt.Close()
 		}
+		stmt.Close()
 	}
 
 
