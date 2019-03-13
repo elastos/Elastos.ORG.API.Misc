@@ -435,7 +435,7 @@ func handleHeight(curr int, tx *sql.Tx) error {
 		}
 		// remove canceled vote
 		vin := txm["vin"].([]interface{})
-		stmt, err = tx.Prepare("delete from chain_vote_info where txid = ? and n = ? ")
+		stmt, err = tx.Prepare("update chain_vote_info set is_valid = 'NO' where txid = ? and n = ? ")
 		if err != nil {
 			return err
 		}

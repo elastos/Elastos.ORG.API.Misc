@@ -139,7 +139,7 @@ func producerStatistic(w http.ResponseWriter,r *http.Request){
 		http.Error(w,`{"result":"invalid public key","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 		return
 	}
-	rst , err := dba.ToStruct("select * from chain_vote_info where producer_public_key = '"+pub+"' and (outputlock = 0 or outputlock >= height)",chain.Vote_info{})
+	rst , err := dba.ToStruct("select * from chain_vote_info where producer_public_key = '"+pub+"' and (outputlock = 0 or outputlock >= height) and is_valid = 'YES'",chain.Vote_info{})
 	if err != nil {
 		http.Error(w,`{"result":"internal error : `+ err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 		return
@@ -159,7 +159,7 @@ func voterStatistic(w http.ResponseWriter,r *http.Request){
 		http.Error(w,`{"result":"invalid address","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 		return
 	}
-	rst , err := dba.ToStruct("select * from chain_vote_info where address = '"+addr+"' and (outputlock = 0 or outputlock >= height)",chain.Vote_info{})
+	rst , err := dba.ToStruct("select * from chain_vote_info where address = '"+addr+"' and (outputlock = 0 or outputlock >= height) and is_valid = 'YES'",chain.Vote_info{})
 	if err != nil {
 		http.Error(w,`{"result":"internal error : `+ err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 		return
