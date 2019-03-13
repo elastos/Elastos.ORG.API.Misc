@@ -435,7 +435,7 @@ func handleHeight(curr int, tx *sql.Tx) error {
 		}
 		// remove canceled vote
 		vin := txm["vin"].([]interface{})
-		stmt, err = tx.Prepare("update chain_vote_info set is_valid = 'NO' where txid = ? and n = ? ")
+		stmt, err = tx.Prepare("update chain_vote_info set is_valid = 'NO',cancle_height=? where txid = ? and n = ? ")
 		if err != nil {
 			return err
 		}
@@ -443,7 +443,7 @@ func handleHeight(curr int, tx *sql.Tx) error {
 			vm := v.(map[string]interface{})
 			txhash := vm["txid"]
 			vout := vm["vout"]
-			_ , err := stmt.Exec(txhash,vout)
+			_ , err := stmt.Exec(header.Height,txhash,vout)
 			if err != nil {
 				return err
 			}
