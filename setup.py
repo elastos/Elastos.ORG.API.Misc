@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import with_statement
-
-from setuptools import setup, find_packages
-
-
 requires = [
     'Sphinx >= 1.5',
     'six',
