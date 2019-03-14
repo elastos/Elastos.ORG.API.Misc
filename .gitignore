@@ -12,3 +12,5 @@ go.mod
 go.sum
 *.backup
 misc
+**/_build
+**/_static
