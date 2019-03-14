@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from __future__ import with_statement
+
 from setuptools import setup, find_packages
 
 
@@ -17,9 +19,9 @@ def readme():
 
 
 setup(
-    name='Misc',
+    name='nodela',
     version='0.0.1',
-    url='https://github.com/elastos/Elastos.ORG.API.MISC',
+    url='https://github.com/xiaomingfuckeasylife/nodela',
     license='BSD',
     author='Hong Minhee',
     author_email='huangxiaoming@elastos.org',
