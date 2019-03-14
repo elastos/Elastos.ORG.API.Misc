@@ -15,9 +15,9 @@ def readme():
 
 
 setuptools.setup(
-    name='nodela',
+    name='MISC',
     version='0.0.1',
-    url='https://github.com/xiaomingfuckeasylife/nodela',
+    url='https://github.com/elastos/Elastos.ORG.API.MISC',
     license='BSD',
     author='Hong Minhee',
     author_email='huangxiaoming@elastos.org',
