@@ -16,11 +16,15 @@ var (
 		"/api/1/did/{did}/{key}": {
 			"GET": searchKey,
 		},
+		//ela dpos
 		"/api/1/dpos/producer/{producer}": {
 			"GET": producerStatistic,
 		},
 		"/api/1/dpos/address/{address}": {
 			"GET": voterStatistic,
+		},
+		"/api/1/dpos/reward/height/{height}": {
+			"GET": rewardByHeight,
 		},
 
 		//heartbeat

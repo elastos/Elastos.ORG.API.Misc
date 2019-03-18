@@ -172,6 +172,28 @@ func voterStatistic(w http.ResponseWriter,r *http.Request){
 	w.Write([]byte(`{"result":` + string(buf) + `,"status":200}`))
 }
 
+func rewardByHeight(w http.ResponseWriter,r *http.Request){
+	params := mux.Vars(r)
+	height := params["height"]
+	h , ok := strconv.Atoi(height)
+	if ok != nil || h < 0 {
+		http.Error(w,`{"result":"invalid height","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
+		return
+	}
+	rst , err := dba.ToStruct("select value,height,address,createTime from chain_block_transaction_history where height = "+height+" and txType = 'CoinBase' and value < " + strconv.Itoa(tools.Miner_Reward_PerBlock),chain.Block_transaction_history{})
+	if err != nil {
+		http.Error(w,`{"result":"internal error : `+ err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+		return
+	}
+	buf , err := json.Marshal(&rst)
+	if err != nil {
+		http.Error(w,`{"result":"internal error : `+ err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+		return
+	}
+	w.Write([]byte(`{"result":` + string(buf) + `,"status":200}`))
+}
+
+
 var version = "1.0.1"
 
 //ping ping can be used as a heart beat
