@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"github.com/elastos/Elastos.ORG.API.Misc/chain"
 	"github.com/elastos/Elastos.ORG.API.Misc/config"
 	"github.com/elastos/Elastos.ORG.API.Misc/db"
@@ -193,7 +194,7 @@ func rewardByHeight(w http.ResponseWriter,r *http.Request){
 	w.Write([]byte(`{"result":` + string(buf) + `,"status":200}`))
 }
 
-func producerRank(w http.ResponseWriter,r *http.Request){
+func producerRankByHeight(w http.ResponseWriter,r *http.Request){
 	params := mux.Vars(r)
 	height := params["height"]
 	h , ok := strconv.Atoi(height)
@@ -214,6 +215,22 @@ func producerRank(w http.ResponseWriter,r *http.Request){
 		return
 	}
 	w.Write([]byte(`{"result":` + string(buf) + `,"status":200}`))
+}
+
+func totalVoteByHeight(w http.ResponseWriter,r *http.Request){
+	params := mux.Vars(r)
+	height := params["height"]
+	h , ok := strconv.Atoi(height)
+	if ok != nil || h < 0 {
+		http.Error(w,`{"result":"invalid height","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
+		return
+	}
+	rst , err := dba.ToFloat(`select  sum(value) as value from chain.chain_vote_info where cancel_height > `+height+` or cancel_height is null `)
+	if err != nil {
+		http.Error(w,`{"result":"internal error : `+ err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+		return
+	}
+	w.Write([]byte(`{"result":` + fmt.Sprintf("%.8f",rst) + `,"status":200}`))
 }
 
 var version = "1.0.1"

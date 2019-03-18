@@ -27,7 +27,10 @@ var (
 			"GET": rewardByHeight,
 		},
 		"/api/1/dpos/rank/height/{height}":{
-			"GET": producerRank,
+			"GET": producerRankByHeight,
+		},
+		"/api/1/dpos/vote/height/{height}":{
+			"GET": totalVoteByHeight,
 		},
 
 		//heartbeat
