@@ -193,6 +193,28 @@ func rewardByHeight(w http.ResponseWriter,r *http.Request){
 	w.Write([]byte(`{"result":` + string(buf) + `,"status":200}`))
 }
 
+func producerRank(w http.ResponseWriter,r *http.Request){
+	params := mux.Vars(r)
+	height := params["height"]
+	h , ok := strconv.Atoi(height)
+	if ok != nil || h < 0 {
+		http.Error(w,`{"result":"invalid height","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
+		return
+	}
+	rst , err := dba.ToStruct(`select a.* , (@row_number:=@row_number + 1) as "rank" from 
+(select producer_public_key , sum(value) as value from chain.chain_vote_info where cancel_height > `+height+` or cancel_height is null group by producer_public_key order by value desc) a
+ ,  (SELECT @row_number:=0) AS t`,chain.Vote_info{})
+	if err != nil {
+		http.Error(w,`{"result":"internal error : `+ err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+		return
+	}
+	buf , err := json.Marshal(&rst)
+	if err != nil {
+		http.Error(w,`{"result":"internal error : `+ err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+		return
+	}
+	w.Write([]byte(`{"result":` + string(buf) + `,"status":200}`))
+}
 
 var version = "1.0.1"
 

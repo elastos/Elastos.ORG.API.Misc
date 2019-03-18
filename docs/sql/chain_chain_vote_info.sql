@@ -49,6 +49,6 @@ CREATE TABLE `chain_vote_info` (
 
 -- Dump completed on 2019-03-06 13:53:23
 alter table chain.chain_vote_info add is_valid varchar(10) COMMENT 'YES | NO' DEFAULT 'YES';
-alter table chain.chain_vote_info add cancle_height int(11) COMMENT 'invalid height';
+alter table chain.chain_vote_info add cancel_height int(11) COMMENT 'invalid height';
 CREATE INDEX idx_chain_vote_info_address ON chain_vote_info (address);
 CREATE INDEX idx_chain_vote_info_producer_public_key ON chain_vote_info (producer_public_key);

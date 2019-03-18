@@ -26,6 +26,9 @@ var (
 		"/api/1/dpos/reward/height/{height}": {
 			"GET": rewardByHeight,
 		},
+		"/api/1/dpos/rank/height/{height}":{
+			"GET": producerRank,
+		},
 
 		//heartbeat
 		"/api/1/ping": {

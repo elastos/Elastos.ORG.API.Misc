@@ -118,15 +118,16 @@ type Block_header struct {
 }
 
 type Vote_info struct {
-	Producer_public_key string
-	Vote_type           string
-	Txid			    string
-	N					int
-	Value 				string
-	Outputlock			int
-	Address 			string
-	Block_time			int64
-	Height				int64
+	Producer_public_key string `json:",omitempty"`
+	Vote_type           string `json:",omitempty"`
+	Txid			    string `json:",omitempty"`
+	N					int    `json:",omitempty"`
+	Value 				string `json:",omitempty"`
+	Outputlock			int    `json:",omitempty"`
+	Address 			string `json:",omitempty"`
+	Block_time			int64  `json:",omitempty"`
+	Height				int64  `json:",omitempty"`
+	Rank				int64  `json:",omitempty"`
 }
 
 //Sync sync chain data
@@ -435,7 +436,7 @@ func handleHeight(curr int, tx *sql.Tx) error {
 		}
 		// remove canceled vote
 		vin := txm["vin"].([]interface{})
-		stmt, err = tx.Prepare("update chain_vote_info set is_valid = 'NO',cancle_height=? where txid = ? and n = ? ")
+		stmt, err = tx.Prepare("update chain_vote_info set is_valid = 'NO',cancel_height=? where txid = ? and n = ? ")
 		if err != nil {
 			return err
 		}
