@@ -166,6 +166,202 @@ voter's statistics
    :statuscode 500:   internal error
    :statuscode 10001: process error
 
+Get dpos reward of specific height
+------------------------------------------------
+voter reward
+
+.. http:get:: /api/1/dpos/reward/height/(int:`height`)
+
+   **Example request**:
+
+   .. sourcecode:: http
+
+      GET /api/1/dpos/reward/height/241762 HTTP/1.1
+      Host: localhost
+
+   **Example response**:
+
+   .. sourcecode:: http
+
+      HTTP/1.1 200 OK
+      Content-Type: application/json
+
+        {
+          "result":[
+              {
+                  "Address":"8ZNizBf4KhhPjeJRGpox6rPcHE5Np6tFx3",
+                  "Value":150729930,
+                  "CreateTime":1552781309,
+                  "Height":241762
+              },
+              {
+                  "Address":"EaA6CXrtvG1CpethsoodvdTwpeCtWprZzH",
+                  "Value":150729929,
+                  "CreateTime":1552781309,
+                  "Height":241762
+              },
+              {
+                  "Address":"EXr8pYTR5Z56Ni9Vg9r5UnNg2MCQ6enm93",
+                  "Value":150729928,
+                  "CreateTime":1552781309,
+                  "Height":241762
+              }
+          ],
+          "status":200
+        }
+
+Get dpos super node rank list
+------------------------------------------------
+rank list of producer
+
+.. http:get:: /api/1/dpos/rank/height/(int:`height`)
+
+   **Example request**:
+
+   .. sourcecode:: http
+
+      GET /api/1/dpos/rank/height/241762 HTTP/1.1
+      Host: localhost
+
+   **Example response**:
+
+   .. sourcecode:: http
+
+      HTTP/1.1 200 OK
+      Content-Type: application/json
+
+        {
+          "result":[
+              {
+                  "Producer_public_key":"03330ee8520088b7f578a9afabaef0c034fa31fe1354cb3a14410894f974132800",
+                  "Value":"356976",
+                  "Rank":1
+              },
+              {
+                  "Producer_public_key":"033c495238ca2b6bb8b7f5ae172363caea9a55cf245ffb3272d078126b1fe3e7cd",
+                  "Value":"311262.3",
+                  "Rank":2
+              },
+              {
+                  "Producer_public_key":"0337e6eaabfab6321d109d48e135190560898d42a1d871bfe8fecc67f4c3992250",
+                  "Value":"309791",
+                  "Rank":3
+              },
+              {
+                  "Producer_public_key":"03c78467b91805c95ada2530513069bef1f1f1e7b756861381ab534efa6d94e40a",
+                  "Value":"218062.55555",
+                  "Rank":4
+              },
+              {
+                  "Producer_public_key":"021d59a84d2243111e39e8c2af0a5089127d142d52b18c3e4bf744e0c6f8af44e0",
+                  "Value":"147157",
+                  "Rank":5
+              },
+              {
+                  "Producer_public_key":"036417ab256114a32bcff38f3e10f0384cfa9238afa41a163017687b3ce1fa17f2",
+                  "Value":"139506",
+                  "Rank":6
+              },
+              {
+                  "Producer_public_key":"02e578a6f4295765ad3be4cdac9be15de5aedaf1ae76e86539bb54c397e467cd5e",
+                  "Value":"125831",
+                  "Rank":7
+              },
+              {
+                  "Producer_public_key":"02ddd829f3495a2ce76d908c3e6e7d4505e12c4718c5af4b4cbff309cfd3aeab88",
+                  "Value":"108893",
+                  "Rank":8
+              },
+              {
+                  "Producer_public_key":"03c7b1f234d5d16472fcdd24d121e4cd224e1074f558a3eb1a6a146aa91dcf9c0d",
+                  "Value":"108111",
+                  "Rank":9
+              },
+              {
+                  "Producer_public_key":"03b688e0124580de452c400e01c628a690527e8742b6fa4645026dbc70155d7c8b",
+                  "Value":"107788",
+                  "Rank":10
+              },
+              {
+                  "Producer_public_key":"03bc2c2b75009a3a551e98bf206730501ecdf46e71b0405840ff1d5750094bd4ff",
+                  "Value":"104972",
+                  "Rank":11
+              },
+              {
+                  "Producer_public_key":"0230d383546d154d67cfafc6091c0736c0b26a8c7c16e879ef8011d91df976f1fb",
+                  "Value":"104181",
+                  "Rank":12
+              },
+              {
+                  "Producer_public_key":"028fb1a85f6a30a516b9e3516d03267403a3af0c96d73b0284ca0c1165318531ff",
+                  "Value":"99993",
+                  "Rank":13
+              },
+              {
+                  "Producer_public_key":"02db921cfb4bf504c83038212aafe52cc1d0a07eb71a399a0d2162fe0cd4d47720",
+                  "Value":"98996",
+                  "Rank":14
+              },
+              {
+                  "Producer_public_key":"033fb33f39276b93d3474cf7999887bed16c3211ee7f904399eeead4c480d7d592",
+                  "Value":"98784",
+                  "Rank":15
+              },
+              {
+                  "Producer_public_key":"030e4b487daf8e14dbd7023e3f6f475d00145a1f1cc87be4b8d58a4291ab0a3b1a",
+                  "Value":"25899",
+                  "Rank":16
+              },
+              {
+                  "Producer_public_key":"0234048d3ee92a7d34fbe3da22bc69583b1785e8f6684c9f4f11804c518cb4e53d",
+                  "Value":"678",
+                  "Rank":17
+              },
+              {
+                  "Producer_public_key":"02771568d40c1b20f3cbc2f4de327d3f61ae1a97a3e4a014838d267c818f2f999e",
+                  "Value":"666",
+                  "Rank":18
+              },
+              {
+                  "Producer_public_key":"0203c80103bb094b5870f6b99b0bc6ab857fa87bab1896fc845108bba7aafbfe3c",
+                  "Value":"666",
+                  "Rank":19
+              },
+              {
+                  "Producer_public_key":"0210694f4ab518037bc2dcc3f5e1a1030e8a36821ab019c10f29d4a894b8034498",
+                  "Value":"666",
+                  "Rank":20
+              }
+          ],
+          "status":200
+      }
+
+Get dpos total vote of specific height
+------------------------------------------------
+total vote of specific height
+
+.. http:get:: /api/1/dpos/vote/height/(int:`height`)
+
+   **Example request**:
+
+   .. sourcecode:: http
+
+      GET /api/1/dpos/vote/height/241762 HTTP/1.1
+      Host: localhost
+
+   **Example response**:
+
+   .. sourcecode:: http
+
+      HTTP/1.1 200 OK
+      Content-Type: application/json
+
+        {
+          "result":2468878.85555,
+          "status":200
+        }
+
+
 Transaction History
 =================================
 using the following api ,we can get address transaction history.
