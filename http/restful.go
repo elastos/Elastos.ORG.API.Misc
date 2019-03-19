@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	dba    		= db.NewInstance()
+	dba = db.NewInstance()
 )
 
 func StartServer() {
@@ -107,7 +107,7 @@ func history(w http.ResponseWriter, r *http.Request) {
 		outputsArr := strings.Split(line["outputs"].(string), ",")
 		history.Outputs = outputsArr[:len(outputsArr)-1]
 		if err != nil {
-			w.Write([]byte(`{"result":"`+ err.Error() + `","status":500}`))
+			w.Write([]byte(`{"result":"` + err.Error() + `","status":500}`))
 			return
 		}
 		rawMemo, err := hex.DecodeString(history.Memo)
@@ -133,111 +133,111 @@ func history(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(`{"result":` + string(buf) + `,"status":200}`))
 }
 
-func producerStatistic(w http.ResponseWriter,r *http.Request){
+func producerStatistic(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	pub := params["producer"]
 	if pub == "" || len(pub) != 66 {
-		http.Error(w,`{"result":"invalid public key","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
+		http.Error(w, `{"result":"invalid public key","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 		return
 	}
-	rst , err := dba.ToStruct("select * from chain_vote_info where producer_public_key = '"+pub+"' and (outputlock = 0 or outputlock >= height) and is_valid = 'YES'",chain.Vote_info{})
+	rst, err := dba.ToStruct("select * from chain_vote_info where producer_public_key = '"+pub+"' and (outputlock = 0 or outputlock >= height) and is_valid = 'YES'", chain.Vote_info{})
 	if err != nil {
-		http.Error(w,`{"result":"internal error : `+ err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 		return
 	}
-	buf , err := json.Marshal(&rst)
+	buf, err := json.Marshal(&rst)
 	if err != nil {
-		http.Error(w,`{"result":"internal error : `+ err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 		return
 	}
 	w.Write([]byte(`{"result":` + string(buf) + `,"status":200}`))
 }
 
-func voterStatistic(w http.ResponseWriter,r *http.Request){
+func voterStatistic(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	addr := params["address"]
 	if addr == "" || len(addr) != 34 {
-		http.Error(w,`{"result":"invalid address","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
+		http.Error(w, `{"result":"invalid address","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 		return
 	}
-	rst , err := dba.ToStruct("select * from chain_vote_info where address = '"+addr+"' and (outputlock = 0 or outputlock >= height) and is_valid = 'YES'",chain.Vote_info{})
+	rst, err := dba.ToStruct("select * from chain_vote_info where address = '"+addr+"' and (outputlock = 0 or outputlock >= height) and is_valid = 'YES'", chain.Vote_info{})
 	if err != nil {
-		http.Error(w,`{"result":"internal error : `+ err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 		return
 	}
-	buf , err := json.Marshal(&rst)
+	buf, err := json.Marshal(&rst)
 	if err != nil {
-		http.Error(w,`{"result":"internal error : `+ err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 		return
 	}
 	w.Write([]byte(`{"result":` + string(buf) + `,"status":200}`))
 }
 
-func rewardByHeight(w http.ResponseWriter,r *http.Request){
+func rewardByHeight(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	height := params["height"]
-	h , ok := strconv.Atoi(height)
+	h, ok := strconv.Atoi(height)
 	if ok != nil || h < 0 {
-		http.Error(w,`{"result":"invalid height","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
+		http.Error(w, `{"result":"invalid height","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 		return
 	}
-	rst , err := dba.ToStruct("select value,height,address,createTime from chain_block_transaction_history where height = "+height+" and txType = 'CoinBase' and value < " + strconv.Itoa(tools.Miner_Reward_PerBlock),chain.Block_transaction_history{})
+	rst, err := dba.ToStruct("select value,height,address,createTime from chain_block_transaction_history where height = "+height+" and txType = 'CoinBase' and value < "+strconv.Itoa(tools.Miner_Reward_PerBlock), chain.Block_transaction_history{})
 	if err != nil {
-		http.Error(w,`{"result":"internal error : `+ err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 		return
 	}
-	buf , err := json.Marshal(&rst)
+	buf, err := json.Marshal(&rst)
 	if err != nil {
-		http.Error(w,`{"result":"internal error : `+ err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 		return
 	}
 	w.Write([]byte(`{"result":` + string(buf) + `,"status":200}`))
 }
 
-func producerRankByHeight(w http.ResponseWriter,r *http.Request){
+func producerRankByHeight(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	height := params["height"]
-	h , ok := strconv.Atoi(height)
+	h, ok := strconv.Atoi(height)
 	if ok != nil || h < 0 {
-		http.Error(w,`{"result":"invalid height","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
+		http.Error(w, `{"result":"invalid height","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 		return
 	}
-	rst , err := dba.ToStruct(`select a.* , (@row_number:=@row_number + 1) as "rank" from 
+	rst, err := dba.ToStruct(`select a.* , (@row_number:=@row_number + 1) as "rank" from 
 (select producer_public_key , sum(value) as value from chain.chain_vote_info where cancel_height > `+height+` or cancel_height is null group by producer_public_key order by value desc) a
- ,  (SELECT @row_number:=0) AS t`,chain.Vote_info{})
+ ,  (SELECT @row_number:=0) AS t`, chain.Vote_info{})
 	if err != nil {
-		http.Error(w,`{"result":"internal error : `+ err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 		return
 	}
-	buf , err := json.Marshal(&rst)
+	buf, err := json.Marshal(&rst)
 	if err != nil {
-		http.Error(w,`{"result":"internal error : `+ err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 		return
 	}
 	w.Write([]byte(`{"result":` + string(buf) + `,"status":200}`))
 }
 
-func totalVoteByHeight(w http.ResponseWriter,r *http.Request){
+func totalVoteByHeight(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	height := params["height"]
-	h , ok := strconv.Atoi(height)
+	h, ok := strconv.Atoi(height)
 	if ok != nil || h < 0 {
-		http.Error(w,`{"result":"invalid height","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
+		http.Error(w, `{"result":"invalid height","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 		return
 	}
-	rst , err := dba.ToFloat(`select  sum(value) as value from chain.chain_vote_info where cancel_height > `+height+` or cancel_height is null `)
+	rst, err := dba.ToFloat(`select  sum(value) as value from chain.chain_vote_info where cancel_height > ` + height + ` or cancel_height is null `)
 	if err != nil {
-		http.Error(w,`{"result":"internal error : `+ err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 		return
 	}
-	w.Write([]byte(`{"result":` + fmt.Sprintf("%.8f",rst) + `,"status":200}`))
+	w.Write([]byte(`{"result":` + fmt.Sprintf("%.8f", rst) + `,"status":200}`))
 }
 
 var version = "1.0.1"
 
 //ping ping can be used as a heart beat
 func ping(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte(`{"result":"pong `+version+`","status":200}`))
+	w.Write([]byte(`{"result":"pong ` + version + `","status":200}`))
 }
 
 const tpl = `
@@ -322,18 +322,17 @@ func list(w http.ResponseWriter, r *http.Request) {
 		}
 		from := (num - 1) * size
 		if txId != "" {
-			sql = "select * from chain_block_transaction_history where txType = 'TransferAsset' and txid = '"+txId+"' order by id desc limit " + strconv.FormatInt(from, 10) + "," + strconv.FormatInt(size, 10)
-		}else {
+			sql = "select * from chain_block_transaction_history where txType = 'TransferAsset' and txid = '" + txId + "' order by id desc limit " + strconv.FormatInt(from, 10) + "," + strconv.FormatInt(size, 10)
+		} else {
 			sql = "select * from chain_block_transaction_history where txType = 'TransferAsset' order by id desc limit " + strconv.FormatInt(from, 10) + "," + strconv.FormatInt(size, 10)
 		}
 	} else {
 		if txId != "" {
-			sql = "select * from chain_block_transaction_history where txType = 'TransferAsset' and txid = '"+txId+"' order by id desc limit 100"
-		}else {
+			sql = "select * from chain_block_transaction_history where txType = 'TransferAsset' and txid = '" + txId + "' order by id desc limit 100"
+		} else {
 			sql = "select * from chain_block_transaction_history where txType = 'TransferAsset' order by id desc limit 100"
 		}
 	}
-
 
 	list, err := dba.ToStruct(sql, chain.Block_transaction_history{})
 
@@ -353,9 +352,9 @@ func list(w http.ResponseWriter, r *http.Request) {
 //getBtcBlockHeight get bitcoin current blockchain height
 func getBtcBlockHeight(w http.ResponseWriter, r *http.Request) {
 	helper := rpchelper{}
-	height , err , status := helper.getBestheight()
+	height, err, status := helper.getBestheight()
 	if err != nil {
-		w.Write([]byte(`{"result":"` + err.Error() + `","status":`+strconv.Itoa(status)+`}`))
+		w.Write([]byte(`{"result":"` + err.Error() + `","status":` + strconv.Itoa(status) + `}`))
 		return
 	}
 	w.Write([]byte(`{"result":` + strconv.Itoa(int(height)) + `,"status":200}`))
@@ -365,33 +364,33 @@ func getBtcBlockHeight(w http.ResponseWriter, r *http.Request) {
 func getBtcTransaction(w http.ResponseWriter, r *http.Request) {
 	param := mux.Vars(r)
 	helper := rpchelper{param}
-	transaction , err , status := helper.getTransaction()
+	transaction, err, status := helper.getTransaction()
 	if err != nil {
-		w.Write([]byte(`{"result":"` + err.Error() + `","status":`+strconv.Itoa(status)+`}`))
+		w.Write([]byte(`{"result":"` + err.Error() + `","status":` + strconv.Itoa(status) + `}`))
 		return
 	}
 	w.Write([]byte(`{"result":` + transaction + `,"status":200}`))
 }
 
 //getBtcBalance get bitcoin balance of the requested address
-func getBtcBalance(w http.ResponseWriter,r *http.Request) {
+func getBtcBalance(w http.ResponseWriter, r *http.Request) {
 	param := mux.Vars(r)
 	helper := rpchelper{param}
-	balance , err , status := helper.getBalance()
+	balance, err, status := helper.getBalance()
 	if err != nil {
-		w.Write([]byte(`{"result":"` + err.Error() + `","status":`+strconv.Itoa(status)+`}`))
+		w.Write([]byte(`{"result":"` + err.Error() + `","status":` + strconv.Itoa(status) + `}`))
 		return
 	}
-	w.Write([]byte(`{"result":` + strconv.FormatFloat(balance,'f',8,64) + `,"status":200}`))
+	w.Write([]byte(`{"result":` + strconv.FormatFloat(balance, 'f', 8, 64) + `,"status":200}`))
 }
 
 //getBtcBlock get bitcoin block info
-func getBtcBlock(w http.ResponseWriter,r *http.Request) {
+func getBtcBlock(w http.ResponseWriter, r *http.Request) {
 	param := mux.Vars(r)
 	helper := rpchelper{param}
-	block , err , status := helper.getBlockDetail()
+	block, err, status := helper.getBlockDetail()
 	if err != nil {
-		w.Write([]byte(`{"result":"` + err.Error() + `","status":`+strconv.Itoa(status)+`}`))
+		w.Write([]byte(`{"result":"` + err.Error() + `","status":` + strconv.Itoa(status) + `}`))
 		return
 	}
 	w.Write([]byte(`{"result":` + block + `,"status":200}`))
@@ -399,69 +398,69 @@ func getBtcBlock(w http.ResponseWriter,r *http.Request) {
 }
 
 //getCmcPrice get price from cmc
-func getCmcPrice(w http.ResponseWriter,r *http.Request){
+func getCmcPrice(w http.ResponseWriter, r *http.Request) {
 	apiKey := r.Header["Apikey"]
 	tp_param := r.Header["Timestamp"]
 	if len(apiKey) == 0 || len(tp_param) == 0 {
 		http.Error(w, `{"result":"invalid request param : apiKey or timestamp can not be blank" ,"status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 		return
 	}
-	itp_param , err := strconv.ParseInt(tp_param[0],10,64)
+	itp_param, err := strconv.ParseInt(tp_param[0], 10, 64)
 	if err != nil {
 		http.Error(w, `{"result":"invalid request param : invalid timestamp","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 		return
 	}
 	tp_local := time.Now().UTC().Unix() * 1000
-	if math.Abs(float32(tp_local - itp_param))/(1000 * 60) > 5 {
+	if math.Abs(float32(tp_local-itp_param))/(1000*60) > 5 {
 		http.Error(w, `{"result":"invalid request param : apiKey out of date","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 		return
 	}
-	keyHash := sha256.Sum256([]byte(config.Conf.VisitKey+tp_param[0]))
+	keyHash := sha256.Sum256([]byte(config.Conf.VisitKey + tp_param[0]))
 	if hex.EncodeToString(keyHash[:]) != apiKey[0] {
 		http.Error(w, `{"result":"invalid request param : apiKey not correct ","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 		return
 	}
 	limit := r.FormValue("limit")
 	if limit == "" {
-		http.Error(w, `{"result":"invalid request param : limit can not be blank" ,"status":`+strconv.Itoa(http.StatusBadRequest)+`}` , http.StatusBadRequest)
+		http.Error(w, `{"result":"invalid request param : limit can not be blank" ,"status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 		return
 	}
-	ilimit , err := strconv.Atoi(limit)
+	ilimit, err := strconv.Atoi(limit)
 	if err != nil {
-		http.Error(w, `{"result":"invalid request param : limit must be a number " ,"status":`+strconv.Itoa(http.StatusBadRequest)+`}` , http.StatusBadRequest)
+		http.Error(w, `{"result":"invalid request param : limit must be a number " ,"status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 		return
 	}
 	if ilimit > config.Conf.Cmc.NumOfCoin {
-		http.Error(w, `{"result":"invalid request param : limit exceed maximum value " ,"status":`+strconv.Itoa(http.StatusBadRequest)+`}` , http.StatusBadRequest)
+		http.Error(w, `{"result":"invalid request param : limit exceed maximum value " ,"status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 		return
 	}
-	_id , err := dba.ToInt("select _id from chain_cmc_price where symbol = 'BTC' order by _id desc limit 1")
+	_id, err := dba.ToInt("select _id from chain_cmc_price where symbol = 'BTC' order by _id desc limit 1")
 	if err != nil {
-		http.Error(w,`{"result":"internal error : `+ err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 		return
 	}
-	l , err := dba.Query("select * from chain_cmc_price where _id between " +strconv.Itoa(_id) + " and " + strconv.Itoa(ilimit + _id - 1))
+	l, err := dba.Query("select * from chain_cmc_price where _id between " + strconv.Itoa(_id) + " and " + strconv.Itoa(ilimit+_id-1))
 	if err != nil {
-		http.Error(w,`{"result":"internal error : `+ err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 		return
 	}
 	ret := [][]byte{
 		[]byte("["),
 	}
 	i := 0
-	for e := l.Front() ; e !=nil ;e = e.Next(){
+	for e := l.Front(); e != nil; e = e.Next() {
 		m := e.Value.(map[string]interface{})
-		buf , err := json.Marshal(m)
+		buf, err := json.Marshal(m)
 		if err != nil {
-			http.Error(w,`{"result":"internal error : `+ err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+			http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 			return
 		}
-		ret = append(ret,buf)
-		if i != l.Len() - 1 {
-			ret = append(ret,[]byte(","))
+		ret = append(ret, buf)
+		if i != l.Len()-1 {
+			ret = append(ret, []byte(","))
 		}
 		i++
 	}
-	ret = append(ret,[]byte("]"))
-	w.Write(bytes.Join(ret,nil))
+	ret = append(ret, []byte("]"))
+	w.Write(bytes.Join(ret, nil))
 }

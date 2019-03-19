@@ -8,16 +8,16 @@ import (
 
 type config struct {
 	ServerPort string
-	Db  	   DB
-	Ela 	   ELA
-	Btc 	   BTC
-	Cmc  	   Cmc
+	Db         DB
+	Ela        ELA
+	Btc        BTC
+	Cmc        Cmc
 	VisitKey   string
 }
 
 type Cmc struct {
-	ApiKey  []string
-	Inteval string
+	ApiKey    []string
+	Inteval   string
 	NumOfCoin int
 }
 
@@ -27,7 +27,7 @@ type DB struct {
 }
 
 type ELA struct {
-	Host       string
+	Host string
 }
 
 type BTC struct {
@@ -35,7 +35,7 @@ type BTC struct {
 	Rpcuser    string
 	Rpcpasswd  string
 	MinConfirm int
-	Net 	   string
+	Net        string
 }
 
 var Conf *config

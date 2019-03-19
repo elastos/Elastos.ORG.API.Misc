@@ -16,7 +16,7 @@ var client, _ = rpcclient.New(&rpcclient.ConnConfig{
 	Host:         "127.0.0.1:18332",
 	User:         "clark",
 	Pass:         "DrGhlxKuqP02m47TnDRAeZqir6Gt5V0secCHajUKW-0=",
-	}, nil)
+}, nil)
 
 func Test_main(t *testing.T) {
 
@@ -39,29 +39,29 @@ func Test_main(t *testing.T) {
 	//addr, err := client.GetNewAddress("Test")
 
 	//println(addr.EncodeAddress())
-	addr , _ := btcutil.DecodeAddress("2NBN7wXptuq4bKNiKeabGUdhckLYURJB4jm",&chaincfg.TestNet3Params)
+	addr, _ := btcutil.DecodeAddress("2NBN7wXptuq4bKNiKeabGUdhckLYURJB4jm", &chaincfg.TestNet3Params)
 	//addr1 , _ := btcutil.DecodeAddress("mqeRnQdfTsbELix9vXUZhTReMifqUgfJaD",&chaincfg.TestNet3Params)
 
 	addrs := []btcutil.Address{addr}
 
-	utxo ,err := client.ListUnspentMinMaxAddresses(0,99999,addrs)
-	inputs := btcjson.TransactionInput{utxo[0].TxID,utxo[0].Vout}
-	amt , _:= btcutil.NewAmount(.0001)
+	utxo, err := client.ListUnspentMinMaxAddresses(0, 99999, addrs)
+	inputs := btcjson.TransactionInput{utxo[0].TxID, utxo[0].Vout}
+	amt, _ := btcutil.NewAmount(.0001)
 	//amt1 , _:= btcutil.NewAmount(.0002)
-	tx, err := client.CreateRawTransaction([]btcjson.TransactionInput{inputs},map[btcutil.Address]btcutil.Amount{
+	tx, err := client.CreateRawTransaction([]btcjson.TransactionInput{inputs}, map[btcutil.Address]btcutil.Amount{
 		//addr:amt,
-		addr:amt,
-	},nil)
-	tx , b , err := client.SignRawTransaction(tx)
+		addr: amt,
+	}, nil)
+	tx, b, err := client.SignRawTransaction(tx)
 	if err != nil {
 		println(err.Error())
 	}
 	buf := new(bytes.Buffer)
-	txid , err := client.SendRawTransaction(tx,true)
+	txid, err := client.SendRawTransaction(tx, true)
 	if err != nil {
 		println(err.Error())
 	}
-	fmt.Printf("%v %v %v %v \n",tx,buf,b,txid)
+	fmt.Printf("%v %v %v %v \n", tx, buf, b, txid)
 
 	//b, err := hex.DecodeString("662b775b5b4eb8b581e59ac9d905921b8452bec765e0a47a7de6f75fd5695594")
 	//h := new(chainhash.Hash)
@@ -94,11 +94,10 @@ func Test_main(t *testing.T) {
 	//}
 	//log.Printf("sendMany completed! tx sha is: %s", txSha.String())
 
-
 	// list accounts
-	utxos, err := client.ListUnspentMinMaxAddresses(1,99999999,addrs)
-	for _ , v := range utxos {
-		fmt.Printf("%v\n",v)
+	utxos, err := client.ListUnspentMinMaxAddresses(1, 99999999, addrs)
+	for _, v := range utxos {
+		fmt.Printf("%v\n", v)
 	}
 
 	//amt , err := client.GetRawTransactionVerbose()
@@ -106,11 +105,11 @@ func Test_main(t *testing.T) {
 	//	println(err.Error())
 	//}
 	//println(amt)
-	txids , err := client.GetRawMempool()
+	txids, err := client.GetRawMempool()
 	if err != nil {
 		println(err.Error())
 	}
-	for _ , txid := range txids {
+	for _, txid := range txids {
 		println(txid.String())
 	}
 }

@@ -26,10 +26,10 @@ var (
 		"/api/1/dpos/reward/height/{height}": {
 			"GET": rewardByHeight,
 		},
-		"/api/1/dpos/rank/height/{height}":{
+		"/api/1/dpos/rank/height/{height}": {
 			"GET": producerRankByHeight,
 		},
-		"/api/1/dpos/vote/height/{height}":{
+		"/api/1/dpos/vote/height/{height}": {
 			"GET": totalVoteByHeight,
 		},
 
@@ -58,13 +58,12 @@ var (
 		},
 
 		//CoinMarketCap
-		"/api/1/cmc":{
-			"Get":getCmcPrice,
+		"/api/1/cmc": {
+			"Get": getCmcPrice,
 		},
 	}
 	router = mux.NewRouter()
 )
-
 
 func init() {
 	for p, r := range routers {

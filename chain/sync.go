@@ -28,7 +28,7 @@ const (
 	SPEND             = "spend"
 	ELA               = 100000000
 	MINING_ADDR       = "0000000000000000000000000000000000"
-	ELA_ASSETID		  = "a3d0eaa466df74983b5d7c543de6904f4c9418ead5ffd6d25814234a96db37b0"
+	ELA_ASSETID       = "a3d0eaa466df74983b5d7c543de6904f4c9418ead5ffd6d25814234a96db37b0"
 )
 
 const (
@@ -75,17 +75,17 @@ type Address_history struct {
 }
 
 type Block_transaction_history struct {
-	Address    string 	`json:",omitempty"`
-	Txid       string 	`json:",omitempty"`
-	Type       string 	`json:",omitempty"`
-	Value      int64  	`json:",omitempty"`
-	CreateTime int64  	`json:",omitempty"`
-	Height     int 	  	`json:",omitempty"`
-	Fee        int64  	`json:",omitempty"`
+	Address    string   `json:",omitempty"`
+	Txid       string   `json:",omitempty"`
+	Type       string   `json:",omitempty"`
+	Value      int64    `json:",omitempty"`
+	CreateTime int64    `json:",omitempty"`
+	Height     int      `json:",omitempty"`
+	Fee        int64    `json:",omitempty"`
 	Inputs     []string `json:",omitempty"`
 	Outputs    []string `json:",omitempty"`
-	TxType     string 	`json:",omitempty"`
-	Memo       string 	`json:",omitempty"`
+	TxType     string   `json:",omitempty"`
+	Memo       string   `json:",omitempty"`
 }
 
 type Did_Property struct {
@@ -101,33 +101,33 @@ type Did_Property struct {
 }
 
 type Block_header struct {
-	Hash 				string
-	Size 				int64
-	Weight 				int64
-	Height 				int64
-	Version 			int64
-	Merkleroot  		string
-	Time 				int64
-	Nonce				int64
-	Bits  				int64
-	Difficulty  		string
-	Chainwork   		string
-	Previousblockhash 	string	`json:previous_block_hash`
-	Nextblockhash		string  `json:next_block_hash`
-	Minerinfo			string	`json:miner_info`
+	Hash              string
+	Size              int64
+	Weight            int64
+	Height            int64
+	Version           int64
+	Merkleroot        string
+	Time              int64
+	Nonce             int64
+	Bits              int64
+	Difficulty        string
+	Chainwork         string
+	Previousblockhash string `json:previous_block_hash`
+	Nextblockhash     string `json:next_block_hash`
+	Minerinfo         string `json:miner_info`
 }
 
 type Vote_info struct {
 	Producer_public_key string `json:",omitempty"`
 	Vote_type           string `json:",omitempty"`
-	Txid			    string `json:",omitempty"`
-	N					int    `json:",omitempty"`
-	Value 				string `json:",omitempty"`
-	Outputlock			int    `json:",omitempty"`
-	Address 			string `json:",omitempty"`
-	Block_time			int64  `json:",omitempty"`
-	Height				int64  `json:",omitempty"`
-	Rank				int64  `json:",omitempty"`
+	Txid                string `json:",omitempty"`
+	N                   int    `json:",omitempty"`
+	Value               string `json:",omitempty"`
+	Outputlock          int    `json:",omitempty"`
+	Address             string `json:",omitempty"`
+	Block_time          int64  `json:",omitempty"`
+	Height              int64  `json:",omitempty"`
+	Rank                int64  `json:",omitempty"`
 }
 
 //Sync sync chain data
@@ -211,14 +211,14 @@ func handleHeight(curr int, tx *sql.Tx) error {
 	result := resp["Result"].(map[string]interface{})
 	// header
 	header := Block_header{}
-	tools.Map2Struct(result,&header)
+	tools.Map2Struct(result, &header)
 
-	stmt , err := tx.Prepare("insert into chain_block_header (hash,weight,height,version,merkleroot,`time`,nonce,bits,difficulty,chainwork,previous_block_hash,next_block_hash,miner_info,`size`) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
+	stmt, err := tx.Prepare("insert into chain_block_header (hash,weight,height,version,merkleroot,`time`,nonce,bits,difficulty,chainwork,previous_block_hash,next_block_hash,miner_info,`size`) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
 	if err != nil {
 		return err
 	}
 
-	_ , err = stmt.Exec(header.Hash,header.Weight,header.Height,header.Version,header.Merkleroot,header.Time,header.Nonce,header.Bits,header.Difficulty,header.Chainwork,header.Previousblockhash,header.Nextblockhash,header.Minerinfo,header.Size)
+	_, err = stmt.Exec(header.Hash, header.Weight, header.Height, header.Version, header.Merkleroot, header.Time, header.Nonce, header.Bits, header.Difficulty, header.Chainwork, header.Previousblockhash, header.Nextblockhash, header.Minerinfo, header.Size)
 	if err != nil {
 		return err
 	}
@@ -326,7 +326,7 @@ func handleHeight(curr int, tx *sql.Tx) error {
 				vvm := vv.(map[string]interface{})
 				address := vvm["address"].(string)
 				var valueCross float64
-				if isCrossTx == true && (address == MINING_ADDR || strings.Index(address,"X") == 0) {
+				if isCrossTx == true && (address == MINING_ADDR || strings.Index(address, "X") == 0) {
 					payload := vm["payload"].(map[string]interface{})
 					valueCross = payload["CrossChainAmounts"].([]interface{})[0].(float64) / ELA
 				}
@@ -336,7 +336,7 @@ func handleHeight(curr int, tx *sql.Tx) error {
 				}
 				if valueCross != 0 {
 					totalOutput += valueCross
-				}else{
+				} else {
 					totalOutput += value
 				}
 				v, ok := receive[address]
@@ -386,7 +386,6 @@ func handleHeight(curr int, tx *sql.Tx) error {
 		stmt.Close()
 	}
 
-
 	// process vote
 	for _, txv := range txArr {
 		txm := txv.(map[string]interface{})
@@ -398,14 +397,14 @@ func handleHeight(curr int, tx *sql.Tx) error {
 			if err != nil {
 				return err
 			}
-			for _ , v := range vout{
+			for _, v := range vout {
 				vm := v.(map[string]interface{})
 				if vm["type"].(float64) == 1 && vm["assetid"] == ELA_ASSETID {
 					payload := vm["payload"].(map[string]interface{})
 					if payload == nil {
 						continue
 					}
-					contents , ok := payload["contents"].([]interface{})
+					contents, ok := payload["contents"].([]interface{})
 					if !ok {
 						continue
 					}
@@ -413,18 +412,18 @@ func handleHeight(curr int, tx *sql.Tx) error {
 					n := vm["n"]
 					address := vm["address"]
 					outputlock := vm["outputlock"]
-					for _ ,cv := range contents {
+					for _, cv := range contents {
 						cvm := cv.(map[string]interface{})
 						votetype := cvm["votetype"]
 						votetypeStr := ""
 						if votetype.(float64) == 0 {
 							votetypeStr = "Delegate"
-						}else if votetype.(float64) == 1 {
+						} else if votetype.(float64) == 1 {
 							votetypeStr = "CRC"
 						}
 						candidates := cvm["candidates"].([]interface{})
-						for _ , pub := range candidates {
-							_ , err := stmt.Exec(pub,votetypeStr,txid,n,value,outputlock,address,header.Time,header.Height)
+						for _, pub := range candidates {
+							_, err := stmt.Exec(pub, votetypeStr, txid, n, value, outputlock, address, header.Time, header.Height)
 							if err != nil {
 								return err
 							}
@@ -440,11 +439,11 @@ func handleHeight(curr int, tx *sql.Tx) error {
 		if err != nil {
 			return err
 		}
-		for _ , v :=range vin {
+		for _, v := range vin {
 			vm := v.(map[string]interface{})
 			txhash := vm["txid"]
 			vout := vm["vout"]
-			_ , err := stmt.Exec(header.Height,txhash,vout)
+			_, err := stmt.Exec(header.Height, txhash, vout)
 			if err != nil {
 				return err
 			}
@@ -452,19 +451,18 @@ func handleHeight(curr int, tx *sql.Tx) error {
 		stmt.Close()
 	}
 
-
 	return nil
 }
 
-type Properties struct{
-	Key  	string
-	Value 	string
-	Status  interface{}
+type Properties struct {
+	Key    string
+	Value  string
+	Status interface{}
 }
 
 type Did_info struct {
-	Tag 	   string
-	Ver 	   string
+	Tag        string
+	Ver        string
 	Status     interface{}
 	Properties []Properties
 }
@@ -516,12 +514,12 @@ func handleMemo(memo string, height int, txid string, createTime int, tx *sql.Tx
 	// compatible string
 	if !ko {
 		sstats := ""
-		sstats , ko = raw.Status.(string)
+		sstats, ko = raw.Status.(string)
 		if sstats == "Normal" {
 			fstats = 1
 		} else if sstats == "Deprecated" {
 			fstats = 0
-		}else {
+		} else {
 			ko = false
 		}
 	}
@@ -530,12 +528,12 @@ func handleMemo(memo string, height int, txid string, createTime int, tx *sql.Tx
 		keyStats, ko6 := v.Status.(float64)
 		if !ko6 {
 			skeyStats := ""
-			skeyStats , ko6 = v.Status.(string)
+			skeyStats, ko6 = v.Status.(string)
 			if skeyStats == "Normal" {
 				keyStats = 1
 			} else if skeyStats == "Deprecated" {
 				keyStats = 0
-			}else {
+			} else {
 				ko6 = false
 			}
 		}

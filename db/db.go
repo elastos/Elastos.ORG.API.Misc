@@ -86,7 +86,7 @@ func (dia *Dialect) Rollback(tx *sql.Tx) error {
 }
 
 //Execute data manipulate language
-func (dia *Dialect) Execute(sql string,args ...string) (int64, error) {
+func (dia *Dialect) Execute(sql string, args ...string) (int64, error) {
 	log.Info(sql)
 	stmt, err := dia.db.Prepare(sql)
 	if err != nil {
@@ -215,7 +215,7 @@ func (dia *Dialect) ToFloat(sql string) (float64, error) {
 	}
 	m := l.Front().Value.(map[string]interface{})
 	for _, v := range m {
-		return strconv.ParseFloat(v.(string),64)
+		return strconv.ParseFloat(v.(string), 64)
 	}
 
 	return -1, err

@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	client 		*rpcclient.Client
+	client *rpcclient.Client
 	btcNet *chaincfg.Params
 )
 
@@ -35,7 +35,7 @@ func init() {
 				Pass:         config.Conf.Btc.Rpcpasswd,
 			}, nil)
 			if err != nil {
-				log.Error("Error Connect to Bitcoin node :" , err.Error())
+				log.Error("Error Connect to Bitcoin node :", err.Error())
 			}
 			net := config.Conf.Btc.Net
 			if net == "mainet" {
@@ -49,101 +49,100 @@ func init() {
 	}
 }
 
-func (h *rpchelper) getBalance() (float64,error,int) {
+func (h *rpchelper) getBalance() (float64, error, int) {
 	addr := h.param["addr"]
-	address , err := btcutil.DecodeAddress(addr,btcNet)
-	utxos , err := client.ListUnspentMinMaxAddresses(config.Conf.Btc.MinConfirm,99999999,[]btcutil.Address{address})
+	address, err := btcutil.DecodeAddress(addr, btcNet)
+	utxos, err := client.ListUnspentMinMaxAddresses(config.Conf.Btc.MinConfirm, 99999999, []btcutil.Address{address})
 	if err != nil {
-		return 0 , err, 400
+		return 0, err, 400
 	}
 	var totalBalance float64
-	for _ , v := range utxos {
+	for _, v := range utxos {
 		totalBalance += v.Amount
 	}
 
-	txIds , err := client.GetRawMempool()
+	txIds, err := client.GetRawMempool()
 	if err != nil {
-		return 0 , err , 500
+		return 0, err, 500
 	}
-	for _ , txId := range txIds {
-		txInfo , err :=  client.GetRawTransactionVerbose(txId)
+	for _, txId := range txIds {
+		txInfo, err := client.GetRawTransactionVerbose(txId)
 		if err != nil {
-			log.Warnf("Error fetching transaction %s",txId.String())
+			log.Warnf("Error fetching transaction %s", txId.String())
 			continue
 		}
-		for _ ,in := range txInfo.Vin {
+		for _, in := range txInfo.Vin {
 			hash := &chainhash.Hash{}
-			b , _ := hex.DecodeString(in.Txid)
+			b, _ := hex.DecodeString(in.Txid)
 			hash.SetBytes(tools.ReverseBytes(b))
 			r, err := client.GetRawTransactionVerbose(hash)
 			if err != nil {
-				log.Warnf("Error fetching transaction %s",in.Txid)
+				log.Warnf("Error fetching transaction %s", in.Txid)
 				continue
 			}
 			opAddrs := r.Vout[in.Vout].ScriptPubKey.Addresses
-			if tools.Contains(opAddrs,addr) {
+			if tools.Contains(opAddrs, addr) {
 				totalBalance += r.Vout[in.Vout].Value
 			}
 		}
 	}
-	return totalBalance , nil , 200
+	return totalBalance, nil, 200
 }
 
-func (h *rpchelper) getTransaction() (string , error , int) {
+func (h *rpchelper) getTransaction() (string, error, int) {
 	txid := h.param["txid"]
-	btxid , err := hex.DecodeString(txid)
-	if err != nil || len(btxid) != 32{
-		return "" , errors.New("Invalid txid"), 400
+	btxid, err := hex.DecodeString(txid)
+	if err != nil || len(btxid) != 32 {
+		return "", errors.New("Invalid txid"), 400
 	}
 
 	hash := &chainhash.Hash{}
 	hash.SetBytes(tools.ReverseBytes(btxid))
-	tx , err := client.GetRawTransactionVerbose(hash)
+	tx, err := client.GetRawTransactionVerbose(hash)
 
 	if err != nil {
-		return "" , err , 500
+		return "", err, 500
 	}
-	buf , _ :=json.Marshal(tx)
-	return string(buf) , nil , 200
+	buf, _ := json.Marshal(tx)
+	return string(buf), nil, 200
 }
 
-
-func (h *rpchelper) getBestheight() (int64 , error , int) {
-	blockHeight , err := client.GetBlockCount()
+func (h *rpchelper) getBestheight() (int64, error, int) {
+	blockHeight, err := client.GetBlockCount()
 	if err != nil {
-		return -1 , err , 500
+		return -1, err, 500
 	}
-	return blockHeight , nil , 200
+	return blockHeight, nil, 200
 }
 
-func (h * rpchelper) getBlockDetail() (string , error , int) {
+func (h *rpchelper) getBlockDetail() (string, error, int) {
 	height := h.param["height"]
-	i , err := strconv.Atoi(height)
+	i, err := strconv.Atoi(height)
 
 	if err != nil || i < 0 {
-		return "" , err , 400
+		return "", err, 400
 	}
 
-	bestHeight , err , _ := h.getBestheight()
+	bestHeight, err, _ := h.getBestheight()
 	if err != nil {
-		return "" , err , 500
+		return "", err, 500
 	}
 
 	if i > int(bestHeight) {
-		return "" , errors.New("No such height") ,400
+		return "", errors.New("No such height"), 400
 	}
 
-	blockhash , err := client.GetBlockHash(int64(i))
+	blockhash, err := client.GetBlockHash(int64(i))
 	if err != nil {
-		return "" , err , 500
+		return "", err, 500
 	}
 
-	block , err := client.GetBlockVerbose(blockhash)
+	block, err := client.GetBlockVerbose(blockhash)
 	if err != nil {
-		return "" , err , 500
+		return "", err, 500
 	}
 
-	result , _ := json.Marshal(block)
+	result, _ := json.Marshal(block)
 
-	return string(result) , nil , 200
+	return string(result), nil, 200
 }
