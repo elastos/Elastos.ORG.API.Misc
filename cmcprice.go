@@ -85,27 +85,32 @@ func init() {
 			cmcResponseUSD, err := fetchPrice(i, "USD")
 			if err != nil {
 				fmt.Printf("Error in cmc price %s", err.Error())
-				break
+				<-time.After(sleepy)
+				continue
 			}
 			cmcResponseCNY, err := fetchPrice(i, "CNY")
 			if err != nil {
 				fmt.Printf("Error in cmc price %s", err.Error())
-				break
+				<-time.After(sleepy)
+				continue
 			}
 			cmcResponseBTC, err := fetchPrice(i, "BTC")
 			if err != nil {
 				fmt.Printf("Error in cmc price %s", err.Error())
-				break
+				<-time.After(sleepy)
+				continue
 			}
 			cmcResponseBGX, err := fetchBGXPrice()
 			if err != nil {
 				fmt.Printf("Error in bgx price %s", err.Error())
-				break
+				<-time.After(sleepy)
+				continue
 			}
 			err = saveToDb(cmcResponseUSD, cmcResponseCNY, cmcResponseBTC, cmcResponseBGX)
 			if err != nil {
 				fmt.Printf("Error in cmc price %s", err.Error())
-				break
+				<-time.After(sleepy)
+				continue
 			}
 			if i == len(config.Conf.Cmc.ApiKey)-1 {
 				i = 0

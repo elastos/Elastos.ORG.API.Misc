@@ -9,6 +9,7 @@ import (
 	"github.com/elastos/Elastos.ORG.API.Misc/chain"
 	"github.com/elastos/Elastos.ORG.API.Misc/config"
 	"github.com/elastos/Elastos.ORG.API.Misc/db"
+	"github.com/elastos/Elastos.ORG.API.Misc/log"
 	"github.com/elastos/Elastos.ORG.API.Misc/tools"
 	"github.com/engoengine/math"
 	"github.com/gorilla/mux"
@@ -24,7 +25,10 @@ var (
 )
 
 func StartServer() {
-	http.ListenAndServe(":"+config.Conf.ServerPort, router)
+	err := http.ListenAndServe(":"+config.Conf.ServerPort, router)
+	if err != nil {
+		log.Fatal("Error start server :" + err.Error())
+	}
 }
 
 //searchKey search did property key
