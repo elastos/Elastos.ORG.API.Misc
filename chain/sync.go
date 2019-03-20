@@ -204,7 +204,11 @@ func handleHeight(curr int, tx *sql.Tx) error {
 	if err != nil {
 		return err
 	}
-	txArr := (resp["Result"].(map[string]interface{}))["tx"].([]interface{})
+	r ,ok := (resp["Result"].(map[string]interface{}))
+	if !ok {
+		return errors.New("illegal Height")
+	}
+	txArr := r["tx"].([]interface{})
 	if len(txArr) == 0 {
 		return nil
 	}
