@@ -85,7 +85,7 @@ type Block_transaction_history struct {
 	Inputs     []string `json:",omitempty"`
 	Outputs    []string `json:",omitempty"`
 	TxType     string   `json:",omitempty"`
-	Memo       string   `json:",omitempty"`
+	Memo       string
 }
 
 type Did_Property struct {
@@ -204,7 +204,7 @@ func handleHeight(curr int, tx *sql.Tx) error {
 	if err != nil {
 		return err
 	}
-	r ,ok := (resp["Result"].(map[string]interface{}))
+	r, ok := (resp["Result"].(map[string]interface{}))
 	if !ok {
 		return errors.New("illegal Height")
 	}
