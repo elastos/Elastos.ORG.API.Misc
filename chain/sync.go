@@ -75,16 +75,16 @@ type Address_history struct {
 }
 
 type Block_transaction_history struct {
-	Address    string   `json:",omitempty"`
-	Txid       string   `json:",omitempty"`
-	Type       string   `json:",omitempty"`
-	Value      int64    `json:",omitempty"`
-	CreateTime int64    `json:",omitempty"`
-	Height     int      `json:",omitempty"`
-	Fee        int64    `json:",omitempty"`
-	Inputs     []string `json:",omitempty"`
-	Outputs    []string `json:",omitempty"`
-	TxType     string   `json:",omitempty"`
+	Address    string
+	Txid       string
+	Type       string
+	Value      int64
+	CreateTime int64
+	Height     int
+	Fee        int64
+	Inputs     []string
+	Outputs    []string
+	TxType     string
 	Memo       string
 }
 
