@@ -330,9 +330,13 @@ func handleHeight(curr int, tx *sql.Tx) error {
 				vvm := vv.(map[string]interface{})
 				address := vvm["address"].(string)
 				var valueCross float64
-				if isCrossTx == true && (address == MINING_ADDR || strings.Index(address, "X") == 0) {
+				if isCrossTx == true && (address == MINING_ADDR || strings.Index(address, "X") == 0 || address == "4oLvT2") {
 					payload := vm["payload"].(map[string]interface{})
-					valueCross = payload["CrossChainAmounts"].([]interface{})[0].(float64) / ELA
+					cca := payload["crosschainassets"].([]interface{})
+					valueCross, err = strconv.ParseFloat(cca[0].(map[string]interface{})["crosschainamount"].(string), 64)
+					if err != nil {
+						return err
+					}
 				}
 				value, err := strconv.ParseFloat(vvm["value"].(string), 64)
 				if err != nil {

@@ -192,7 +192,7 @@ func rewardByHeight(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"result":"invalid height","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 		return
 	}
-	rst, err := dba.ToStruct("select value,height,address,createTime from chain_block_transaction_history where height = "+height+" and txType = 'CoinBase' and value < "+strconv.Itoa(tools.Miner_Reward_PerBlock),node_reward{})
+	rst, err := dba.ToStruct("select value,height,address,createTime from chain_block_transaction_history where height = "+height+" and txType = 'CoinBase' and value < "+strconv.Itoa(tools.Miner_Reward_PerBlock), node_reward{})
 	if err != nil {
 		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 		return
