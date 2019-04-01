@@ -38,6 +38,11 @@ var (
 			"GET": ping,
 		},
 
+		//sync checking
+		"/api/1/history/checking/sync": {
+			"GET": syncChecking,
+		},
+
 		//ela frontend
 		"/api/1/list": {
 			"Get": list,
