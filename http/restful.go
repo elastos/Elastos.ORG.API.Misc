@@ -252,6 +252,16 @@ func ping(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(`{"result":"pong ` + version + `","status":200}`))
 }
 
+//get max height value of chain
+func syncChecking(w http.ResponseWriter, r *http.Request) {
+	c, err := dba.ToInt("select max(height) as height from chain_block_header")
+	if err != nil {
+		w.Write([]byte(`{"result":"` + err.Error() + `","status":500}`))
+		return
+	}
+	w.Write([]byte(`{"result":` + strconv.Itoa(c) + `,"status":200}`))
+}
+
 const tpl = `
 <!DOCTYPE html>
 <html>
