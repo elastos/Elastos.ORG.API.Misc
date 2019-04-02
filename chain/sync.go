@@ -128,29 +128,29 @@ type Vote_info struct {
 	Block_time          int64  `json:",omitempty"`
 	Height              int64  `json:",omitempty"`
 	Rank                int64  `json:",omitempty"`
-	Producer_info			   `json:",omitempty"`
+	Producer_info       `json:",omitempty"`
 }
 
 type Producer_info struct {
 	Ownerpublickey string
-	Nodepublickey string
-	Nickname string
-	Url string
-	Location int64
-	Active bool
-	Votes string
-	Netaddress string
-	State string
-	Registerheight  int64
-	Cancelheight int64
-	Inactiveheight  int64
-	Illegalheight int64
-	Index int64
+	Nodepublickey  string
+	Nickname       string
+	Url            string
+	Location       int64
+	Active         bool
+	Votes          string
+	Netaddress     string
+	State          string
+	Registerheight int64
+	Cancelheight   int64
+	Inactiveheight int64
+	Illegalheight  int64
+	Index          int64
 }
 
 //Sync sync chain data
 func Sync() {
-	go func(){
+	go func() {
 		for {
 			tx, err := dba.Begin()
 			if err = doSync(tx); err != nil {
@@ -162,7 +162,7 @@ func Sync() {
 			<-time.After(time.Second * 10)
 		}
 	}()
-	go func(){
+	go func() {
 		for {
 			tx, err := dba.Begin()
 			if err = handleRegisteredProducer(tx); err != nil {
@@ -193,10 +193,10 @@ func get(url string) (map[string]interface{}, error) {
 }
 
 //get get data from givin url and return map as value
-func post(url string,reqBody string) (map[string]interface{}, error) {
+func post(url string, reqBody string) (map[string]interface{}, error) {
 	log.Infof("Request URL = %v \n", url)
 	buf := bytes.NewBuffer([]byte(reqBody))
-	r, err := http.Post(url,"application/json",buf)
+	r, err := http.Post(url, "application/json", buf)
 	if err != nil {
 		return nil, err
 	}
@@ -208,7 +208,6 @@ func post(url string,reqBody string) (map[string]interface{}, error) {
 	json.Unmarshal(resp, &rstMap)
 	return rstMap, nil
 }
-
 
 func doSync(tx *sql.Tx) error {
 
@@ -251,12 +250,12 @@ func doSync(tx *sql.Tx) error {
 
 func handleRegisteredProducer(tx *sql.Tx) error {
 	reqBody := `{"method": "listproducers"}`
-	resp, err := post("http://" + config.Conf.Ela.Jsonrpc,reqBody)
+	resp, err := post("http://"+config.Conf.Ela.Jsonrpc, reqBody)
 	if err != nil {
 		return err
 	}
 	result := resp["result"].(map[string]interface{})
-	producers , ok := result["producers"].([]interface{})
+	producers, ok := result["producers"].([]interface{})
 	if !ok {
 		return nil
 	}
@@ -270,11 +269,11 @@ func handleRegisteredProducer(tx *sql.Tx) error {
 	}
 	defer stmt.Close()
 	defer stmt1.Close()
-	for _,producer := range producers {
+	for _, producer := range producers {
 		p := producer.(map[string]interface{})
 		pS := Producer_info{}
-		tools.Map2Struct(p,&pS)
-		Registerheight , err := dba.ToInt("select Registerheight from chain_producer_info where Ownerpublickey = '" + pS.Ownerpublickey+"'")
+		tools.Map2Struct(p, &pS)
+		Registerheight, err := dba.ToInt("select Registerheight from chain_producer_info where Ownerpublickey = '" + pS.Ownerpublickey + "'")
 		if err != nil {
 			return err
 		}
@@ -282,12 +281,12 @@ func handleRegisteredProducer(tx *sql.Tx) error {
 			if Registerheight == int(pS.Registerheight) {
 				continue
 			}
-			_ , err = stmt1.Exec(pS.Ownerpublickey)
+			_, err = stmt1.Exec(pS.Ownerpublickey)
 			if err != nil {
 				return err
 			}
 		}
-		_, err = stmt.Exec(pS.Ownerpublickey, pS.Nodepublickey, pS.Nickname, pS.Url, pS.Location, pS.Active, pS.Votes, pS.Netaddress, pS.State, pS.Registerheight, pS.Cancelheight , pS.Inactiveheight,  pS.Illegalheight, pS.Index)
+		_, err = stmt.Exec(pS.Ownerpublickey, pS.Nodepublickey, pS.Nickname, pS.Url, pS.Location, pS.Active, pS.Votes, pS.Netaddress, pS.State, pS.Registerheight, pS.Cancelheight, pS.Inactiveheight, pS.Illegalheight, pS.Index)
 		if err != nil {
 			return err
 		}
@@ -428,7 +427,7 @@ func handleHeight(curr int, tx *sql.Tx) error {
 				var valueCross float64
 				if isCrossTx == true && (address == MINING_ADDR || strings.Index(address, "X") == 0 || address == "4oLvT2") {
 					payload := vm["payload"].(map[string]interface{})
-					cca , ok := payload["crosschainassets"].([]interface{})
+					cca, ok := payload["crosschainassets"].([]interface{})
 					if ok {
 						valueCross, err = strconv.ParseFloat(cca[0].(map[string]interface{})["crosschainamount"].(string), 64)
 						if err != nil {
