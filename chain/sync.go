@@ -128,20 +128,52 @@ type Vote_info struct {
 	Block_time          int64  `json:",omitempty"`
 	Height              int64  `json:",omitempty"`
 	Rank                int64  `json:",omitempty"`
+	Producer_info			   `json:",omitempty"`
+}
+
+type Producer_info struct {
+	Ownerpublickey string
+	Nodepublickey string
+	Nickname string
+	Url string
+	Location int64
+	Active bool
+	Votes string
+	Netaddress string
+	State string
+	Registerheight  int64
+	Cancelheight int64
+	Inactiveheight  int64
+	Illegalheight int64
+	Index int64
 }
 
 //Sync sync chain data
 func Sync() {
-	for {
-		tx, err := dba.Begin()
-		if err = doSync(tx); err != nil {
-			log.Infof("Sync Height Error : %v \n", err.Error())
-			tx.Rollback()
-		} else {
-			tx.Commit()
+	go func(){
+		for {
+			tx, err := dba.Begin()
+			if err = doSync(tx); err != nil {
+				log.Infof("Sync Height Error : %v \n", err.Error())
+				tx.Rollback()
+			} else {
+				tx.Commit()
+			}
+			<-time.After(time.Second * 10)
 		}
-		<-time.After(time.Second * 10)
-	}
+	}()
+	go func(){
+		for {
+			tx, err := dba.Begin()
+			if err = handleRegisteredProducer(tx); err != nil {
+				log.Infof("handleRegisteredProducer Error : %v \n", err.Error())
+				tx.Rollback()
+			} else {
+				tx.Commit()
+			}
+			<-time.After(time.Second * 60)
+		}
+	}()
 }
 
 //get get data from givin url and return map as value
@@ -160,9 +192,27 @@ func get(url string) (map[string]interface{}, error) {
 	return rstMap, nil
 }
 
+//get get data from givin url and return map as value
+func post(url string,reqBody string) (map[string]interface{}, error) {
+	log.Infof("Request URL = %v \n", url)
+	buf := bytes.NewBuffer([]byte(reqBody))
+	r, err := http.Post(url,"application/json",buf)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, err
+	}
+	rstMap := make(map[string]interface{})
+	json.Unmarshal(resp, &rstMap)
+	return rstMap, nil
+}
+
+
 func doSync(tx *sql.Tx) error {
 
-	resp, err := get("http://" + config.Conf.Ela.Host + BlockHeight)
+	resp, err := get("http://" + config.Conf.Ela.Restful + BlockHeight)
 
 	if err != nil {
 		return err
@@ -199,8 +249,54 @@ func doSync(tx *sql.Tx) error {
 	return nil
 }
 
+func handleRegisteredProducer(tx *sql.Tx) error {
+	reqBody := `{"method": "listproducers"}`
+	resp, err := post("http://" + config.Conf.Ela.Jsonrpc,reqBody)
+	if err != nil {
+		return err
+	}
+	result := resp["result"].(map[string]interface{})
+	producers , ok := result["producers"].([]interface{})
+	if !ok {
+		return nil
+	}
+	stmt, err := tx.Prepare("insert into chain_producer_info (Ownerpublickey,Nodepublickey,Nickname,Url,Location,Active,Votes,Netaddress,State,Registerheight,Cancelheight,Inactiveheight,Illegalheight,`Index`) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
+	if err != nil {
+		return err
+	}
+	stmt1, err := tx.Prepare("delete from chain_producer_info where Ownerpublickey = ?")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+	defer stmt1.Close()
+	for _,producer := range producers {
+		p := producer.(map[string]interface{})
+		pS := Producer_info{}
+		tools.Map2Struct(p,&pS)
+		Registerheight , err := dba.ToInt("select Registerheight from chain_producer_info where Ownerpublickey = '" + pS.Ownerpublickey+"'")
+		if err != nil {
+			return err
+		}
+		if Registerheight != -1 {
+			if Registerheight == int(pS.Registerheight) {
+				continue
+			}
+			_ , err = stmt1.Exec(pS.Ownerpublickey)
+			if err != nil {
+				return err
+			}
+		}
+		_, err = stmt.Exec(pS.Ownerpublickey, pS.Nodepublickey, pS.Nickname, pS.Url, pS.Location, pS.Active, pS.Votes, pS.Netaddress, pS.State, pS.Registerheight, pS.Cancelheight , pS.Inactiveheight,  pS.Illegalheight, pS.Index)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func handleHeight(curr int, tx *sql.Tx) error {
-	resp, err := get("http://" + config.Conf.Ela.Host + BlockDetail + strconv.FormatInt(int64(curr), 10))
+	resp, err := get("http://" + config.Conf.Ela.Restful + BlockDetail + strconv.FormatInt(int64(curr), 10))
 	if err != nil {
 		return err
 	}
@@ -300,7 +396,7 @@ func handleHeight(curr int, tx *sql.Tx) error {
 				vvm := vv.(map[string]interface{})
 				vintxid := vvm["txid"].(string)
 				vinindex := vvm["vout"].(float64)
-				txResp, err := get("http://" + config.Conf.Ela.Host + TransactionDetail + vintxid)
+				txResp, err := get("http://" + config.Conf.Ela.Restful + TransactionDetail + vintxid)
 				if err != nil {
 					return err
 				}

@@ -196,7 +196,7 @@ func (dia *Dialect) ToStruct(sql string, strct interface{}) ([]interface{}, erro
 func (dia *Dialect) ToInt(sql string) (int, error) {
 
 	l, err := dia.Query(sql)
-	if err != nil {
+	if err != nil || l.Len() == 0 {
 		return -1, err
 	}
 	m := l.Front().Value.(map[string]interface{})

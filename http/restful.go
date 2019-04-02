@@ -213,9 +213,10 @@ func producerRankByHeight(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"result":"invalid height","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 		return
 	}
-	rst, err := dba.ToStruct(`select a.* , (@row_number:=@row_number + 1) as "rank" from 
-(select producer_public_key , sum(value) as value from chain.chain_vote_info where cancel_height > `+height+` or cancel_height is null group by producer_public_key order by value desc) a
- ,  (SELECT @row_number:=0) AS t`, chain.Vote_info{})
+	rst, err := dba.ToStruct(`select a.* , (@row_number:=@row_number + 1) as "rank",b.* from 
+(select A.producer_public_key , sum(value) as value from chain_vote_info A where A.cancel_height > `+height+` or
+ cancel_height is null group by producer_public_key order by value desc) a right join chain_producer_info b on a.producer_public_key = b.ownerpublickey 
+ ,  (SELECT @row_number:=0) AS t where b.state = 'Activate'`, chain.Vote_info{})
 	if err != nil {
 		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 		return
