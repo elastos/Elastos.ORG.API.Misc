@@ -23,9 +23,6 @@ var (
 		"/api/1/dpos/address/{address}": {
 			"GET": voterStatistic,
 		},
-		"/api/1/dpos/reward/height/{height}": {
-			"GET": rewardByHeight,
-		},
 		"/api/1/dpos/rank/height/{height}": {
 			"GET": producerRankByHeight,
 		},

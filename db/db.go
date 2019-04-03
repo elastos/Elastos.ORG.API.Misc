@@ -210,7 +210,7 @@ func (dia *Dialect) ToInt(sql string) (int, error) {
 func (dia *Dialect) ToFloat(sql string) (float64, error) {
 
 	l, err := dia.Query(sql)
-	if err != nil {
+	if err != nil || l.Len() == 0 {
 		return -1, err
 	}
 	m := l.Front().Value.(map[string]interface{})
@@ -224,7 +224,7 @@ func (dia *Dialect) ToFloat(sql string) (float64, error) {
 func (dia *Dialect) ToString(sql string) (string, error) {
 
 	l, err := dia.Query(sql)
-	if err != nil {
+	if err != nil || l.Len() == 0 {
 		return "", err
 	}
 	m := l.Front().Value.(map[string]interface{})
