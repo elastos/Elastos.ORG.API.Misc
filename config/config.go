@@ -7,12 +7,13 @@ import (
 )
 
 type config struct {
-	ServerPort string
-	Db         DB
-	Ela        ELA
-	Btc        BTC
-	Cmc        Cmc
-	VisitKey   string
+	ServerPort      string
+	Db              DB
+	Ela             ELA
+	Btc             BTC
+	Cmc             Cmc
+	VisitKey        string
+	DposStartHeight int
 }
 
 type Cmc struct {

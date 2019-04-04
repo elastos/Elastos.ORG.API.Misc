@@ -209,8 +209,14 @@ func producerRankByHeight(w http.ResponseWriter, r *http.Request) {
 	}
 	rst, err := dba.ToStruct(`select a.* , (@row_number:=@row_number + 1) as "rank",b.* from 
 (select A.producer_public_key , sum(value) as value from chain_vote_info A where A.cancel_height > `+height+` or
- cancel_height is null group by producer_public_key order by value desc) a right join chain_producer_info b on a.producer_public_key = b.ownerpublickey 
+ cancel_height is null group by producer_public_key order by value desc) a inner join chain_producer_info b on a.producer_public_key = b.ownerpublickey 
  ,  (SELECT @row_number:=0) AS t where b.state = 'Activate'`, chain.Vote_info{})
+	if err != nil {
+		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+		return
+	}
+	roundStartHeight := h - (h-config.Conf.DposStartHeight)%36
+	roundStartHeightTotalVote, err := dba.ToFloat(`select sum(value) as value from chain.chain_vote_info where cancel_height > ` + strconv.Itoa(roundStartHeight) + ` or cancel_height is null `)
 	if err != nil {
 		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 		return
@@ -231,7 +237,14 @@ func producerRankByHeight(w http.ResponseWriter, r *http.Request) {
 		if val != "" {
 			vi.Reward = val
 		}
+		vote, err := strconv.ParseFloat(vi.Value, 64)
+		if err != nil {
+			http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+			return
+		}
+		vi.ElstRewardPerYear = strconv.Itoa(int(175834088 / roundStartHeightTotalVote * vote * 365 * 720))
 	}
+
 	buf, err := json.Marshal(&rst)
 	if err != nil {
 		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
@@ -253,6 +266,7 @@ func totalVoteByHeight(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 		return
 	}
+
 	w.Write([]byte(`{"result":` + fmt.Sprintf("%.8f", rst) + `,"status":200}`))
 }
 

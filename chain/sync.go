@@ -130,6 +130,7 @@ type Vote_info struct {
 	Rank                int64  `json:",omitempty"`
 	Producer_info       `json:",omitempty"`
 	Reward              string
+	ElstRewardPerYear   string
 }
 
 type Producer_info struct {
