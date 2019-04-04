@@ -169,6 +169,9 @@ func Sync() {
 			tx, err := dba.Begin()
 			if err = handleRegisteredProducer(tx); err != nil {
 				log.Infof("handleRegisteredProducer Error : %v \n", err.Error())
+				if err.Error() == BREAK_ERR.Error() {
+					break
+				}
 				tx.Rollback()
 			} else {
 				tx.Commit()
@@ -250,13 +253,18 @@ func doSync(tx *sql.Tx) error {
 	return nil
 }
 
+var BREAK_ERR = errors.New("Break")
+
 func handleRegisteredProducer(tx *sql.Tx) error {
 	reqBody := `{"method": "listproducers"}`
 	resp, err := post("http://"+config.Conf.Ela.Jsonrpc, reqBody)
 	if err != nil {
 		return err
 	}
-	result := resp["result"].(map[string]interface{})
+	result, ok := resp["result"].(map[string]interface{})
+	if !ok {
+		return BREAK_ERR
+	}
 	producers, ok := result["producers"].([]interface{})
 	if !ok {
 		return nil
