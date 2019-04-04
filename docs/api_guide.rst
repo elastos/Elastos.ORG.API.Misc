@@ -191,7 +191,7 @@ rank list of producer
                 "result":[
                     {
                         "Producer_public_key":"033c495238ca2b6bb8b7f5ae172363caea9a55cf245ffb3272d078126b1fe3e7cd",
-                        "Value":"311315.3",
+                        "Value":"311337.3",
                         "Address":"Eb8UHkQ2bJ4Ljux4yBePFdxB5Yp77VYHyt",
                         "Rank":1,
                         "Ownerpublickey":"033c495238ca2b6bb8b7f5ae172363caea9a55cf245ffb3272d078126b1fe3e7cd",
@@ -208,11 +208,12 @@ rank list of producer
                         "Inactiveheight":0,
                         "Illegalheight":0,
                         "Index":1,
-                        "Reward":""
+                        "Reward":"",
+                        "ElstRewardPerYear":"5819653038232"
                     },
                     {
                         "Producer_public_key":"0337e6eaabfab6321d109d48e135190560898d42a1d871bfe8fecc67f4c3992250",
-                        "Value":"309844",
+                        "Value":"309866",
                         "Address":"EdhP91WcY2WhyV8N6dCnBxbjAnGd2izrzY",
                         "Rank":2,
                         "Ownerpublickey":"0337e6eaabfab6321d109d48e135190560898d42a1d871bfe8fecc67f4c3992250",
@@ -229,11 +230,12 @@ rank list of producer
                         "Inactiveheight":0,
                         "Illegalheight":0,
                         "Index":2,
-                        "Reward":""
+                        "Reward":"",
+                        "ElstRewardPerYear":"5792150854860"
                     },
                     {
                         "Producer_public_key":"03c78467b91805c95ada2530513069bef1f1f1e7b756861381ab534efa6d94e40a",
-                        "Value":"218115.55555",
+                        "Value":"218140.55555",
                         "Address":"EdfJA92nN9X4T9cKqkvyrunVuBWfF1Mumm",
                         "Rank":3,
                         "Ownerpublickey":"03c78467b91805c95ada2530513069bef1f1f1e7b756861381ab534efa6d94e40a",
@@ -250,11 +252,12 @@ rank list of producer
                         "Inactiveheight":0,
                         "Illegalheight":0,
                         "Index":3,
-                        "Reward":""
+                        "Reward":"",
+                        "ElstRewardPerYear":"4077578712439"
                     },
                     {
                         "Producer_public_key":"021d59a84d2243111e39e8c2af0a5089127d142d52b18c3e4bf744e0c6f8af44e0",
-                        "Value":"147210",
+                        "Value":"147232",
                         "Address":"ESpTiKXgLcYkzxdD7MuCmL9y9fbWrnH591",
                         "Rank":4,
                         "Ownerpublickey":"021d59a84d2243111e39e8c2af0a5089127d142d52b18c3e4bf744e0c6f8af44e0",
@@ -271,11 +274,12 @@ rank list of producer
                         "Inactiveheight":0,
                         "Illegalheight":0,
                         "Index":4,
-                        "Reward":""
+                        "Reward":"",
+                        "ElstRewardPerYear":"2752124965833"
                     },
                     {
                         "Producer_public_key":"036417ab256114a32bcff38f3e10f0384cfa9238afa41a163017687b3ce1fa17f2",
-                        "Value":"139859",
+                        "Value":"139881",
                         "Address":"ETKVMhhQCjttNAjrbqmkAAYuYshLdaDnjm",
                         "Rank":5,
                         "Ownerpublickey":"036417ab256114a32bcff38f3e10f0384cfa9238afa41a163017687b3ce1fa17f2",
@@ -292,11 +296,12 @@ rank list of producer
                         "Inactiveheight":0,
                         "Illegalheight":0,
                         "Index":5,
-                        "Reward":""
+                        "Reward":"",
+                        "ElstRewardPerYear":"2614716857379"
                     },
                     {
                         "Producer_public_key":"02e578a6f4295765ad3be4cdac9be15de5aedaf1ae76e86539bb54c397e467cd5e",
-                        "Value":"125884",
+                        "Value":"125906",
                         "Address":"EHdSBUH3nxkcAk9evU4HrENzEm8MHirkkN",
                         "Rank":6,
                         "Ownerpublickey":"02e578a6f4295765ad3be4cdac9be15de5aedaf1ae76e86539bb54c397e467cd5e",
@@ -313,11 +318,12 @@ rank list of producer
                         "Inactiveheight":0,
                         "Illegalheight":0,
                         "Index":6,
-                        "Reward":""
+                        "Reward":"",
+                        "ElstRewardPerYear":"2353490042573"
                     },
                     {
                         "Producer_public_key":"02ddd829f3495a2ce76d908c3e6e7d4505e12c4718c5af4b4cbff309cfd3aeab88",
-                        "Value":"108946",
+                        "Value":"108968",
                         "Address":"EevRwpP5GYz5s8fuMboUnhsAQVVKbyJSph",
                         "Rank":7,
                         "Ownerpublickey":"02ddd829f3495a2ce76d908c3e6e7d4505e12c4718c5af4b4cbff309cfd3aeab88",
@@ -334,11 +340,12 @@ rank list of producer
                         "Inactiveheight":0,
                         "Illegalheight":0,
                         "Index":7,
-                        "Reward":""
+                        "Reward":"",
+                        "ElstRewardPerYear":"2036877535297"
                     },
                     {
                         "Producer_public_key":"03c7b1f234d5d16472fcdd24d121e4cd224e1074f558a3eb1a6a146aa91dcf9c0d",
-                        "Value":"108164",
+                        "Value":"108186",
                         "Address":"EQR8f9y2Sd5gFG3LWEeC57qXc2yEnDhgm2",
                         "Rank":8,
                         "Ownerpublickey":"03c7b1f234d5d16472fcdd24d121e4cd224e1074f558a3eb1a6a146aa91dcf9c0d",
@@ -355,11 +362,12 @@ rank list of producer
                         "Inactiveheight":0,
                         "Illegalheight":0,
                         "Index":8,
-                        "Reward":""
+                        "Reward":"",
+                        "ElstRewardPerYear":"2022260049130"
                     },
                     {
                         "Producer_public_key":"03b688e0124580de452c400e01c628a690527e8742b6fa4645026dbc70155d7c8b",
-                        "Value":"107841",
+                        "Value":"107863",
                         "Address":"EQHz2jPpgW8trYD4ejYgfi4sE4JSTf7m9N",
                         "Rank":9,
                         "Ownerpublickey":"03b688e0124580de452c400e01c628a690527e8742b6fa4645026dbc70155d7c8b",
@@ -376,11 +384,12 @@ rank list of producer
                         "Inactiveheight":0,
                         "Illegalheight":0,
                         "Index":9,
-                        "Reward":""
+                        "Reward":"",
+                        "ElstRewardPerYear":"2016222391801"
                     },
                     {
                         "Producer_public_key":"03bc2c2b75009a3a551e98bf206730501ecdf46e71b0405840ff1d5750094bd4ff",
-                        "Value":"105025",
+                        "Value":"105047",
                         "Address":"ENxPtTR7Jn1kxhdTXedF28s3iz6djYfRaS",
                         "Rank":10,
                         "Ownerpublickey":"03bc2c2b75009a3a551e98bf206730501ecdf46e71b0405840ff1d5750094bd4ff",
@@ -397,11 +406,12 @@ rank list of producer
                         "Inactiveheight":0,
                         "Illegalheight":0,
                         "Index":10,
-                        "Reward":""
+                        "Reward":"",
+                        "ElstRewardPerYear":"1963584487651"
                     },
                     {
                         "Producer_public_key":"0230d383546d154d67cfafc6091c0736c0b26a8c7c16e879ef8011d91df976f1fb",
-                        "Value":"104234",
+                        "Value":"104256",
                         "Address":"EMyStHAvvy1VLsLyow8uMRW4kUYLeGXF17",
                         "Rank":11,
                         "Ownerpublickey":"0230d383546d154d67cfafc6091c0736c0b26a8c7c16e879ef8011d91df976f1fb",
@@ -418,11 +428,12 @@ rank list of producer
                         "Inactiveheight":0,
                         "Illegalheight":0,
                         "Index":11,
-                        "Reward":""
+                        "Reward":"",
+                        "ElstRewardPerYear":"1948798769546"
                     },
                     {
                         "Producer_public_key":"028fb1a85f6a30a516b9e3516d03267403a3af0c96d73b0284ca0c1165318531ff",
-                        "Value":"104044",
+                        "Value":"104066",
                         "Address":"ESqyiCizgyNNLKdVQhhtxtR5v5eCnkk3Qh",
                         "Rank":12,
                         "Ownerpublickey":"028fb1a85f6a30a516b9e3516d03267403a3af0c96d73b0284ca0c1165318531ff",
@@ -439,11 +450,12 @@ rank list of producer
                         "Inactiveheight":0,
                         "Illegalheight":0,
                         "Index":12,
-                        "Reward":""
+                        "Reward":"",
+                        "ElstRewardPerYear":"1945247206411"
                     },
                     {
                         "Producer_public_key":"02db921cfb4bf504c83038212aafe52cc1d0a07eb71a399a0d2162fe0cd4d47720",
-                        "Value":"99029",
+                        "Value":"99051",
                         "Address":"ERbFZNj5bukyRQe5G4gdXnbDqVyxcTNeFT",
                         "Rank":13,
                         "Ownerpublickey":"02db921cfb4bf504c83038212aafe52cc1d0a07eb71a399a0d2162fe0cd4d47720",
@@ -460,11 +472,12 @@ rank list of producer
                         "Inactiveheight":0,
                         "Illegalheight":0,
                         "Index":13,
-                        "Reward":""
+                        "Reward":"",
+                        "ElstRewardPerYear":"1851504632082"
                     },
                     {
                         "Producer_public_key":"033fb33f39276b93d3474cf7999887bed16c3211ee7f904399eeead4c480d7d592",
-                        "Value":"98837",
+                        "Value":"98859",
                         "Address":"EXQZMbKMcmVmwv25AYbrzWPhFRSfqKcfKM",
                         "Rank":14,
                         "Ownerpublickey":"033fb33f39276b93d3474cf7999887bed16c3211ee7f904399eeead4c480d7d592",
@@ -481,11 +494,12 @@ rank list of producer
                         "Inactiveheight":0,
                         "Illegalheight":0,
                         "Index":14,
-                        "Reward":""
+                        "Reward":"",
+                        "ElstRewardPerYear":"1847915684072"
                     },
                     {
                         "Producer_public_key":"030e4b487daf8e14dbd7023e3f6f475d00145a1f1cc87be4b8d58a4291ab0a3b1a",
-                        "Value":"25952",
+                        "Value":"25974",
                         "Address":"EVFSvWoxiyvGLka4V6Wt394LEoUu8mDhk4",
                         "Rank":15,
                         "Ownerpublickey":"030e4b487daf8e14dbd7023e3f6f475d00145a1f1cc87be4b8d58a4291ab0a3b1a",
@@ -502,11 +516,12 @@ rank list of producer
                         "Inactiveheight":0,
                         "Illegalheight":0,
                         "Index":15,
-                        "Reward":""
+                        "Reward":"",
+                        "ElstRewardPerYear":"485517373006"
                     },
                     {
                         "Producer_public_key":"038796d13f0ed94b2587ba2e13ca99b3cafd4d5cea2b08b2d06b841ed10d177a51",
-                        "Value":"53",
+                        "Value":"75",
                         "Address":"ENXdHHxBv3doDeYPLk4yWSU91vpM9rfEDr",
                         "Rank":16,
                         "Ownerpublickey":"038796d13f0ed94b2587ba2e13ca99b3cafd4d5cea2b08b2d06b841ed10d177a51",
@@ -523,11 +538,12 @@ rank list of producer
                         "Inactiveheight":0,
                         "Illegalheight":0,
                         "Index":16,
-                        "Reward":""
+                        "Reward":"",
+                        "ElstRewardPerYear":"1401932816"
                     },
                     {
                         "Producer_public_key":"0210694f4ab518037bc2dcc3f5e1a1030e8a36821ab019c10f29d4a894b8034498",
-                        "Value":"33",
+                        "Value":"55",
                         "Address":"ESwKtu2aYSHHfdWUPdg4b3PtibfaEcJEvT",
                         "Rank":17,
                         "Ownerpublickey":"0210694f4ab518037bc2dcc3f5e1a1030e8a36821ab019c10f29d4a894b8034498",
@@ -544,7 +560,8 @@ rank list of producer
                         "Inactiveheight":0,
                         "Illegalheight":0,
                         "Index":17,
-                        "Reward":""
+                        "Reward":"",
+                        "ElstRewardPerYear":"1028084065"
                     },
                     {
                         "Producer_public_key":"0210cd8407f70b26dbb77039cdce61a526168d04b83885844294038759f57c525c",
@@ -565,7 +582,8 @@ rank list of producer
                         "Inactiveheight":0,
                         "Illegalheight":0,
                         "Index":18,
-                        "Reward":""
+                        "Reward":"",
+                        "ElstRewardPerYear":"373848751"
                     },
                     {
                         "Producer_public_key":"03325ce52add7a799a61a305973b3d84aa4f622358ab3eb9f010f1175e2dab6b13",
@@ -586,125 +604,14 @@ rank list of producer
                         "Inactiveheight":0,
                         "Illegalheight":0,
                         "Index":19,
-                        "Reward":""
-                    },
-                    {
-                        "Address":"EQVa3pi9K3AkEfapm6cQHGbanyeZE715TW",
-                        "Rank":20,
-                        "Ownerpublickey":"024ce9f03960338bcbd82189f4ca6565ffdfce9f300c48d62f5df67d9591f13388",
-                        "Nodepublickey":"024ce9f03960338bcbd82189f4ca6565ffdfce9f300c48d62f5df67d9591f13388",
-                        "Nickname":"ios_us08",
-                        "Url":"www.ios_us08.com",
-                        "Location":1268,
-                        "Active":false,
-                        "Votes":"0",
-                        "Netaddress":"172.31.40.70:25339",
-                        "State":"Activate",
-                        "Registerheight":245547,
-                        "Cancelheight":0,
-                        "Inactiveheight":0,
-                        "Illegalheight":0,
-                        "Index":20,
-                        "Reward":""
-                    },
-                    {
-                        "Address":"ESpgUHUQYKK1KRb6rEdNMz6tYfaE7pwZ9G",
-                        "Rank":21,
-                        "Ownerpublickey":"022fca820ec28b4f69b4896ecc7b62b454a93e93b047df6a7c1599e6dcbeb5c16f",
-                        "Nodepublickey":"022fca820ec28b4f69b4896ecc7b62b454a93e93b047df6a7c1599e6dcbeb5c16f",
-                        "Nickname":"adr_us12",
-                        "Url":"www.adr_us1212.com",
-                        "Location":374,
-                        "Active":false,
-                        "Votes":"0",
-                        "Netaddress":"172.31.32.36:25339",
-                        "State":"Activate",
-                        "Registerheight":252595,
-                        "Cancelheight":0,
-                        "Inactiveheight":0,
-                        "Illegalheight":0,
-                        "Index":21,
-                        "Reward":""
-                    },
-                    {
-                        "Address":"EfRqyhv82oexrn92wSXv8CUQeKr7ryf43D",
-                        "Rank":22,
-                        "Ownerpublickey":"02e2011494dc7dd5ae65199ae81e6dc0c4a3aaf1220d15ae50a283f0a19c6ba481",
-                        "Nodepublickey":"02a6272c0db95090f0263e6fd4aeacbccb5b2a2a68df24bddd7a246954845a1a76",
-                        "Nickname":"ios_us12",
-                        "Url":"www.ios_us1212.com",
-                        "Location":244,
-                        "Active":false,
-                        "Votes":"0",
-                        "Netaddress":"172.89.90.91:25339",
-                        "State":"Activate",
-                        "Registerheight":252744,
-                        "Cancelheight":0,
-                        "Inactiveheight":0,
-                        "Illegalheight":0,
-                        "Index":22,
-                        "Reward":""
-                    },
-                    {
-                        "Address":"ES197k9gNSLqAu3iJxBiC58RNnusazToQw",
-                        "Rank":23,
-                        "Ownerpublickey":"02067481822504f3066c729938ba574dd1e40c8adc5654daf82aafbe3f9e968545",
-                        "Nodepublickey":"02067481822504f3066c729938ba574dd1e40c8adc5654daf82aafbe3f9e968545",
-                        "Nickname":"adr_us11",
-                        "Url":"www.adr_us11.com",
-                        "Location":93,
-                        "Active":false,
-                        "Votes":"0",
-                        "Netaddress":"172.168.21.32:25339",
-                        "State":"Activate",
-                        "Registerheight":252790,
-                        "Cancelheight":0,
-                        "Inactiveheight":0,
-                        "Illegalheight":0,
-                        "Index":23,
-                        "Reward":""
-                    },
-                    {
-                        "Address":"ETVeRXbrgYnu9EsWYrBUv6ysbuGHkknmCk",
-                        "Rank":24,
-                        "Ownerpublickey":"0394b945d853b78f12db0fde92d8cf4b468879d7b9fd2c57e0e309c0a280c4504c",
-                        "Nodepublickey":"0394b945d853b78f12db0fde92d8cf4b468879d7b9fd2c57e0e309c0a280c4504c",
-                        "Nickname":"bx",
-                        "Url":"nxnxj",
-                        "Location":93,
-                        "Active":false,
-                        "Votes":"0",
-                        "Netaddress":"hdjsj",
-                        "State":"Activate",
-                        "Registerheight":252607,
-                        "Cancelheight":0,
-                        "Inactiveheight":0,
-                        "Illegalheight":0,
-                        "Index":24,
-                        "Reward":""
-                    },
-                    {
-                        "Address":"Ec6rtmnSQ5EiVBPL2kKgVk4m2zMsJggVV4",
-                        "Rank":25,
-                        "Ownerpublickey":"0363c7058dcb9d5267a01a72468e63a8e21d09a33bbcb9f7a9fd2923703f85f42a",
-                        "Nodepublickey":"0363c7058dcb9d5267a01a72468e63a8e21d09a33bbcb9f7a9fd2923703f85f42a",
-                        "Nickname":"test1111",
-                        "Url":"www.hh.com",
-                        "Location":93,
-                        "Active":false,
-                        "Votes":"0",
-                        "Netaddress":"www.baidu.com",
-                        "State":"Activate",
-                        "Registerheight":243378,
-                        "Cancelheight":243382,
-                        "Inactiveheight":0,
-                        "Illegalheight":0,
-                        "Index":25,
-                        "Reward":"140714931"
+                        "Reward":"",
+                        "ElstRewardPerYear":"373848751"
                     }
                 ],
                 "status":200
             }
+
+
 
 
 
