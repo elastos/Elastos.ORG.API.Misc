@@ -242,7 +242,7 @@ func producerRankByHeight(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 			return
 		}
-		vi.ElstRewardPerYear = strconv.Itoa(int(175834088 / roundStartHeightTotalVote * vote * 365 * 720))
+		vi.EstRewardPerYear = strconv.Itoa(int(175834088 / roundStartHeightTotalVote * vote * 365 * 720))
 	}
 
 	buf, err := json.Marshal(&rst)
