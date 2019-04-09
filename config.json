@@ -21,5 +21,6 @@
       "Net":"testnet3"
     },
     "VisitKey":"729E2BB0AEEC048FF9DC7996D394889687BF76AFA832F07E011AA5A3BE272310",
-    "DposStartHeight":240000
+    "DposStartHeight":240000,
+    "EnableCors":false
 }

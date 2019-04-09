@@ -14,6 +14,7 @@ type config struct {
 	Cmc             Cmc
 	VisitKey        string
 	DposStartHeight int
+	EnableCors      bool
 }
 
 type Cmc struct {

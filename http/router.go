@@ -1,6 +1,7 @@
 package http
 
 import (
+	"github.com/elastos/Elastos.ORG.API.Misc/config"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
@@ -83,8 +84,10 @@ func cors(next http.Handler) http.Handler {
 		log.Println(r.RequestURI)
 		// Call the next handler, which can be another middleware in the chain, or the final handler.
 		next.ServeHTTP(w, r)
-		w.Header().Add("Access-Control-Allow-Headers", "Content-Type")
-		w.Header().Set("content-type", "application/json;charset=utf-8")
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		if config.Conf.EnableCors {
+			w.Header().Add("Access-Control-Allow-Headers", "Content-Type")
+			w.Header().Set("content-type", "application/json;charset=utf-8")
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+		}
 	})
 }
