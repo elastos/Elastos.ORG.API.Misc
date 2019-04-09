@@ -2,6 +2,7 @@ package http
 
 import (
 	"github.com/gorilla/mux"
+	"log"
 	"net/http"
 )
 
@@ -73,4 +74,17 @@ func init() {
 			router.HandleFunc(p, h).Methods(m)
 		}
 	}
+	router.Use(cors)
+}
+
+func cors(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Do stuff here
+		log.Println(r.RequestURI)
+		// Call the next handler, which can be another middleware in the chain, or the final handler.
+		next.ServeHTTP(w, r)
+		w.Header().Add("Access-Control-Allow-Headers", "Content-Type")
+		w.Header().Set("content-type", "application/json;charset=utf-8")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+	})
 }
