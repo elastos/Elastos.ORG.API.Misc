@@ -12,9 +12,9 @@ import (
 	"github.com/elastos/Elastos.ORG.API.Misc/db"
 	"github.com/elastos/Elastos.ORG.API.Misc/log"
 	"github.com/elastos/Elastos.ORG.API.Misc/tools"
-	"github.com/engoengine/math"
 	"github.com/gorilla/mux"
 	"html/template"
+	"math"
 	"net/http"
 	"strconv"
 	"strings"
@@ -242,7 +242,7 @@ func producerRankByHeight(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 			return
 		}
-		vi.EstRewardPerYear = strconv.Itoa(int(175834088 / roundStartHeightTotalVote * vote * 365 * 720))
+		vi.EstRewardPerYear = strconv.FormatFloat(float64(175834088/(roundStartHeightTotalVote*100000000)*vote*365*720), 'f', 8, 64)
 	}
 
 	buf, err := json.Marshal(&rst)
@@ -458,7 +458,7 @@ func getCmcPrice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	tp_local := time.Now().UTC().Unix() * 1000
-	if math.Abs(float32(tp_local-itp_param))/(1000*60) > 5 {
+	if math.Abs(float64(tp_local-itp_param))/(1000*60) > 5 {
 		http.Error(w, `{"result":"invalid request param : apiKey out of date","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 		return
 	}
