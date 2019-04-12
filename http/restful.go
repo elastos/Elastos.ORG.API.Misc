@@ -178,27 +178,6 @@ func voterStatistic(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(`{"result":` + string(buf) + `,"status":200}`))
 }
 
-//func rewardByHeight(w http.ResponseWriter, r *http.Request) {
-//	params := mux.Vars(r)
-//	height := params["height"]
-//	h, ok := strconv.Atoi(height)
-//	if ok != nil || h < 0 {
-//		http.Error(w, `{"result":"invalid height","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
-//		return
-//	}
-//	rst, err := dba.ToStruct("select value,height,address,createTime from chain_block_transaction_history where height = "+height+" and txType = 'CoinBase' and value < "+strconv.Itoa(tools.Miner_Reward_PerBlock), node_reward{})
-//	if err != nil {
-//		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
-//		return
-//	}
-//	buf, err := json.Marshal(&rst)
-//	if err != nil {
-//		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
-//		return
-//	}
-//	w.Write([]byte(`{"result":` + string(buf) + `,"status":200}`))
-//}
-
 func producerRankByHeight(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	height := params["height"]
@@ -210,7 +189,7 @@ func producerRankByHeight(w http.ResponseWriter, r *http.Request) {
 	rst, err := dba.ToStruct(`select a.* , (@row_number:=@row_number + 1) as "rank",b.* from 
 (select A.producer_public_key , sum(value) as value from chain_vote_info A where A.cancel_height > `+height+` or
  cancel_height is null group by producer_public_key order by value desc) a inner join chain_producer_info b on a.producer_public_key = b.ownerpublickey 
- ,  (SELECT @row_number:=0) AS t where b.state = 'Activate'`, chain.Vote_info{})
+ ,  (SELECT @row_number:=0) AS t`, chain.Vote_info{})
 	if err != nil {
 		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 		return
