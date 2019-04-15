@@ -26,6 +26,9 @@ var (
 )
 
 func StartServer() {
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "Hello World!")
+	})
 	err := http.ListenAndServe(":"+config.Conf.ServerPort, router)
 	if err != nil {
 		log.Fatal("Error start server :" + err.Error())
@@ -165,12 +168,61 @@ func voterStatistic(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"result":"invalid address","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 		return
 	}
-	rst, err := dba.ToStruct("select * from chain_vote_info where address = '"+addr+"' and (outputlock = 0 or outputlock >= height) and is_valid = 'YES'", chain.Vote_info{})
+	sql := "select * from chain_vote_info where address = '" + addr + "' order by id desc"
+	info, err := dba.ToStruct(sql, chain.Vote_info{})
 	if err != nil {
-		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+		http.Error(w, `{"result":"Internal error","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 		return
 	}
-	buf, err := json.Marshal(&rst)
+	headersContainer := make(map[string]*chain.Vote_statistic_header)
+	for i := 0; i < len(info); i++ {
+		data := info[i].(*chain.Vote_info)
+		h, ok := headersContainer[data.Txid+strconv.Itoa(data.N)]
+		if ok {
+			h.Node_num += 1
+			h.Nodes = append(h.Nodes, data.Producer_public_key)
+		} else {
+			h = new(chain.Vote_statistic_header)
+			h.Value = data.Value
+			h.Node_num = 1
+			h.Txid = data.Txid
+			h.Height = data.Height
+			h.Nodes = []string{data.Producer_public_key}
+			headersContainer[data.Txid+strconv.Itoa(data.N)] = h
+		}
+	}
+	var voteStatistic []chain.Vote_statistic
+	ranklisthoder := make(map[int64][]interface{})
+	//height+producer_public_key : index
+	ranklisthoderByProducer := make(map[string]int)
+	for _, v := range headersContainer {
+		rst, ok := ranklisthoder[v.Height]
+		if !ok {
+			rst, err = dba.ToStruct(`select a.* , (@row_number:=@row_number + 1) as "rank",b.* from 
+(select A.producer_public_key , sum(value) as value from chain_vote_info A where A.cancel_height > `+strconv.Itoa(int(v.Height))+` or
+ cancel_height is null group by producer_public_key order by value desc) a right join chain_producer_info b on a.producer_public_key = b.ownerpublickey 
+ ,  (SELECT @row_number:=0) AS t`, chain.Vote_info{})
+			if err != nil {
+				if err != nil {
+					http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+					return
+				}
+			}
+			for m := 0; m < len(rst); m++ {
+				ranklisthoderByProducer[strconv.Itoa(int(v.Height))+rst[m].(*chain.Vote_info).Producer_public_key] = m
+			}
+		}
+		var voteInfos []chain.Vote_info
+		for _, pub := range v.Nodes {
+			voteInfos = append(voteInfos, *rst[ranklisthoderByProducer[strconv.Itoa(int(v.Height))+pub]].(*chain.Vote_info))
+		}
+		voteStatistic = append(voteStatistic, chain.Vote_statistic{
+			*v,
+			voteInfos,
+		})
+	}
+
+	buf, err := json.Marshal(&voteStatistic)
 	if err != nil {
 		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 		return

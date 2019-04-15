@@ -44,6 +44,8 @@ const (
 	WithdrawFromSideChain
 	// cross chain transfer the initial chain
 	TransferCrossChainAsset
+	//Vote transfer
+	Vote
 )
 
 var txTypeMap = map[int]string{
@@ -56,6 +58,7 @@ var txTypeMap = map[int]string{
 	RechargeToSideChain:     "RechargeToSideChain",
 	WithdrawFromSideChain:   "WithdrawFromSideChain",
 	TransferCrossChainAsset: "TransferCrossChainAsset",
+	Vote:                    "Vote",
 }
 
 const (
@@ -129,8 +132,21 @@ type Vote_info struct {
 	Height              int64  `json:",omitempty"`
 	Rank                int64  `json:",omitempty"`
 	Producer_info       `json:",omitempty"`
-	Reward              string
-	EstRewardPerYear    string
+	Reward              string `json:",omitempty"`
+	EstRewardPerYear    string `json:",omitempty"`
+}
+
+type Vote_statistic_header struct {
+	Value    string   `json:",omitempty"`
+	Node_num int      `json:",omitempty"`
+	Txid     string   `json:",omitempty"`
+	Height   int64    `json:",ignore"`
+	Nodes    []string `json:",ignore"`
+}
+
+type Vote_statistic struct {
+	Vote_Header Vote_statistic_header `json:",omitempty"`
+	Vote_Body   []Vote_info           `json:",omitempty"`
 }
 
 type Producer_info struct {
@@ -329,6 +345,73 @@ func handleHeight(curr int, tx *sql.Tx) error {
 
 	stmt.Close()
 
+	// process vote
+	voteTxHolder := make(map[string]int)
+	for _, txv := range txArr {
+		txm := txv.(map[string]interface{})
+		version := txm["version"]
+		txid := txm["txid"]
+		if version.(float64) == 9 {
+			vout := txm["vout"].([]interface{})
+			stmt, err := tx.Prepare("insert into chain_vote_info (producer_public_key,vote_type,txid,n,`value`,outputlock,address,block_time,height) values(?,?,?,?,?,?,?,?,?)")
+			if err != nil {
+				return err
+			}
+			for _, v := range vout {
+				vm := v.(map[string]interface{})
+				if vm["type"].(float64) == 1 && vm["assetid"] == ELA_ASSETID {
+					payload := vm["payload"].(map[string]interface{})
+					if payload == nil {
+						continue
+					}
+					contents, ok := payload["contents"].([]interface{})
+					if !ok {
+						continue
+					}
+					value := vm["value"]
+					n := vm["n"]
+					address := vm["address"]
+					outputlock := vm["outputlock"]
+					for _, cv := range contents {
+						cvm := cv.(map[string]interface{})
+						votetype := cvm["votetype"]
+						votetypeStr := ""
+						if votetype.(float64) == 0 {
+							votetypeStr = "Delegate"
+						} else if votetype.(float64) == 1 {
+							votetypeStr = "CRC"
+						}
+						candidates := cvm["candidates"].([]interface{})
+						for _, pub := range candidates {
+							_, err := stmt.Exec(pub, votetypeStr, txid, n, value, outputlock, address, header.Time, header.Height)
+							if err != nil {
+								return err
+							}
+							voteTxHolder[txid.(string)] = Vote
+						}
+					}
+				}
+			}
+			stmt.Close()
+		}
+		// remove canceled vote
+		vin := txm["vin"].([]interface{})
+		stmt, err = tx.Prepare("update chain_vote_info set is_valid = 'NO',cancel_height=? where txid = ? and n = ? ")
+		if err != nil {
+			return err
+		}
+		for _, v := range vin {
+			vm := v.(map[string]interface{})
+			txhash := vm["txid"]
+			vout := vm["vout"]
+			_, err := stmt.Exec(header.Height, txhash, vout)
+			if err != nil {
+				return err
+			}
+		}
+		stmt.Close()
+	}
+
 	for _, v := range txArr {
 		stmt, err := tx.Prepare("insert into chain_block_transaction_history (address,txid,type,value,createTime,height,fee,inputs,outputs,memo,txType) values(?,?,?,?,?,?,?,?,?,?,?)")
 		if err != nil {
@@ -390,6 +473,9 @@ func handleHeight(curr int, tx *sql.Tx) error {
 			isCrossTx := false
 			if int(t) == TransferCrossChainAsset {
 				isCrossTx = true
+			}
+			if voteTxHolder[txid] == Vote {
+				t = float64(Vote)
 			}
 			vin := vm["vin"].([]interface{})
 			spend := make(map[string]float64)
@@ -493,71 +579,6 @@ func handleHeight(curr int, tx *sql.Tx) error {
 				if err != nil {
 					return err
 				}
-			}
-		}
-		stmt.Close()
-	}
-
-	// process vote
-	for _, txv := range txArr {
-		txm := txv.(map[string]interface{})
-		version := txm["version"]
-		txid := txm["txid"]
-		if version.(float64) == 9 {
-			vout := txm["vout"].([]interface{})
-			stmt, err := tx.Prepare("insert into chain_vote_info (producer_public_key,vote_type,txid,n,`value`,outputlock,address,block_time,height) values(?,?,?,?,?,?,?,?,?)")
-			if err != nil {
-				return err
-			}
-			for _, v := range vout {
-				vm := v.(map[string]interface{})
-				if vm["type"].(float64) == 1 && vm["assetid"] == ELA_ASSETID {
-					payload := vm["payload"].(map[string]interface{})
-					if payload == nil {
-						continue
-					}
-					contents, ok := payload["contents"].([]interface{})
-					if !ok {
-						continue
-					}
-					value := vm["value"]
-					n := vm["n"]
-					address := vm["address"]
-					outputlock := vm["outputlock"]
-					for _, cv := range contents {
-						cvm := cv.(map[string]interface{})
-						votetype := cvm["votetype"]
-						votetypeStr := ""
-						if votetype.(float64) == 0 {
-							votetypeStr = "Delegate"
-						} else if votetype.(float64) == 1 {
-							votetypeStr = "CRC"
-						}
-						candidates := cvm["candidates"].([]interface{})
-						for _, pub := range candidates {
-							_, err := stmt.Exec(pub, votetypeStr, txid, n, value, outputlock, address, header.Time, header.Height)
-							if err != nil {
-								return err
-							}
-						}
-					}
-				}
-			}
-			stmt.Close()
-		}
-		// remove canceled vote
-		vin := txm["vin"].([]interface{})
-		stmt, err = tx.Prepare("update chain_vote_info set is_valid = 'NO',cancel_height=? where txid = ? and n = ? ")
-		if err != nil {
-			return err
-		}
-		for _, v := range vin {
-			vm := v.(map[string]interface{})
-			txhash := vm["txid"]
-			vout := vm["vout"]
-			_, err := stmt.Exec(header.Height, txhash, vout)
-			if err != nil {
-				return err
 			}
 		}
 		stmt.Close()
