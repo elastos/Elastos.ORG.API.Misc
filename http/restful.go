@@ -188,6 +188,7 @@ func voterStatistic(w http.ResponseWriter, r *http.Request) {
 			h.Txid = data.Txid
 			h.Height = data.Height
 			h.Nodes = []string{data.Producer_public_key}
+			h.Block_Time = data.Block_time
 			headersContainer[data.Txid+strconv.Itoa(data.N)] = h
 		}
 	}
@@ -206,6 +207,50 @@ func voterStatistic(w http.ResponseWriter, r *http.Request) {
 				if err != nil {
 					http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 					return
+				}
+			}
+			roundStartHeight := int(v.Height) - (int(v.Height)-config.Conf.DposStartHeight)%36
+			roundStartHeightTotalVote, err := dba.ToFloat(`	select sum(a.value)  from (select A.producer_public_key , sum(value) as value from chain.chain_vote_info A where A.cancel_height > ` + strconv.Itoa(roundStartHeight) + ` or
+	 cancel_height is null group by producer_public_key order by value desc limit 96) a`)
+			if err != nil {
+				http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+				return
+			}
+			for _, r := range rst {
+				vi := r.(*chain.Vote_info)
+				addr, err := getAddress(vi.Ownerpublickey)
+				if err != nil {
+					log.Warn("Invalid Ownerpublickey " + vi.Ownerpublickey)
+					continue
+				}
+				vi.Address = addr
+				val, err := dba.ToString("select value from chain_block_transaction_history where height = " + strconv.Itoa(int(v.Height)) + " and txType = 'CoinBase' and value < " + strconv.Itoa(tools.Miner_Reward_PerBlock) + " and address = '" + addr + "'")
+				if err != nil {
+					log.Warn("Invalid Ownerpublickey " + vi.Ownerpublickey)
+					continue
+				}
+				if val != "" {
+					vi.Reward = val
+				} else {
+					vi.Reward = "0"
+				}
+
+				var vote float64
+				if vi.Value == "" {
+					vote = 0
+				} else {
+					vote, err = strconv.ParseFloat(vi.Value, 64)
+					if err != nil {
+						http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+						return
+					}
+				}
+				if vi.Rank <= 24 {
+					vi.EstRewardPerYear = strconv.FormatFloat(float64(175834088*0.25/(100000000*36)*365*720+175834088*0.75/(roundStartHeightTotalVote*100000000)*vote*365*720), 'f', 8, 64)
+				} else if vi.Rank <= 96 {
+					vi.EstRewardPerYear = strconv.FormatFloat(float64(175834088*0.75/(roundStartHeightTotalVote*100000000)*vote*365*720), 'f', 8, 64)
+				} else {
+					vi.EstRewardPerYear = "0"
 				}
 			}
 			for m := 0; m < len(rst); m++ {
