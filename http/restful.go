@@ -168,7 +168,7 @@ func voterStatistic(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"result":"invalid address","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 		return
 	}
-	sql := "select * from chain_vote_info where address = '" + addr + "' order by id desc"
+	sql := "select * from chain_vote_info where address = '" + addr + "' and is_valid = 'YES' order by id desc"
 	info, err := dba.ToStruct(sql, chain.Vote_info{})
 	if err != nil {
 		http.Error(w, `{"result":"Internal error","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
