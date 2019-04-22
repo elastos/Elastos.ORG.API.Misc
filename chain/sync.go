@@ -132,6 +132,7 @@ type Vote_info struct {
 	Height              int64  `json:",omitempty"`
 	Rank                int64  `json:",omitempty"`
 	Producer_info       `json:",omitempty"`
+	Is_valid            string `json:",omitempty"`
 	Reward              string `json:",omitempty"`
 	EstRewardPerYear    string `json:",omitempty"`
 }
@@ -143,6 +144,7 @@ type Vote_statistic_header struct {
 	Height     int64    `json:",omitempty"`
 	Nodes      []string `json:",omitempty"`
 	Block_Time int64    `json:",omitempty"`
+	Is_valid   string   `json:",omitempty"`
 }
 
 type Vote_statistic struct {
