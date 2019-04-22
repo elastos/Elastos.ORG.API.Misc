@@ -29,8 +29,10 @@ type DB struct {
 }
 
 type ELA struct {
-	Restful string
-	Jsonrpc string
+	Restful         string
+	Jsonrpc         string
+	JsonrpcUser     string
+	JsonrpcPassword string
 }
 
 type BTC struct {

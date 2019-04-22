@@ -3,6 +3,7 @@ package chain
 import (
 	"bytes"
 	"database/sql"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -214,10 +215,19 @@ func get(url string) (map[string]interface{}, error) {
 }
 
 //get get data from givin url and return map as value
-func post(url string, reqBody string) (map[string]interface{}, error) {
+func postAuth(url, reqBody, user, pass string) (map[string]interface{}, error) {
 	log.Infof("Request URL = %v \n", url)
 	buf := bytes.NewBuffer([]byte(reqBody))
-	r, err := http.Post(url, "application/json", buf)
+	req, err := http.NewRequest("POST", url, buf)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	if user != "" && pass != "" {
+		req.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(config.Conf.Ela.JsonrpcUser+":"+config.Conf.Ela.JsonrpcPassword)))
+	}
+	r, err := http.DefaultClient.Do(req)
+	//r, err := http.Post(url, "application/json", buf)
 	if err != nil {
 		return nil, err
 	}
@@ -227,7 +237,15 @@ func post(url string, reqBody string) (map[string]interface{}, error) {
 	}
 	rstMap := make(map[string]interface{})
 	json.Unmarshal(resp, &rstMap)
+	if rstMap == nil || len(rstMap) == 0 {
+		return nil, errors.New("Invalid Post Request to Server")
+	}
 	return rstMap, nil
+}
+
+//get get data from givin url and return map as value
+func post(url string, reqBody string) (map[string]interface{}, error) {
+	return postAuth(url, reqBody, "", "")
 }
 
 func doSync(tx *sql.Tx) error {
@@ -271,7 +289,8 @@ func doSync(tx *sql.Tx) error {
 
 func handleRegisteredProducer(tx *sql.Tx) error {
 	reqBody := `{"method": "listproducers"}`
-	resp, err := post("http://"+config.Conf.Ela.Jsonrpc, reqBody)
+
+	resp, err := postAuth("http://"+config.Conf.Ela.Jsonrpc, reqBody, config.Conf.Ela.JsonrpcUser, config.Conf.Ela.JsonrpcPassword)
 	if err != nil {
 		return err
 	}
