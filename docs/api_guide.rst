@@ -156,7 +156,7 @@ voter's statistics
                             "033c495238ca2b6bb8b7f5ae172363caea9a55cf245ffb3272d078126b1fe3e7cd",
                             "03330ee8520088b7f578a9afabaef0c034fa31fe1354cb3a14410894f974132800"
                         ],
-                        "Block_Time":1555847840,
+                        "Block_time":1555847840,
                         "Is_valid":"YES"
                     },
                     "Vote_Body":[
@@ -240,7 +240,7 @@ voter's statistics
                             "033c495238ca2b6bb8b7f5ae172363caea9a55cf245ffb3272d078126b1fe3e7cd",
                             "03330ee8520088b7f578a9afabaef0c034fa31fe1354cb3a14410894f974132800"
                         ],
-                        "Block_Time":1555823774,
+                        "Block_time":1555823774,
                         "Is_valid":"NO"
                     },
                     "Vote_Body":[
@@ -346,7 +346,7 @@ voter's statistics
                             "033c495238ca2b6bb8b7f5ae172363caea9a55cf245ffb3272d078126b1fe3e7cd",
                             "03330ee8520088b7f578a9afabaef0c034fa31fe1354cb3a14410894f974132800"
                         ],
-                        "Block_Time":1555823234,
+                        "Block_time":1555823234,
                         "Is_valid":"NO"
                     },
                     "Vote_Body":[
@@ -453,7 +453,7 @@ voter's statistics
                             "033c495238ca2b6bb8b7f5ae172363caea9a55cf245ffb3272d078126b1fe3e7cd",
                             "03330ee8520088b7f578a9afabaef0c034fa31fe1354cb3a14410894f974132800"
                         ],
-                        "Block_Time":1555640656,
+                        "Block_time":1555640656,
                         "Is_valid":"NO"
                     },
                     "Vote_Body":[
@@ -582,7 +582,7 @@ voter's statistics
                             "033c495238ca2b6bb8b7f5ae172363caea9a55cf245ffb3272d078126b1fe3e7cd",
                             "03330ee8520088b7f578a9afabaef0c034fa31fe1354cb3a14410894f974132800"
                         ],
-                        "Block_Time":1555639666,
+                        "Block_time":1555639666,
                         "Is_valid":"NO"
                     },
                     "Vote_Body":[
@@ -709,7 +709,7 @@ voter's statistics
                             "033c495238ca2b6bb8b7f5ae172363caea9a55cf245ffb3272d078126b1fe3e7cd",
                             "03330ee8520088b7f578a9afabaef0c034fa31fe1354cb3a14410894f974132800"
                         ],
-                        "Block_Time":1555666475,
+                        "Block_time":1555666475,
                         "Is_valid":"NO"
                     },
                     "Vote_Body":[
@@ -792,7 +792,7 @@ voter's statistics
                             "033c495238ca2b6bb8b7f5ae172363caea9a55cf245ffb3272d078126b1fe3e7cd",
                             "03330ee8520088b7f578a9afabaef0c034fa31fe1354cb3a14410894f974132800"
                         ],
-                        "Block_Time":1555665165,
+                        "Block_time":1555665165,
                         "Is_valid":"NO"
                     },
                     "Vote_Body":[
@@ -875,7 +875,7 @@ voter's statistics
                             "033c495238ca2b6bb8b7f5ae172363caea9a55cf245ffb3272d078126b1fe3e7cd",
                             "03330ee8520088b7f578a9afabaef0c034fa31fe1354cb3a14410894f974132800"
                         ],
-                        "Block_Time":1555663615,
+                        "Block_time":1555663615,
                         "Is_valid":"NO"
                     },
                     "Vote_Body":[
@@ -956,7 +956,7 @@ voter's statistics
                         "Nodes":[
                             "033c495238ca2b6bb8b7f5ae172363caea9a55cf245ffb3272d078126b1fe3e7cd"
                         ],
-                        "Block_Time":1555574076,
+                        "Block_time":1555574076,
                         "Is_valid":"NO"
                     },
                     "Vote_Body":[

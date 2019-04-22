@@ -143,7 +143,7 @@ type Vote_statistic_header struct {
 	Txid       string   `json:",omitempty"`
 	Height     int64    `json:",omitempty"`
 	Nodes      []string `json:",omitempty"`
-	Block_Time int64    `json:",omitempty"`
+	Block_time int64    `json:",omitempty"`
 	Is_valid   string   `json:",omitempty"`
 }
 

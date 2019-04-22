@@ -188,7 +188,7 @@ func voterStatistic(w http.ResponseWriter, r *http.Request) {
 			h.Txid = data.Txid
 			h.Height = data.Height
 			h.Nodes = []string{data.Producer_public_key}
-			h.Block_Time = data.Block_time
+			h.Block_time = data.Block_time
 			h.Is_valid = data.Is_valid
 			headersContainer[data.Txid+strconv.Itoa(data.N)] = h
 		}
