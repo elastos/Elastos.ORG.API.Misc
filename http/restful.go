@@ -364,7 +364,7 @@ func totalVoteByHeight(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"result":"invalid height","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 		return
 	}
-	rst, err := dba.ToFloat(`select  sum(value) as value from chain.chain_vote_info where cancel_height > ` + height + ` or cancel_height is null `)
+	rst, err := dba.ToFloat(`select  sum(value) as value from chain.chain_vote_info a right join chain_producer_info b on a.producer_public_key = b.ownerpublickey  where cancel_height > ` + height + ` or cancel_height is null`)
 	if err != nil {
 		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 		return
