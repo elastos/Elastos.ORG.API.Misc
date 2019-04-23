@@ -45,6 +45,16 @@ const (
 	WithdrawFromSideChain
 	// cross chain transfer the initial chain
 	TransferCrossChainAsset
+	// register producer
+	RegisterProducer
+	// cancle producer
+	CancelProducer
+	// update producer
+	UpdateProducer
+	// return deposite coin
+	ReturnDepositCoin
+	// activate producer
+	ActivateProducer
 	//Vote transfer
 	Vote
 )
@@ -59,6 +69,10 @@ var txTypeMap = map[int]string{
 	RechargeToSideChain:     "RechargeToSideChain",
 	WithdrawFromSideChain:   "WithdrawFromSideChain",
 	TransferCrossChainAsset: "TransferCrossChainAsset",
+	RegisterProducer:        "RegisterProducer",
+	CancelProducer:          "CancelProducer",
+	UpdateProducer:          "UpdateProducer",
+	ReturnDepositCoin:       "ReturnDepositCoin",
 	Vote:                    "Vote",
 }
 
@@ -316,12 +330,12 @@ func handleRegisteredProducer(tx *sql.Tx) error {
 		p := producer.(map[string]interface{})
 		pS := Producer_info{}
 		tools.Map2Struct(p, &pS)
-		Registerheight, err := dba.ToInt("select Registerheight from chain_producer_info where Ownerpublickey = '" + pS.Ownerpublickey + "'")
+		old, err := dba.ToStruct("select * from chain_producer_info where Ownerpublickey = '"+pS.Ownerpublickey+"'", Producer_info{})
 		if err != nil {
 			return err
 		}
-		if Registerheight != -1 {
-			if Registerheight == int(pS.Registerheight) {
+		if len(old) > 0 && old[0] != nil {
+			if *old[0].(*Producer_info) == pS {
 				continue
 			}
 			_, err = stmt1.Exec(pS.Ownerpublickey)
