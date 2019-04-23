@@ -211,10 +211,10 @@ func voterStatistic(w http.ResponseWriter, r *http.Request) {
 	for _, v := range headersContainer {
 		rst, ok := ranklisthoder[v.Height]
 		if !ok {
-			rst, err = dba.ToStruct(`select a.* , (@row_number:=@row_number + 1) as "rank",b.* from 
+			rst, err = dba.ToStruct(`select m.*,(@row_number:=@row_number + 1) as "rank" from (select a.* , b.* from 
 (select A.producer_public_key , ROUND(sum(value),8) as value from chain_vote_info A where A.cancel_height > `+strconv.Itoa(int(v.Height))+` or
- cancel_height is null group by producer_public_key order by value desc) a right join chain_producer_info b on a.producer_public_key = b.ownerpublickey 
- ,  (SELECT @row_number:=0) AS t`, chain.Vote_info{})
+ cancel_height is null group by producer_public_key) a right join chain_producer_info b on a.producer_public_key = b.ownerpublickey 
+ order by value desc) m ,  (SELECT @row_number:=0) AS t`, chain.Vote_info{})
 			if err != nil {
 				if err != nil {
 					http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
@@ -295,10 +295,10 @@ func producerRankByHeight(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"result":"invalid height","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 		return
 	}
-	rst, err := dba.ToStruct(`select a.* , (@row_number:=@row_number + 1) as "rank",b.* from 
+	rst, err := dba.ToStruct(`select m.*,(@row_number:=@row_number + 1) as "rank" from (select a.* , b.* from 
 (select A.producer_public_key , ROUND(sum(value),8) as value from chain_vote_info A where A.cancel_height > `+height+` or
- cancel_height is null group by producer_public_key order by value desc) a right join chain_producer_info b on a.producer_public_key = b.ownerpublickey 
- ,  (SELECT @row_number:=0) AS t`, chain.Vote_info{})
+ cancel_height is null group by producer_public_key) a right join chain_producer_info b on a.producer_public_key = b.ownerpublickey 
+ order by value desc) m ,  (SELECT @row_number:=0) AS t `, chain.Vote_info{})
 	if err != nil {
 		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 		return
