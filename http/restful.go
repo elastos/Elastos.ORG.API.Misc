@@ -152,7 +152,6 @@ func producerStatistic(w http.ResponseWriter, r *http.Request) {
 		Producer_public_key string `json:",omitempty"`
 		Vote_type           string `json:",omitempty"`
 		Txid                string `json:",omitempty"`
-		N                   int    `json:",omitempty"`
 		Value               string `json:",omitempty"`
 		Outputlock          int    `json:",omitempty"`
 		Address             string `json:",omitempty"`
