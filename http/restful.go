@@ -216,13 +216,10 @@ func voterStatistic(w http.ResponseWriter, r *http.Request) {
  cancel_height is null group by producer_public_key) a right join chain_producer_info b on a.producer_public_key = b.ownerpublickey 
  order by value desc) m ,  (SELECT @row_number:=0) AS t`, chain.Vote_info{})
 			if err != nil {
-				if err != nil {
-					http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
-					return
-				}
+				http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+				return
 			}
-			roundStartHeight := int(v.Height) - (int(v.Height)-config.Conf.DposStartHeight)%36
-			roundStartHeightTotalVote, err := dba.ToFloat(`	select sum(a.value)  from (select A.producer_public_key , sum(value) as value from chain.chain_vote_info A where A.cancel_height > ` + strconv.Itoa(roundStartHeight) + ` or
+			totalVote, err := dba.ToFloat(`	select sum(a.value)  from (select A.producer_public_key , sum(value) as value from chain.chain_vote_info A where A.cancel_height > ` + strconv.Itoa(int(v.Height)) + ` or
 	 cancel_height is null group by producer_public_key order by value desc limit 96) a`)
 			if err != nil {
 				http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
@@ -258,9 +255,9 @@ func voterStatistic(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 				if vi.Rank <= 24 {
-					vi.EstRewardPerYear = strconv.FormatFloat(float64(175834088*0.25/(100000000*36)*365*720+175834088*0.75/(roundStartHeightTotalVote*100000000)*vote*365*720), 'f', 8, 64)
+					vi.EstRewardPerYear = strconv.FormatFloat(float64(175834088*0.25/(100000000*36)*365*720+175834088*0.75/(totalVote*100000000)*vote*365*720), 'f', 8, 64)
 				} else if vi.Rank <= 96 {
-					vi.EstRewardPerYear = strconv.FormatFloat(float64(175834088*0.75/(roundStartHeightTotalVote*100000000)*vote*365*720), 'f', 8, 64)
+					vi.EstRewardPerYear = strconv.FormatFloat(float64(175834088*0.75/(totalVote*100000000)*vote*365*720), 'f', 8, 64)
 				} else {
 					vi.EstRewardPerYear = "0"
 				}
@@ -303,8 +300,7 @@ func producerRankByHeight(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 		return
 	}
-	roundStartHeight := h - (h-config.Conf.DposStartHeight)%36
-	roundStartHeightTotalVote, err := dba.ToFloat(`	select sum(a.value)  from (select A.producer_public_key , sum(value) as value from chain.chain_vote_info A where A.cancel_height > ` + strconv.Itoa(roundStartHeight) + ` or
+	totalVote, err := dba.ToFloat(`	select sum(a.value)  from (select A.producer_public_key , sum(value) as value from chain.chain_vote_info A where A.cancel_height > ` + height + ` or
 	 cancel_height is null group by producer_public_key order by value desc limit 96) a`)
 	if err != nil {
 		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
@@ -340,9 +336,9 @@ func producerRankByHeight(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		if vi.Rank <= 24 {
-			vi.EstRewardPerYear = strconv.FormatFloat(float64(175834088*0.25/(100000000*36)*365*720+175834088*0.75/(roundStartHeightTotalVote*100000000)*vote*365*720), 'f', 8, 64)
+			vi.EstRewardPerYear = strconv.FormatFloat(float64(175834088*0.25/(100000000*36)*365*720+175834088*0.75/(totalVote*100000000)*vote*365*720), 'f', 8, 64)
 		} else if vi.Rank <= 96 {
-			vi.EstRewardPerYear = strconv.FormatFloat(float64(175834088*0.75/(roundStartHeightTotalVote*100000000)*vote*365*720), 'f', 8, 64)
+			vi.EstRewardPerYear = strconv.FormatFloat(float64(175834088*0.75/(totalVote*100000000)*vote*365*720), 'f', 8, 64)
 		} else {
 			vi.EstRewardPerYear = "0"
 		}
