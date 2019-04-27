@@ -320,7 +320,11 @@ func handleRegisteredProducer(tx *sql.Tx) error {
 	if err != nil {
 		return err
 	}
-	stmt1, err := tx.Prepare("delete from chain_producer_info where Ownerpublickey = ?")
+	stmt1, err := tx.Prepare("delete from chain_producer_info")
+	if err != nil {
+		return err
+	}
+	_, err = stmt1.Exec()
 	if err != nil {
 		return err
 	}
@@ -330,19 +334,6 @@ func handleRegisteredProducer(tx *sql.Tx) error {
 		p := producer.(map[string]interface{})
 		pS := Producer_info{}
 		tools.Map2Struct(p, &pS)
-		old, err := dba.ToStruct("select * from chain_producer_info where Ownerpublickey = '"+pS.Ownerpublickey+"'", Producer_info{})
-		if err != nil {
-			return err
-		}
-		if len(old) > 0 && old[0] != nil {
-			if *old[0].(*Producer_info) == pS {
-				continue
-			}
-			_, err = stmt1.Exec(pS.Ownerpublickey)
-			if err != nil {
-				return err
-			}
-		}
 		_, err = stmt.Exec(pS.Ownerpublickey, pS.Nodepublickey, pS.Nickname, pS.Url, pS.Location, pS.Active, pS.Votes, pS.Netaddress, pS.State, pS.Registerheight, pS.Cancelheight, pS.Inactiveheight, pS.Illegalheight, pS.Index)
 		if err != nil {
 			return err
