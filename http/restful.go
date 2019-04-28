@@ -158,7 +158,7 @@ func producerStatistic(w http.ResponseWriter, r *http.Request) {
 		Block_time          int64  `json:",omitempty"`
 		Height              int64  `json:",omitempty"`
 	}
-	rst, err := dba.ToStruct("select Producer_public_key,Vote_type,Txid,N,Value,Address,Block_time,Height from chain_vote_info where producer_public_key = '"+pub+"' and (outputlock = 0 or outputlock >= height) and is_valid = 'YES'", ret{})
+	rst, err := dba.ToStruct("select Producer_public_key,Vote_type,Txid,Value,Address,Block_time,Height from chain_vote_info where producer_public_key = '"+pub+"' and (outputlock = 0 or outputlock >= height) and is_valid = 'YES'", ret{})
 	if err != nil {
 		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 		return
@@ -291,7 +291,7 @@ func producerRankByHeight(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"result":"invalid height","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 		return
 	}
-	rst, err := dba.ToStruct(`select m.*,(@row_number:=@row_number + 1) as "rank" from (select a.* , b.* from 
+	rst, err := dba.ToStruct(`select m.*,(@row_number:=@row_number + 1) as "rank" from (select ifnull(a.producer_public_key,b.ownerpublickey) as producer_public_key , ifnull(a.value,'0') as value , b.* from 
 (select A.producer_public_key , ROUND(sum(value),8) as value from chain_vote_info A where A.cancel_height > `+height+` or
  cancel_height is null group by producer_public_key) a right join chain_producer_info b on a.producer_public_key = b.ownerpublickey 
  order by value desc) m ,  (SELECT @row_number:=0) AS t `, chain.Vote_info{})
