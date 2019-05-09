@@ -54,3 +54,4 @@ CREATE INDEX idx_chain_block_transaction_history_address ON chain_block_transact
 CREATE INDEX idx_chain_block_transaction_history_txid ON chain_block_transaction_history (txid);
 ALTER TABLE chain_block_transaction_history ADD txType VARCHAR(24) NOT NULL;
 CREATE INDEX idx_chain_block_transaction_history_txType_height ON chain_block_transaction_history (height,txType);
+CREATE INDEX idx_chain_block_transaction_history_txType ON chain_block_transaction_history (txType);
