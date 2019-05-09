@@ -31,6 +31,11 @@ var (
 		"/api/1/dpos/vote/height/{height}": {
 			"GET": totalVoteByHeight,
 		},
+		// post
+		"/api/1/dpos/transaction/producer": {
+			"POST": getProducerByTxs,
+		},
+
 
 		//heartbeat
 		"/api/1/ping": {

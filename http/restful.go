@@ -14,6 +14,7 @@ import (
 	"github.com/elastos/Elastos.ORG.API.Misc/tools"
 	"github.com/gorilla/mux"
 	"html/template"
+	"io/ioutil"
 	"math"
 	"net/http"
 	"strconv"
@@ -366,6 +367,52 @@ func totalVoteByHeight(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(`{"result":` + fmt.Sprintf("%.8f", rst) + `,"status":200}`))
+}
+
+func getProducerByTxs(w http.ResponseWriter,r *http.Request){
+	b , err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, `{"result":"bad request","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
+		return
+	}
+	data := new(map[string]interface{})
+	err = json.Unmarshal(b,data)
+	if err != nil {
+		http.Error(w, `{"result":"bad request","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
+		return
+	}
+	txids, ok := (*data)["txid"].([]interface{})
+	if !ok {
+		http.Error(w, `{"result":"bad request","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
+		return
+	}
+	type ret struct{
+		Producer interface{}
+		Txid  string
+	}
+	var rst []ret
+	for _ , v := range txids {
+		txid := v.(string)
+		tmp := chain.Producer_info{}
+		//TODO the transaction may contains producer that has been canceled
+		producer , err := dba.ToStruct("select b.* from chain_vote_info a right join chain_producer_info b on a.producer_public_key = b.ownerpublickey where a.txid = '" + txid +"'",tmp)
+		if err != nil {
+			http.Error(w, `{"result":"internal error","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+			return
+		}
+		if len(producer) > 0 && producer[0] != nil{
+			rst = append(rst,ret{
+				Producer:producer,
+				Txid:txid,
+			})
+		}
+	}
+	buf, err := json.Marshal(&rst)
+	if err != nil {
+		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+		return
+	}
+	w.Write([]byte(`{"result":` + string(buf) + `,"status":200}`))
 }
 
 var version = "1.0.1"
