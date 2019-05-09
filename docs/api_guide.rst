@@ -1000,7 +1000,7 @@ voter's statistics
    :statuscode 500:   internal error
    :statuscode 10001: process error
 
-get producers of specific transactions
+Get producers of specific transactions
 -----------------------------------------
 
 .. http:post:: /api/1/dpos/transaction/producer
