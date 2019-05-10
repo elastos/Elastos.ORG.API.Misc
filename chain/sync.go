@@ -552,7 +552,11 @@ func handleHeight(curr int, tx *sql.Tx) error {
 							return err
 						}
 					} else {
-						valueCross = payload["CrossChainAmounts"].([]interface{})[0].(float64) / ELA
+						if(payload["CrossChainAmounts"] != nil){
+							valueCross = payload["CrossChainAmounts"].([]interface{})[0].(float64) / ELA
+						}else{
+							valueCross = payload["crosschainamounts"].([]interface{})[0].(float64) / ELA
+						}
 					}
 				}
 				value, err := strconv.ParseFloat(vvm["value"].(string), 64)
