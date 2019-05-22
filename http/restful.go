@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/elastos/Elastos.ELA.Utility/crypto"
 	"github.com/elastos/Elastos.ORG.API.Misc/chain"
 	"github.com/elastos/Elastos.ORG.API.Misc/config"
 	"github.com/elastos/Elastos.ORG.API.Misc/db"
@@ -220,14 +219,14 @@ func voterStatistic(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			totalVote, err := dba.ToFloat(`	select sum(a.value)  from (select A.producer_public_key , sum(value) as value from chain_vote_info A where (A.cancel_height > ` + strconv.Itoa(int(v.Height)) + ` or
-	 cancel_height is null) and height <= `+strconv.Itoa(int(v.Height))+` group by producer_public_key order by value desc limit 96) a`)
+	 cancel_height is null) and height <= ` + strconv.Itoa(int(v.Height)) + ` group by producer_public_key order by value desc limit 96) a`)
 			if err != nil {
 				http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 				return
 			}
 			for _, r := range rst {
 				vi := r.(*chain.Vote_info)
-				addr, err := getAddress(vi.Ownerpublickey)
+				addr, err := tools.GetAddress(vi.Ownerpublickey)
 				if err != nil {
 					log.Warn("Invalid Ownerpublickey " + vi.Ownerpublickey)
 					continue
@@ -308,7 +307,7 @@ func producerRankByHeight(w http.ResponseWriter, r *http.Request) {
 	}
 	for _, r := range rst {
 		vi := r.(*chain.Vote_info)
-		addr, err := getAddress(vi.Ownerpublickey)
+		addr, err := tools.GetAddress(vi.Ownerpublickey)
 		if err != nil {
 			log.Warn("Invalid Ownerpublickey " + vi.Ownerpublickey)
 			continue
@@ -360,7 +359,7 @@ func totalVoteByHeight(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"result":"invalid height","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 		return
 	}
-	rst, err := dba.ToFloat(`select  sum(value) as value from chain_vote_info a right join chain_producer_info b on a.producer_public_key = b.ownerpublickey  where (cancel_height > ` + height + ` or cancel_height is null) and height <= `+height+``)
+	rst, err := dba.ToFloat(`select  sum(value) as value from chain_vote_info a right join chain_producer_info b on a.producer_public_key = b.ownerpublickey  where (cancel_height > ` + height + ` or cancel_height is null) and height <= ` + height + ``)
 	if err != nil {
 		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 		return
@@ -369,14 +368,14 @@ func totalVoteByHeight(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(`{"result":` + fmt.Sprintf("%.8f", rst) + `,"status":200}`))
 }
 
-func getProducerByTxs(w http.ResponseWriter,r *http.Request){
-	b , err := ioutil.ReadAll(r.Body)
+func getProducerByTxs(w http.ResponseWriter, r *http.Request) {
+	b, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, `{"result":"bad request","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 		return
 	}
 	data := new(map[string]interface{})
-	err = json.Unmarshal(b,data)
+	err = json.Unmarshal(b, data)
 	if err != nil {
 		http.Error(w, `{"result":"bad request","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 		return
@@ -386,24 +385,24 @@ func getProducerByTxs(w http.ResponseWriter,r *http.Request){
 		http.Error(w, `{"result":"bad request","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 		return
 	}
-	type ret struct{
+	type ret struct {
 		Producer interface{}
-		Txid  string
+		Txid     string
 	}
 	var rst []ret
-	for _ , v := range txids {
+	for _, v := range txids {
 		txid := v.(string)
 		tmp := chain.Producer_info{}
 		//TODO the transaction may contains producer that has been canceled
-		producer , err := dba.ToStruct("select b.* from chain_vote_info a right join chain_producer_info b on a.producer_public_key = b.ownerpublickey where a.txid = '" + txid +"'",tmp)
+		producer, err := dba.ToStruct("select b.* from chain_vote_info a right join chain_producer_info b on a.producer_public_key = b.ownerpublickey where a.txid = '"+txid+"'", tmp)
 		if err != nil {
 			http.Error(w, `{"result":"internal error","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 			return
 		}
-		if len(producer) > 0 && producer[0] != nil{
-			rst = append(rst,ret{
-				Producer:producer,
-				Txid:txid,
+		if len(producer) > 0 && producer[0] != nil {
+			rst = append(rst, ret{
+				Producer: producer,
+				Txid:     txid,
 			})
 		}
 	}
@@ -655,28 +654,4 @@ func getCmcPrice(w http.ResponseWriter, r *http.Request) {
 	}
 	ret = append(ret, []byte("]"))
 	w.Write(bytes.Join(ret, nil))
-}
-
-func getAddress(publicKeyHex string) (string, error) {
-	publicKey, err := hex.DecodeString(publicKeyHex)
-	if err != nil {
-		return "", err
-	}
-	pub, err := crypto.DecodePoint(publicKey)
-	if err != nil {
-		return "", err
-	}
-	code, err := crypto.CreateStandardRedeemScript(pub)
-	if err != nil {
-		return "", err
-	}
-	hash, err := crypto.ToProgramHash(code)
-	if err != nil {
-		return "", err
-	}
-	addr, err := hash.ToAddress()
-	if err != nil {
-		return "", err
-	}
-	return addr, nil
 }

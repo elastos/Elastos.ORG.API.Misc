@@ -440,7 +440,7 @@ func handleHeight(curr int, tx *sql.Tx) error {
 	}
 
 	for _, v := range txArr {
-		stmt, err := tx.Prepare("insert into chain_block_transaction_history (address,txid,type,value,createTime,height,fee,inputs,outputs,memo,txType) values(?,?,?,?,?,?,?,?,?,?,?)")
+		stmt, err := tx.Prepare("insert into chain_block_transaction_history (address,txid,type,value,createTime,height,fee,inputs,outputs,memo,txType,publicKey) values(?,?,?,?,?,?,?,?,?,?,?,?)")
 		if err != nil {
 			return err
 		}
@@ -490,7 +490,7 @@ func handleHeight(curr int, tx *sql.Tx) error {
 			}
 
 			for _, v := range coinbase {
-				_, err := stmt.Exec(v["address"], txid, _type, v["value"], strconv.FormatFloat(time, 'f', 0, 64), curr, 0, MINING_ADDR, to, "", txTypeMap[CoinBase])
+				_, err := stmt.Exec(v["address"], txid, _type, v["value"], strconv.FormatFloat(time, 'f', 0, 64), curr, 0, MINING_ADDR, to, "", txTypeMap[CoinBase], "")
 				if err != nil {
 					return err
 				}
@@ -552,9 +552,9 @@ func handleHeight(curr int, tx *sql.Tx) error {
 							return err
 						}
 					} else {
-						if(payload["CrossChainAmounts"] != nil){
+						if payload["CrossChainAmounts"] != nil {
 							valueCross = payload["CrossChainAmounts"].([]interface{})[0].(float64) / ELA
-						}else{
+						} else {
 							valueCross = payload["crosschainamounts"].([]interface{})[0].(float64) / ELA
 						}
 					}
@@ -578,6 +578,16 @@ func handleHeight(curr int, tx *sql.Tx) error {
 					to += address + ","
 				}
 			}
+			programs := make(map[string]string)
+			p := vm["programs"].([]interface{})
+			for _, v := range p {
+				pm := v.(map[string]interface{})
+				code := pm["code"].(string)
+				publicKeyByte, _ := hex.DecodeString(code)
+				publicKeyStr := hex.EncodeToString(publicKeyByte[1:34])
+				address, _ := tools.GetAddress(publicKeyStr)
+				programs[address] = publicKeyStr
+			}
 			fee := int64(math.Round((totalInput - totalOutput) * ELA))
 			for k, r := range receive {
 				_type = INCOME
@@ -598,7 +608,11 @@ func handleHeight(curr int, tx *sql.Tx) error {
 				if _type == INCOME {
 					realFee = 0
 				}
-				_, err := stmt.Exec(k, txid, _type, int64(value), strconv.FormatFloat(time, 'f', 0, 64), curr, realFee, from, to, memo, txTypeMap[int(t)])
+				pub := ""
+				if _type == SPEND {
+					pub = programs[k]
+				}
+				_, err := stmt.Exec(k, txid, _type, int64(value), strconv.FormatFloat(time, 'f', 0, 64), curr, realFee, from, to, memo, txTypeMap[int(t)], pub)
 				if err != nil {
 					return err
 				}
@@ -606,7 +620,7 @@ func handleHeight(curr int, tx *sql.Tx) error {
 
 			for k, r := range spend {
 				_type = SPEND
-				_, err := stmt.Exec(k, txid, _type, int64(r*ELA), strconv.FormatFloat(time, 'f', 0, 64), curr, fee, from, to, memo, txTypeMap[int(t)])
+				_, err := stmt.Exec(k, txid, _type, int64(r*ELA), strconv.FormatFloat(time, 'f', 0, 64), curr, fee, from, to, memo, txTypeMap[int(t)], programs[k])
 				if err != nil {
 					return err
 				}
