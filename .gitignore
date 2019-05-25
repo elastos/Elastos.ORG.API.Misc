@@ -12,5 +12,7 @@ go.mod
 go.sum
 *.backup
 misc
+.DS_Store
 **/_build
 **/_static
+*.code-workspace
