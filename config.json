@@ -2,11 +2,11 @@
     "ServerPort":"8080",
     "Db":{
         "DbDriverName":"mysql",
-        "DbDriverSource":"root:87654321@tcp(127.0.0.1:3306)/chain"
+        "DbDriverSource":"root:12345678@tcp(127.0.0.1:3306)/chain"
     },
     "Ela":{
-        "Restful":"localhost:21334",
-        "Jsonrpc":"localhost:21336",
+        "Restful":"54.64.220.165:21604",
+        "Jsonrpc":"54.64.220.165:21336",
         "JsonrpcUser":"clark",
         "JsonrpcPassword":"123456"
     },
