@@ -4,10 +4,11 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/elastos/Elastos.ORG.API.Misc/log"
-	"github.com/elastos/Elastos.ORG.API.Misc/tools"
 	"reflect"
 	"testing"
+
+	"github.com/elastos/Elastos.ORG.API.Misc/log"
+	"github.com/elastos/Elastos.ORG.API.Misc/tools"
 )
 
 func Test_SyncChain(t *testing.T) {
@@ -40,6 +41,12 @@ func Test_handleMemo(t *testing.T) {
 
 	println(a)
 
+}
+
+func Test_HandleHeight(t *testing.T) {
+	tx, _ := dba.Begin()
+	handleHeight(111189, tx)
+	dba.Commit(tx)
 }
 
 func Test_TypeConverter(t *testing.T) {

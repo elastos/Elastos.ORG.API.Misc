@@ -7,18 +7,20 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"github.com/elastos/Elastos.ELA.Utility/common"
-	"github.com/elastos/Elastos.ELA.Utility/crypto"
-	"github.com/elastos/Elastos.ORG.API.Misc/config"
-	"github.com/elastos/Elastos.ORG.API.Misc/db"
-	"github.com/elastos/Elastos.ORG.API.Misc/log"
-	"github.com/elastos/Elastos.ORG.API.Misc/tools"
+	"fmt"
 	"io/ioutil"
 	"math"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/elastos/Elastos.ELA.Utility/common"
+	"github.com/elastos/Elastos.ELA.Utility/crypto"
+	"github.com/elastos/Elastos.ORG.API.Misc/config"
+	"github.com/elastos/Elastos.ORG.API.Misc/db"
+	"github.com/elastos/Elastos.ORG.API.Misc/log"
+	"github.com/elastos/Elastos.ORG.API.Misc/tools"
 )
 
 const (
@@ -57,6 +59,15 @@ const (
 	ActivateProducer
 	//Vote transfer
 	Vote
+)
+
+const (
+	DID_APP_PUBLIC_KEY      = "PublicKey"
+	DID_APP_NAME            = "Dev"
+	DID_APP_ID              = "Apps"
+	DID_APP_TYPE_PUBLIC_KEY = "public_key"
+	DID_APP_TYPE_NAME       = "app_name"
+	DID_APP_TYPE_ID         = "app_id"
 )
 
 var txTypeMap = map[int]string{
@@ -347,6 +358,9 @@ func handleHeight(curr int, tx *sql.Tx) error {
 	if err != nil {
 		return err
 	}
+
+	fmt.Println("http://" + config.Conf.Ela.Restful + BlockDetail + strconv.FormatInt(int64(curr), 10))
+
 	r, ok := (resp["Result"].(map[string]interface{}))
 	if !ok {
 		return errors.New("illegal Height")
@@ -736,9 +750,42 @@ func handleMemo(memo string, height int, txid string, createTime int, tx *sql.Tx
 			continue
 		}
 		stmt.Close()
+
+		recordDidApp(did, istats, pub, v.Key, v.Value, int64(keyStats), height, txid, createTime, tx)
 	}
 
 	return nil
+}
+
+func recordDidApp(did string, istats int64, pub string, pKey string, pValue string, keyStats int64, height int, txid string, createTime int, tx *sql.Tx) {
+
+	words := strings.Split(pKey, "/")
+	var infoType, infoValue string
+	if strings.EqualFold(DID_APP_ID, words[0]) {
+		infoType = DID_APP_TYPE_ID
+		infoValue = words[1]
+	} else if strings.EqualFold(DID_APP_NAME, words[0]) {
+		infoType = DID_APP_TYPE_NAME
+		infoValue = words[1]
+	} else if strings.EqualFold(DID_APP_PUBLIC_KEY, words[0]) {
+		infoType = DID_APP_TYPE_PUBLIC_KEY
+		infoValue = pValue
+	} else {
+		//NO Did app data
+		return
+	}
+
+	stmt, err := tx.Prepare("insert into chain_did_app(did,did_status,public_key,property_key,property_key_status,property_value,info_type,info_value,txid,block_time,height) values(?,?,?,?,?,?,?,?,?,?,?)")
+	if err != nil {
+		log.Warn(err.Error())
+		return
+	}
+	_, err = stmt.Exec(did, istats, pub, pKey, keyStats, pValue, infoType, infoValue, txid, createTime, height)
+	if err != nil {
+		log.Warn(err)
+		return
+	}
+	stmt.Close()
 }
 
 func getDid(pub string) (string, error) {

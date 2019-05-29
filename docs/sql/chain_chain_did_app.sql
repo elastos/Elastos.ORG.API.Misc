@@ -49,8 +49,8 @@ CREATE TABLE `chain_did_app` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
-CREATE INDEX idx_chain_did_app_property_key ON chain_did_property (property_key);
-CREATE INDEX idx_chain_did_app_did ON chain_did_property (did);
-CREATE INDEX idx_chain_did_app_txid ON chain_did_property (txid);
-CREATE INDEX idx_chain_did_app_info_type ON chain_did_property (info_type);
-CREATE INDEX idx_chain_did_app_info_value ON chain_did_property (info_value);
+CREATE INDEX idx_chain_did_app_property_key ON chain_did_app (property_key);
+CREATE INDEX idx_chain_did_app_did ON chain_did_app (did);
+CREATE INDEX idx_chain_did_app_txid ON chain_did_app (txid);
+CREATE INDEX idx_chain_did_app_info_type ON chain_did_app (info_type);
+CREATE INDEX idx_chain_did_app_info_value ON chain_did_app (info_value);
