@@ -75,13 +75,18 @@ var dba = db.NewInstance()
 
 func init() {
 	go func() {
-		i := 0
+		i := -1
 		sleepy, err := time.ParseDuration(config.Conf.Cmc.Inteval)
 		if err != nil {
 			fmt.Printf("%s", err.Error())
 			os.Exit(-1)
 		}
 		for {
+			if i == len(config.Conf.Cmc.ApiKey)-1 {
+				i = 0
+			} else {
+				i++
+			}
 			cmcResponseUSD, err := fetchPrice(i, "USD")
 			if err != nil {
 				fmt.Printf("Error in cmc price %s", err.Error())
@@ -111,11 +116,6 @@ func init() {
 				fmt.Printf("Error in cmc price %s", err.Error())
 				<-time.After(sleepy)
 				continue
-			}
-			if i == len(config.Conf.Cmc.ApiKey)-1 {
-				i = 0
-			} else {
-				i++
 			}
 			<-time.After(sleepy)
 		}
