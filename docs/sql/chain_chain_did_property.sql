@@ -51,3 +51,4 @@ CREATE TABLE `chain_did_property` (
 CREATE INDEX idx_chain_did_property_property_key ON chain_did_property (property_key);
 CREATE INDEX idx_chain_did_property_txid ON chain_did_property (txid);
 CREATE INDEX idx_chain_did_property_did ON chain_did_property (did);
+CREATE INDEX idx_chain_did_property_local_system_time ON chain_did_property (local_system_time);
