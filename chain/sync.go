@@ -476,9 +476,11 @@ func handleHeight(curr int, tx *sql.Tx) error {
 				if !ok {
 					log.Warn("wrong data format")
 				}
-				err := handleMemo(memo, curr, txid, int(time), tx)
-				if err != nil {
+				err , errType := handleMemo(memo, curr, txid, int(time), tx)
+				if errType == 0 {
 					log.Warnf("Error parsing error memo = %v , error = %s", attrArr[0], err.Error())
+				}else {
+					return err
 				}
 			}
 		}
@@ -659,15 +661,15 @@ type Did_info struct {
 	Properties []Properties
 }
 
-func handleMemo(memo string, height int, txid string, createTime int, tx *sql.Tx) error {
+func handleMemo(memo string, height int, txid string, createTime int, tx *sql.Tx) (error,int) {
 	b, err := hex.DecodeString(memo)
 	if err != nil {
-		return err
+		return err, 0
 	}
 	mm := make(map[string]interface{})
 	err = json.Unmarshal(b, &mm)
 	if err != nil {
-		return errors.New("Not a valid string")
+		return errors.New("Not a valid string"), 0
 	}
 
 	msg, ok0 := mm["msg"].(string)
@@ -675,31 +677,31 @@ func handleMemo(memo string, height int, txid string, createTime int, tx *sql.Tx
 	sig, ok2 := mm["sig"].(string)
 
 	if !(ok0 && ok1 && ok2) {
-		return errors.New("invalid 'msg' or 'pub' or 'sig' key in memo")
+		return errors.New("invalid 'msg' or 'pub' or 'sig' key in memo"), 0
 	}
 
 	pubKey, err := hex.DecodeString(pub)
 	if err != nil {
-		return err
+		return err, 0
 	}
 
 	publicKey, err := crypto.DecodePoint(pubKey)
 	if err != nil {
-		return err
+		return err, 0
 	}
 
 	data, _ := hex.DecodeString(msg)
 	sign, _ := hex.DecodeString(sig)
 	err = crypto.Verify(*publicKey, data, sign)
 	if err != nil {
-		return err
+		return err, 0
 	}
 
 	//raw := make(map[string]interface{})
 	raw := Did_info{}
 	err = json.Unmarshal(data, &raw)
 	if err != nil {
-		return errors.New("RawData is not Json")
+		return errors.New("RawData is not Json"), 0
 	}
 
 	fstats, ko := raw.Status.(float64)
@@ -741,23 +743,24 @@ func handleMemo(memo string, height int, txid string, createTime int, tx *sql.Tx
 		}
 		stmt, err := tx.Prepare("insert into chain_did_property(did,did_status,public_key,property_key,property_key_status,property_value,txid,block_time,height) values(?,?,?,?,?,?,?,?,?)")
 		if err != nil {
-			log.Warn(err.Error())
-			continue
+			return err, -1
 		}
 		_, err = stmt.Exec(did, istats, pub, v.Key, keyStats, v.Value, txid, createTime, height)
 		if err != nil {
-			log.Warn(err)
-			continue
+			return err, -1
 		}
 		stmt.Close()
 
-		recordDidApp(did, istats, pub, v.Key, v.Value, int64(keyStats), height, txid, createTime, tx)
+		err , errType :=  recordDidApp(did, istats, pub, v.Key, v.Value, int64(keyStats), height, txid, createTime, tx)
+		if errType == -1 {
+			return err, errType
+		}
 	}
 
-	return nil
+	return nil , 0
 }
 
-func recordDidApp(did string, istats int64, pub string, pKey string, pValue string, keyStats int64, height int, txid string, createTime int, tx *sql.Tx) {
+func recordDidApp(did string, istats int64, pub string, pKey string, pValue string, keyStats int64, height int, txid string, createTime int, tx *sql.Tx) (error , int){
 
 	words := strings.Split(pKey, "/")
 	var infoType, infoValue string
@@ -772,20 +775,19 @@ func recordDidApp(did string, istats int64, pub string, pKey string, pValue stri
 		infoValue = pValue
 	} else {
 		//NO Did app data
-		return
+		return nil, 0
 	}
 
 	stmt, err := tx.Prepare("insert into chain_did_app(did,did_status,public_key,property_key,property_key_status,property_value,info_type,info_value,txid,block_time,height) values(?,?,?,?,?,?,?,?,?,?,?)")
+	defer stmt.Close()
 	if err != nil {
-		log.Warn(err.Error())
-		return
+		return err , -1
 	}
 	_, err = stmt.Exec(did, istats, pub, pKey, keyStats, pValue, infoType, infoValue, txid, createTime, height)
 	if err != nil {
-		log.Warn(err)
-		return
+		return err , -1
 	}
-	stmt.Close()
+	return nil ,0
 }
 
 func getDid(pub string) (string, error) {
