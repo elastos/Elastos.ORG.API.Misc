@@ -2,16 +2,16 @@
     "ServerPort":"8080",
     "Db":{
         "DbDriverName":"mysql",
-        "DbDriverSource":"root:87654321@tcp(127.0.0.1:3306)/chain"
+        "DbDriverSource":"root:87654321@tcp(127.0.0.1:3306)/chain_mainnet"
     },
     "Ela":{
-        "Restful":"localhost:21334",
-        "Jsonrpc":"localhost:21336",
+        "Restful":"localhost:20334",
+        "Jsonrpc":"localhost:20336",
         "JsonrpcUser":"clark",
         "JsonrpcPassword":"123456"
     },
     "Cmc":{
-      "ApiKey":["d72b4bf0-00f3-4bab-8dca-45df2b0fb14c","cfa976fc-7642-4946-a0b2-858619fb2802"],
+      "ApiKey":["cfa976fc-7642-4946-a0b2-858619fb2802"],
       "Inteval":"30m",
       "NumOfCoin":200
     },
