@@ -128,6 +128,10 @@ func saveToDb(cmcResponseUSD, cmcResponseCNY, cmcResponseBTC, cmcResponseBGX Cmc
 		return err
 	}
 	data := cmcResponseUSD.Data
+	if(len(cmcResponseCNY.Data) != len(cmcResponseUSD.Data) || len(cmcResponseUSD.Data) != len(cmcResponseUSD.Data)){
+		fmt.Printf("Invalid Key fetch Cmc Data m CNY :%v, BTC :%v, USD :%v", cmcResponseCNY,cmcResponseBTC,cmcResponseUSD)
+		return nil
+	}
 	for i := 0; i < len(data); i++ {
 		_, err = tx.Exec("insert into chain_cmc_price(id,name,symbol,`rank`,price_usd,price_cny,price_btc,24h_volume_usd,market_cap_usd,available_supply,total_supply,max_supply,percent_change_1h,percent_change_24h,percent_change_7d,last_updated,24h_volume_btc,market_cap_btc,local_system_time,24h_volume_cny,market_cap_cny,platform_symbol,platform_token_address,num_market_pairs) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
 			strconv.Itoa(int(data[i].Id)),
