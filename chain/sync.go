@@ -782,6 +782,11 @@ func recordDidApp(did string, istats int64, pub string, pKey string, pValue stri
 		return nil, 0
 	}
 
+	if infoType == "" || infoValue == "" {
+		//NO Did app data
+		return errors.New("infoType and infoValue can not be blank"), 0
+	}
+
 	stmt, err := tx.Prepare("insert into chain_did_app(did,did_status,public_key,property_key,property_key_status,property_value,info_type,info_value,txid,block_time,height) values(?,?,?,?,?,?,?,?,?,?,?)")
 	defer stmt.Close()
 	if err != nil {
