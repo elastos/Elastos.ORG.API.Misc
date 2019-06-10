@@ -478,7 +478,7 @@ func handleHeight(curr int, tx *sql.Tx) error {
 				}
 				err , errType := handleMemo(memo, curr, txid, int(time), tx)
 				if errType == 0 {
-					log.Warnf("Error parsing error memo = %v , error = %s", attrArr[0], err.Error())
+					log.Warnf("Error parsing error memo = %v , error = %v", attrArr[0], err)
 				}else {
 					return err
 				}
@@ -782,7 +782,7 @@ func recordDidApp(did string, istats int64, pub string, pKey string, pValue stri
 		return nil, 0
 	}
 
-	if infoType == "" || infoValue == "" {
+	if infoValue == "" {
 		//NO Did app data
 		return errors.New("infoType and infoValue can not be blank"), 0
 	}
