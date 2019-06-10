@@ -4,7 +4,7 @@ import "testing"
 
 func Test_getAddress(t *testing.T) {
 
-	str := "038f14acf248383e33aa8b098a60ed20184a66fdcef018d0eeb0dbd816a4ca0ddd"
+	str := "02512bf24fe87a7eb6d831f80a243721e4da13735a4f1e5f2cc717b20f1974645c"
 
 	addr, _ := GetAddress(str)
 	println(addr)
