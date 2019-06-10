@@ -685,6 +685,10 @@ func handleMemo(memo string, height int, txid string, createTime int, tx *sql.Tx
 		return err, 0
 	}
 
+	if len(pubKey) != 33 {
+		return errors.New("Invalid public Key"), 0
+	}
+
 	publicKey, err := crypto.DecodePoint(pubKey)
 	if err != nil {
 		return err, 0
