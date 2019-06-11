@@ -3350,6 +3350,7 @@ Get spending address public key
 
 .. http:get:: /api/1/pubkey/(string:`addr`)
 
+If we can get the public key of this adress.
    **Example request**:
 
    .. sourcecode:: http
@@ -3366,5 +3367,25 @@ Get spending address public key
 
         {
             "result":"02eda087df202cfc8904ec8f933bf20920251b3964b117c984a576c6fd9047073c",
+            "status":200
+        }
+
+If we can not get the public key of this adress.
+   **Example request**:
+
+   .. sourcecode:: http
+
+      GET /api/1/pubkey/EbxU18T3M9ufnrkRY7NLt6sKyckDW4VAsA HTTP/1.1
+      Host: localhost
+
+   **Example response**:
+
+   .. sourcecode:: http
+
+      HTTP/1.1 200 OK
+      Content-Type: application/json
+
+        {
+            "result":"Can not find pubkey of this address, please using this address send a transaction first",
             "status":200
         }
