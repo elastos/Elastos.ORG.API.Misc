@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/elastos/Elastos.ELA.Utility/common"
 	"github.com/elastos/Elastos.ORG.API.Misc/chain"
 	"github.com/elastos/Elastos.ORG.API.Misc/config"
 	"github.com/elastos/Elastos.ORG.API.Misc/db"
@@ -140,6 +141,24 @@ func history(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Write([]byte(`{"result":` + string(buf) + `,"status":200}`))
 }
+
+func getPublicKey(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	addr := params["addr"]
+	_ , err := common.Uint168FromAddress(addr)
+	if err != nil {
+		http.Error(w, `{"result":"Invalid address","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
+		return
+	}
+	pub , err := dba.ToString("select publicKey from chain_block_transaction_history where address = '" + addr + "' and publicKey is not null and publicKey != '' limit 1")
+
+	if pub == "" {
+		w.Write([]byte(`{"result":"Can not find pubkey of this address, please using this address send a transaction first","status":200}`))
+		return
+	}
+	w.Write([]byte(`{"result":"` + pub + `","status":200}`))
+}
+
 
 func producerStatistic(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)

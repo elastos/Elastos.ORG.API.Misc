@@ -3143,9 +3143,6 @@ rank list of producer
             }
 
 
-
-
-
 Get dpos total vote of specific height
 ------------------------------------------------
 total vote of specific height
@@ -3172,9 +3169,49 @@ total vote of specific height
         }
 
 
-Transaction History
+
+DID Info
 =================================
-using the following api ,we can get address transaction history.
+using the following api ,we can get did info.
+
+Get did information
+------------------------------------------------
+check did key's value
+
+.. http:get:: /api/1/did/(string:`did`)/(string:`key`)
+
+   **Example request**:
+
+   .. sourcecode:: http
+
+      GET /api/1/did/iYnguKQcpeVyrpN6edamSkky1brvQvCWr6/clark HTTP/1.1
+      Host: localhost
+
+   **Example response**:
+
+   .. sourcecode:: http
+
+      HTTP/1.1 200 OK
+      Content-Type: application/json
+
+        {
+            "result":{
+                "Did":"iYnguKQcpeVyrpN6edamSkky1brvQvCWr6",
+                "Did_status":1,
+                "Public_key":"0354E3AE040052CD61A38DF72E189EDCBBB8BA81599DED25019E286F2E013A3726",
+                "Property_key":"clark",
+                "Property_value":"hello,world",
+                "Txid":"c39dd1463678146467ea1b43d8905e75ac34e727a4c36824410089a6682b43c8",
+                "Block_time":1543902641,
+                "Height":66480
+            },
+            "status":200
+        }
+
+
+Other
+=================================
+using the following api ,we can get address transaction history and more.
 
 Get address transaction history
 ------------------------------------------------
@@ -3308,21 +3345,16 @@ check history of Address
             "status":200
         }
 
-DID Info
-=================================
-using the following api ,we can get did info.
-
-Get did information
+Get spending address public key
 ------------------------------------------------
-check did key's value
 
-.. http:get:: /api/1/did/(string:`did`)/(string:`key`)
+.. http:get:: /api/1/pubkey/(string:`addr`)
 
    **Example request**:
 
    .. sourcecode:: http
 
-      GET /api/1/did/iYnguKQcpeVyrpN6edamSkky1brvQvCWr6/clark HTTP/1.1
+      GET /api/1/pubkey/ELbKQrj8DTYn2gU7KBejcNWb4ix4EAGDmy HTTP/1.1
       Host: localhost
 
    **Example response**:
@@ -3333,15 +3365,6 @@ check did key's value
       Content-Type: application/json
 
         {
-            "result":{
-                "Did":"iYnguKQcpeVyrpN6edamSkky1brvQvCWr6",
-                "Did_status":1,
-                "Public_key":"0354E3AE040052CD61A38DF72E189EDCBBB8BA81599DED25019E286F2E013A3726",
-                "Property_key":"clark",
-                "Property_value":"hello,world",
-                "Txid":"c39dd1463678146467ea1b43d8905e75ac34e727a4c36824410089a6682b43c8",
-                "Block_time":1543902641,
-                "Height":66480
-            },
+            "result":"02eda087df202cfc8904ec8f933bf20920251b3964b117c984a576c6fd9047073c",
             "status":200
         }

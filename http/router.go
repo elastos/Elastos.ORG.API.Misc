@@ -18,6 +18,10 @@ var (
 		"/api/1/did/{did}/{key}": {
 			"GET": searchKey,
 		},
+		"/api/1/pubkey/{addr}": {
+			"GET": getPublicKey,
+		},
+
 		//ela dpos
 		"/api/1/dpos/producer/{producer}": {
 			"GET": producerStatistic,
