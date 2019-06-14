@@ -27,7 +27,7 @@ CREATE TABLE `chain_did_app` (
   `did` varchar(34) COLLATE utf8mb4_bin NOT NULL,
   `did_status` tinyint(2) NOT NULL COMMENT 'status of did , ''1'' or ''0''',
   `public_key` varchar(66) COLLATE utf8mb4_bin NOT NULL COMMENT 'public key of did',
-  `property_key` varchar(255) COLLATE utf8mb4_bin NOT NULL COMMENT 'property key',
+  `property_key` text COLLATE utf8mb4_bin NOT NULL COMMENT 'property key',
   `property_key_status` tinyint(2) NOT NULL COMMENT 'status of did property, ''1'' or ''0''',
   `property_value` text COLLATE utf8mb4_bin NOT NULL COMMENT 'property value',
   `info_type` varchar(20) COLLATE utf8mb4_bin NOT NULL COMMENT 'app info type: public_key, app_name, app_id',
@@ -54,3 +54,6 @@ CREATE INDEX idx_chain_did_app_did ON chain_did_app (did);
 CREATE INDEX idx_chain_did_app_txid ON chain_did_app (txid);
 CREATE INDEX idx_chain_did_app_info_type ON chain_did_app (info_type);
 CREATE INDEX idx_chain_did_app_info_value ON chain_did_app (info_value);
+
+--2019-6-14 change property_key lenth 
+alter table chain_did_property modify `property_key` text  COLLATE utf8mb4_bin NOT NULL COMMENT 'property key';
