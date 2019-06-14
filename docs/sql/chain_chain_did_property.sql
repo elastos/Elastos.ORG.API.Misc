@@ -52,3 +52,5 @@ CREATE INDEX idx_chain_did_property_property_key ON chain_did_property (property
 CREATE INDEX idx_chain_did_property_txid ON chain_did_property (txid);
 CREATE INDEX idx_chain_did_property_did ON chain_did_property (did);
 CREATE INDEX idx_chain_did_property_local_system_time ON chain_did_property (local_system_time);
+
+alter table chain_did_property modify `property_key` text  COLLATE utf8mb4_bin NOT NULL COMMENT 'property key';
