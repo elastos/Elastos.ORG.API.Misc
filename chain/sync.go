@@ -263,8 +263,13 @@ func post(url string, reqBody string) (map[string]interface{}, error) {
 }
 
 func doSync(tx *sql.Tx) error {
-
-	resp, err := get("http://" + config.Conf.Ela.Restful + BlockHeight)
+	var resp map[string]interface{}
+	var err error
+	if strings.HasPrefix(config.Conf.Ela.Restful,"http") {
+		resp , err = get(config.Conf.Ela.Restful + BlockHeight)
+	}else{
+		resp, err = get("http://" + config.Conf.Ela.Restful + BlockHeight)
+	}
 
 	if err != nil {
 		return err
@@ -303,8 +308,15 @@ func doSync(tx *sql.Tx) error {
 
 func handleRegisteredProducer(tx *sql.Tx) error {
 	reqBody := `{"method": "listproducers"}`
+	var resp map[string]interface{}
+	var err error
+	if strings.HasPrefix(config.Conf.Ela.Restful,"http") {
+		resp, err = postAuth(config.Conf.Ela.Jsonrpc, reqBody, config.Conf.Ela.JsonrpcUser, config.Conf.Ela.JsonrpcPassword)
+	}else{
+		resp, err = postAuth("http://"+config.Conf.Ela.Jsonrpc, reqBody, config.Conf.Ela.JsonrpcUser, config.Conf.Ela.JsonrpcPassword)
+	}
 
-	resp, err := postAuth("http://"+config.Conf.Ela.Jsonrpc, reqBody, config.Conf.Ela.JsonrpcUser, config.Conf.Ela.JsonrpcPassword)
+
 	if err != nil {
 		return err
 	}
@@ -343,7 +355,13 @@ func handleRegisteredProducer(tx *sql.Tx) error {
 }
 
 func handleHeight(curr int, tx *sql.Tx) error {
-	resp, err := get("http://" + config.Conf.Ela.Restful + BlockDetail + strconv.FormatInt(int64(curr), 10))
+	var resp map[string]interface{}
+	var err error
+	if strings.HasPrefix(config.Conf.Ela.Restful,"http") {
+		resp, err = get(config.Conf.Ela.Restful + BlockDetail + strconv.FormatInt(int64(curr), 10))
+	}else{
+		resp, err = get("http://" + config.Conf.Ela.Restful + BlockDetail + strconv.FormatInt(int64(curr), 10))
+	}
 	if err != nil {
 		return err
 	}
@@ -513,7 +531,13 @@ func handleHeight(curr int, tx *sql.Tx) error {
 				vvm := vv.(map[string]interface{})
 				vintxid := vvm["txid"].(string)
 				vinindex := vvm["vout"].(float64)
-				txResp, err := get("http://" + config.Conf.Ela.Restful + TransactionDetail + vintxid)
+				var txResp map[string]interface{}
+				var err error
+				if strings.HasPrefix(config.Conf.Ela.Restful,"http") {
+					txResp, err = get(config.Conf.Ela.Restful + TransactionDetail + vintxid)
+				}else{
+					txResp, err = get("http://" + config.Conf.Ela.Restful + TransactionDetail + vintxid)
+				}
 				if err != nil {
 					return err
 				}
