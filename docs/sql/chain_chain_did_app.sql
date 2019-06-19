@@ -55,5 +55,3 @@ CREATE INDEX idx_chain_did_app_txid ON chain_did_app (txid);
 CREATE INDEX idx_chain_did_app_info_type ON chain_did_app (info_type);
 CREATE INDEX idx_chain_did_app_info_value ON chain_did_app (info_value);
 
---2019-6-14 change property_key lenth 
-alter table chain_did_property modify `property_key` text  COLLATE utf8mb4_bin NOT NULL COMMENT 'property key';
