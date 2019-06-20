@@ -173,7 +173,7 @@ type Producer_info struct {
 	Nickname       string
 	Url            string
 	Location       int64
-	Active         bool
+	Active         int
 	Votes          string
 	Netaddress     string
 	State          string
@@ -346,6 +346,11 @@ func handleRegisteredProducer(tx *sql.Tx) error {
 		p := producer.(map[string]interface{})
 		pS := Producer_info{}
 		tools.Map2Struct(p, &pS)
+		if test, ok := p["active"].(bool);ok && test == true{
+			pS.Active = 1
+		}else{
+			pS.Active = 0
+		}
 		_, err = stmt.Exec(pS.Ownerpublickey, pS.Nodepublickey, pS.Nickname, pS.Url, pS.Location, pS.Active, pS.Votes, pS.Netaddress, pS.State, pS.Registerheight, pS.Cancelheight, pS.Inactiveheight, pS.Illegalheight, pS.Index)
 		if err != nil {
 			return err

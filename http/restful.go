@@ -332,13 +332,14 @@ func producerRankByHeight(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 		vi.Address = addr
-		val, err := dba.ToString("select value from chain_block_transaction_history where height = " + height + " and txType = 'CoinBase' and value < " + strconv.Itoa(tools.Miner_Reward_PerBlock) + " and address = '" + addr + "'")
+		val, err := dba.ToString("select sum(value) from chain_block_transaction_history where txType = 'CoinBase' and address = '" + addr + "'")
 		if err != nil {
 			log.Warn("Invalid Ownerpublickey " + vi.Ownerpublickey)
 			continue
 		}
 		if val != "" {
-			vi.Reward = val
+			iv , _ := strconv.Atoi(val)
+			vi.Reward = strconv.FormatFloat(float64(iv) / 100000000.0,'f',8,64)
 		} else {
 			vi.Reward = "0"
 		}
