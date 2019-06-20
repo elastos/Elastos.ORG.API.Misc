@@ -35,6 +35,10 @@ var (
 		"/api/1/dpos/vote/height/{height}": {
 			"GET": totalVoteByHeight,
 		},
+		"/api/1/dpos/confirmed/height/{height}": {
+			"GET": confirmedDetailByHeight,
+		},
+
 		// post
 		"/api/1/dpos/transaction/producer": {
 			"POST": getProducerByTxs,

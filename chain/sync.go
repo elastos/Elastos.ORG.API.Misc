@@ -229,7 +229,7 @@ func get(url string) (map[string]interface{}, error) {
 }
 
 //get get data from givin url and return map as value
-func postAuth(url, reqBody, user, pass string) (map[string]interface{}, error) {
+func PostAuth(url, reqBody, user, pass string) (map[string]interface{}, error) {
 	log.Infof("Request URL = %v \n", url)
 	buf := bytes.NewBuffer([]byte(reqBody))
 	req, err := http.NewRequest("POST", url, buf)
@@ -258,8 +258,8 @@ func postAuth(url, reqBody, user, pass string) (map[string]interface{}, error) {
 }
 
 //get get data from givin url and return map as value
-func post(url string, reqBody string) (map[string]interface{}, error) {
-	return postAuth(url, reqBody, "", "")
+func Post(url string, reqBody string) (map[string]interface{}, error) {
+	return PostAuth(url, reqBody, "", "")
 }
 
 func doSync(tx *sql.Tx) error {
@@ -311,9 +311,9 @@ func handleRegisteredProducer(tx *sql.Tx) error {
 	var resp map[string]interface{}
 	var err error
 	if strings.HasPrefix(config.Conf.Ela.Restful,"http") {
-		resp, err = postAuth(config.Conf.Ela.Jsonrpc, reqBody, config.Conf.Ela.JsonrpcUser, config.Conf.Ela.JsonrpcPassword)
+		resp, err = PostAuth(config.Conf.Ela.Jsonrpc, reqBody, config.Conf.Ela.JsonrpcUser, config.Conf.Ela.JsonrpcPassword)
 	}else{
-		resp, err = postAuth("http://"+config.Conf.Ela.Jsonrpc, reqBody, config.Conf.Ela.JsonrpcUser, config.Conf.Ela.JsonrpcPassword)
+		resp, err = PostAuth("http://"+config.Conf.Ela.Jsonrpc, reqBody, config.Conf.Ela.JsonrpcUser, config.Conf.Ela.JsonrpcPassword)
 	}
 
 

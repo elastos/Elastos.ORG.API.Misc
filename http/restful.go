@@ -388,6 +388,35 @@ func totalVoteByHeight(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(`{"result":` + fmt.Sprintf("%.8f", rst) + `,"status":200}`))
 }
 
+func confirmedDetailByHeight(w http.ResponseWriter,r *http.Request) {
+	params := mux.Vars(r)
+	height := params["height"]
+	h, ok := strconv.Atoi(height)
+	if ok != nil || h < 0 {
+		http.Error(w, `{"result":"invalid height","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
+		return
+	}
+	reqBody := `{"method": "getconfirmbyheight","params": {"height":`+height+`,"verbosity":1}}`
+	var resp map[string]interface{}
+	var err error
+	if strings.HasPrefix(config.Conf.Ela.Restful,"http") {
+		resp, err = chain.PostAuth(config.Conf.Ela.Jsonrpc, reqBody, config.Conf.Ela.JsonrpcUser, config.Conf.Ela.JsonrpcPassword)
+	}else{
+		resp, err = chain.PostAuth("http://"+config.Conf.Ela.Jsonrpc, reqBody, config.Conf.Ela.JsonrpcUser, config.Conf.Ela.JsonrpcPassword)
+	}
+	if err != nil {
+		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+		return
+	}
+
+	buf , err := json.Marshal(resp["result"])
+	if err != nil {
+		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+		return
+	}
+	w.Write([]byte(`{"result":` + string(buf) + `,"status":200}`))
+}
+
 func getProducerByTxs(w http.ResponseWriter, r *http.Request) {
 	b, err := ioutil.ReadAll(r.Body)
 	if err != nil {
