@@ -307,7 +307,7 @@ func doSync(tx *sql.Tx) error {
 }
 
 func handleRegisteredProducer(tx *sql.Tx) error {
-	reqBody := `{"method": "listproducers"}`
+	reqBody := `{"method": "listproducers","params": {"state":"all"}`
 	var resp map[string]interface{}
 	var err error
 	if strings.HasPrefix(config.Conf.Ela.Restful,"http") {
