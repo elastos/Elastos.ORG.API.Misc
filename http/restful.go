@@ -73,6 +73,7 @@ func history(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	address := params["addr"]
 	pageNum := r.FormValue("pageNum")
+	f := r.FormValue("type")
 	var sql string
 	if pageNum != "" {
 		pageSize := r.FormValue("pageSize")
@@ -112,9 +113,23 @@ func history(w http.ResponseWriter, r *http.Request) {
 		line := e.Value.(map[string]interface{})
 		tools.Map2Struct(line, history)
 		inputsArr := strings.Split(line["inputs"].(string), ",")
-		history.Inputs = inputsArr[:len(inputsArr)-1]
 		outputsArr := strings.Split(line["outputs"].(string), ",")
-		history.Outputs = outputsArr[:len(outputsArr)-1]
+		if f == "full" {
+			history.Inputs = inputsArr[:len(inputsArr)-1]
+			history.Outputs = outputsArr[:len(outputsArr)-1]
+		}else{
+			if history.Type == "income" {
+				if len(inputsArr) > 0 {
+					history.Inputs = []string{inputsArr[0]}
+				}else{
+					history.Inputs = []string{}
+				}
+				history.Outputs = []string{history.Address}
+			}else {
+				history.Inputs = []string{history.Address}
+				history.Outputs = []string{history.Outputs[0]}
+			}
+		}
 		if err != nil {
 			w.Write([]byte(`{"result":"` + err.Error() + `","status":500}`))
 			return
