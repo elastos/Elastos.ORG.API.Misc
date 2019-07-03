@@ -17,6 +17,7 @@ import (
 	"io/ioutil"
 	"math"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -212,7 +213,33 @@ func voterStatistic(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"result":"invalid address","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 		return
 	}
-	sql := "select * from chain_vote_info where address = '" + addr + "' order by id desc"
+	pageNum := r.FormValue("pageNum")
+	var sql string
+	var from int64
+	var size int64
+	if pageNum != "" {
+		pageSize := r.FormValue("pageSize")
+		if pageSize != "" {
+			var err error
+			size, err = strconv.ParseInt(pageSize, 10, 64)
+			if err != nil {
+				w.Write([]byte(`{"result":"` + err.Error() + `","status":400}`))
+				return
+			}
+		} else {
+			size = 10
+		}
+		num, err := strconv.ParseInt(pageNum, 10, 64)
+		if err != nil {
+			w.Write([]byte(`{"result":"` + err.Error() + `","status":400}`))
+			return
+		}
+		if num <= 0 {
+			num = 1
+		}
+		from = (num - 1) * size
+	}
+	sql = "select * from chain_vote_info where address = '" + addr + "' order by id desc "
 	info, err := dba.ToStruct(sql, chain.Vote_info{})
 	if err != nil {
 		http.Error(w, `{"result":"Internal error","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
@@ -237,7 +264,7 @@ func voterStatistic(w http.ResponseWriter, r *http.Request) {
 			headersContainer[data.Txid+strconv.Itoa(data.N)] = h
 		}
 	}
-	var voteStatistic []chain.Vote_statistic
+	var voteStatistic chain.Vote_statisticSorter
 	ranklisthoder := make(map[int64][]interface{})
 	//height+producer_public_key : index
 	ranklisthoderByProducer := make(map[string]int)
@@ -308,7 +335,14 @@ func voterStatistic(w http.ResponseWriter, r *http.Request) {
 			voteInfos,
 		})
 	}
-
+	sort.Sort(voteStatistic)
+	if !(from == 0 && size == 0) && int(from + 1 + size) <= len(voteStatistic) {
+		voteStatistic = voteStatistic[from:from+size]
+	}else if !(from == 0 && size == 0) && int(from+1) <= len(voteStatistic) && int(from + 1 + size) > len(voteStatistic) {
+		voteStatistic = voteStatistic[from:]
+	}else {
+		voteStatistic = chain.Vote_statisticSorter{}
+	}
 	buf, err := json.Marshal(&voteStatistic)
 	if err != nil {
 		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)

@@ -167,6 +167,12 @@ type Vote_statistic struct {
 	Vote_Body   []Vote_info           `json:",omitempty"`
 }
 
+type Vote_statisticSorter []Vote_statistic
+
+func (a Vote_statisticSorter) Len() int           { return len(a) }
+func (a Vote_statisticSorter) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a Vote_statisticSorter) Less(i, j int) bool { return a[i].Vote_Header.Height > a[j].Vote_Header.Height }
+
 type Producer_info struct {
 	Ownerpublickey string
 	Nodepublickey  string
