@@ -989,6 +989,64 @@ voter's statistics
         }
 
 
+.. http:get:: /api/1/dpos/address/(string:`address`)?pageSize=(int:`pageSize`)&pageNum=(int:`pageNum`)
+
+   **Example request**:
+
+   .. sourcecode:: http
+
+      GET /api/1/dpos/address/ENaaqePNBtrZsNbs9uc35CPqTbvn8oaYL9?pageSize=1&pageNum=1 HTTP/1.1
+      Host: localhost
+
+   **Example response**:
+
+   .. sourcecode:: http
+
+      HTTP/1.1 200 OK
+      Content-Type: application/json
+
+        {
+            "result":[
+                {
+                    "Vote_Header":{
+                        "Value":"199.99935700",
+                        "Node_num":1,
+                        "Txid":"5a0d7958ff9677eef0fa7194db788add8722cf91fdaedc28c12acb677a58f8b3",
+                        "Height":266138,
+                        "Nodes":[
+                            "033c495238ca2b6bb8b7f5ae172363caea9a55cf245ffb3272d078126b1fe3e7cd"
+                        ],
+                        "Block_time":1555574076,
+                        "Is_valid":"NO"
+                    },
+                    "Vote_Body":[
+                        {
+                            "Producer_public_key":"033c495238ca2b6bb8b7f5ae172363caea9a55cf245ffb3272d078126b1fe3e7cd",
+                            "Value":"313289.9935201299",
+                            "Address":"Eb8UHkQ2bJ4Ljux4yBePFdxB5Yp77VYHyt",
+                            "Rank":2,
+                            "Ownerpublickey":"033c495238ca2b6bb8b7f5ae172363caea9a55cf245ffb3272d078126b1fe3e7cd",
+                            "Nodepublickey":"03c18abb98f6679064bd44121f3b0a3f25dea1a8b8cb0e1b51dc9c26729f07ddc9",
+                            "Nickname":"我怎么这么好看",
+                            "Url":"www.douniwan.com",
+                            "Location":263,
+                            "Active":false,
+                            "Votes":"311315.30210000",
+                            "Netaddress":"8.8.8.8",
+                            "State":"Activate",
+                            "Registerheight":232288,
+                            "Cancelheight":0,
+                            "Inactiveheight":0,
+                            "Illegalheight":0,
+                            "Index":1,
+                            "Reward":"0",
+                            "EstRewardPerYear":"47013.01092436"
+                        }
+                    ]
+                }
+            ],
+            "status":200
+        }
 
 
 
