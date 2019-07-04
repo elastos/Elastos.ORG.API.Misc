@@ -264,11 +264,27 @@ func voterStatistic(w http.ResponseWriter, r *http.Request) {
 			headersContainer[data.Txid+strconv.Itoa(data.N)] = h
 		}
 	}
+	var voteStatisticSorter chain.Vote_statisticSorter
+	for _, v := range headersContainer {
+		voteStatisticSorter = append(voteStatisticSorter, chain.Vote_statistic{
+			*v,
+			[]chain.Vote_info{},
+		})
+	}
+	sort.Sort(voteStatisticSorter)
+	if !(from == 0 && size == 0) && int(from + 1 + size) <= len(voteStatisticSorter) {
+		voteStatisticSorter = voteStatisticSorter[from:from+size]
+	}else if !(from == 0 && size == 0) && int(from+1) <= len(voteStatisticSorter) && int(from + 1 + size) > len(voteStatisticSorter) {
+		voteStatisticSorter = voteStatisticSorter[from:]
+	}else {
+		voteStatisticSorter = chain.Vote_statisticSorter{}
+	}
 	var voteStatistic chain.Vote_statisticSorter
 	ranklisthoder := make(map[int64][]interface{})
 	//height+producer_public_key : index
 	ranklisthoderByProducer := make(map[string]int)
-	for _, v := range headersContainer {
+	for _, _v := range voteStatisticSorter {
+		v:=_v.Vote_Header
 		rst, ok := ranklisthoder[v.Height]
 		if !ok {
 			rst, err = dba.ToStruct(`select m.*,(@row_number:=@row_number + 1) as "rank" from (select ifnull(a.producer_public_key,b.ownerpublickey) as producer_public_key , ifnull(a.value,0) as value , b.* from 
@@ -331,17 +347,9 @@ func voterStatistic(w http.ResponseWriter, r *http.Request) {
 			voteInfos = append(voteInfos, *rst[ranklisthoderByProducer[strconv.Itoa(int(v.Height))+pub]].(*chain.Vote_info))
 		}
 		voteStatistic = append(voteStatistic, chain.Vote_statistic{
-			*v,
+			v,
 			voteInfos,
 		})
-	}
-	sort.Sort(voteStatistic)
-	if !(from == 0 && size == 0) && int(from + 1 + size) <= len(voteStatistic) {
-		voteStatistic = voteStatistic[from:from+size]
-	}else if !(from == 0 && size == 0) && int(from+1) <= len(voteStatistic) && int(from + 1 + size) > len(voteStatistic) {
-		voteStatistic = voteStatistic[from:]
-	}else {
-		voteStatistic = chain.Vote_statisticSorter{}
 	}
 	buf, err := json.Marshal(&voteStatistic)
 	if err != nil {
