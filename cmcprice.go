@@ -132,7 +132,6 @@ func init() {
 				continue
 			}
 			btcPrice, err := getPriceFromHbg()
-			fmt.Printf("Refreshing ela price %s",btcPrice )
 			if err != nil {
 				tx.Rollback()
 				fmt.Printf("Error fetching ela price from hbg: %s",err.Error())
