@@ -510,7 +510,7 @@ func handleHeight(curr int, tx *sql.Tx) error {
 				if err != nil {
 					return err
 				}
-				coinbaseMap["value"] = int64(fv * ELA)
+				coinbaseMap["value"] = int64(math.Round(fv * ELA))
 				coinbaseMap["address"] = address
 				coinbase = append(coinbase, coinbaseMap)
 				if to == "" || strings.Index(to, address) == -1 {
