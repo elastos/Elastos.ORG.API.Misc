@@ -73,6 +73,7 @@ type CmcResponse struct {
 }
 
 var dba = db.NewInstance()
+var dbaforela = db.NewInstance()
 
 func init() {
 	go func() {
@@ -119,6 +120,31 @@ func init() {
 				continue
 			}
 			<-time.After(sleepy)
+		}
+	}()
+	go func() {
+		for {
+			<-time.After(time.Second * 10)
+			tx , err := dbaforela.Begin()
+			if err != nil {
+				fmt.Printf("Error fetching ela price from hbg: %s",err.Error())
+				tx.Rollback()
+				continue
+			}
+			btcPrice, err := getPriceFromHbg()
+			fmt.Printf("Refreshing ela price %s",btcPrice )
+			if err != nil {
+				tx.Rollback()
+				fmt.Printf("Error fetching ela price from hbg: %s",err.Error())
+				continue
+			}
+			_ , err = tx.Exec("update chain_cmc_price set price_btc = '"+btcPrice+"' where symbol = 'ELA' order by _id desc limit 1")
+			if err != nil {
+				tx.Rollback()
+				fmt.Printf("Error fetching ela price from hbg 111 : %s",err.Error())
+				continue
+			}
+			tx.Commit()
 		}
 	}()
 }
