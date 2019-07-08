@@ -110,8 +110,6 @@ func init() {
 			cmcResponseBGX, err := fetchBGXPrice()
 			if err != nil {
 				fmt.Printf("Error in bgx price %s", err.Error())
-				<-time.After(sleepy)
-				continue
 			}
 			err = saveToDb(cmcResponseUSD, cmcResponseCNY, cmcResponseBTC, cmcResponseBGX)
 			if err != nil {
@@ -244,7 +242,7 @@ func saveToDb(cmcResponseUSD, cmcResponseCNY, cmcResponseBTC, cmcResponseBGX Cmc
 			return err
 		}
 		// put price that not in the cmc at rank 100
-		if i == 99 {
+		if i == 99 && len(cmcResponseBGX.Data) > 0{
 			_, err = tx.Exec("insert into chain_cmc_price(id,name,symbol,`rank`,price_usd,price_cny,price_btc,24h_volume_usd,market_cap_usd,available_supply,total_supply,max_supply,percent_change_1h,percent_change_24h,percent_change_7d,last_updated,24h_volume_btc,market_cap_btc,local_system_time,24h_volume_cny,market_cap_cny,platform_symbol,platform_token_address,num_market_pairs) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
 				strconv.Itoa(int(cmcResponseBGX.Data[0].Id)),
 				cmcResponseBGX.Data[0].Name,
