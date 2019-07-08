@@ -75,75 +75,96 @@ func history(w http.ResponseWriter, r *http.Request) {
 	address := params["addr"]
 	pageNum := r.FormValue("pageNum")
 	f := r.FormValue("type")
-	var sql string
-	if pageNum != "" {
-		pageSize := r.FormValue("pageSize")
-		var size int64
-		if pageSize != "" {
-			var err error
-			size, err = strconv.ParseInt(pageSize, 10, 64)
+	count := r.FormValue("showCount")
+	showCount := false
+	var err error
+	if count != "" {
+		showCount, err = strconv.ParseBool(count)
+		if err != nil {
+			w.Write([]byte(`{"result":"Invalid param , count should be a bool value","status":400}`))
+			return
+		}
+	}
+	order := r.FormValue("order")
+	if order != "" && order != "desc" && order != "asc" {
+		w.Write([]byte(`{"result":"Invalid param , order should only be desc or asc","status":400}`))
+		return
+	}
+	if order == "" {
+		order = "asc"
+	}
+	totalNum := 0
+	bhs := make([]chain.Block_transaction_history, 0)
+	if !showCount {
+		var sql string
+		if pageNum != "" {
+			pageSize := r.FormValue("pageSize")
+			var size int64
+			if pageSize != "" {
+				var err error
+				size, err = strconv.ParseInt(pageSize, 10, 64)
+				if err != nil {
+					w.Write([]byte(`{"result":"` + err.Error() + `","status":400}`))
+					return
+				}
+			} else {
+				size = 10
+			}
+			num, err := strconv.ParseInt(pageNum, 10, 64)
 			if err != nil {
 				w.Write([]byte(`{"result":"` + err.Error() + `","status":400}`))
 				return
 			}
-		} else {
-			size = 10
-		}
-		num, err := strconv.ParseInt(pageNum, 10, 64)
-		if err != nil {
-			w.Write([]byte(`{"result":"` + err.Error() + `","status":400}`))
-			return
-		}
-		if num <= 0 {
-			num = 1
-		}
-		from := (num - 1) * size
-		sql = "select address,txid,type,value,createTime,height,inputs,outputs,fee,txType,memo from chain_block_transaction_history where address = '" + address + "' limit " + strconv.FormatInt(from, 10) + "," + strconv.FormatInt(size, 10)
-	} else {
-		sql = "select address,txid,type,value,createTime,height,inputs,outputs,fee,txType,memo from chain_block_transaction_history where address = '" + address + "'"
-	}
-	l, err := dba.Query(sql)
-	if err != nil {
-		w.Write([]byte(`{"result":"` + err.Error() + `","status":500}`))
-		return
-	}
-	bhs := make([]chain.Block_transaction_history, 0)
-	totalNum := 0
-	for e := l.Front(); e != nil; e = e.Next() {
-		history := new(chain.Block_transaction_history)
-		line := e.Value.(map[string]interface{})
-		tools.Map2Struct(line, history)
-		inputsArr := strings.Split(line["inputs"].(string), ",")
-		outputsArr := strings.Split(line["outputs"].(string), ",")
-		if f == "full" {
-			history.Inputs = inputsArr[:len(inputsArr)-1]
-			history.Outputs = outputsArr[:len(outputsArr)-1]
-		}else{
-			if history.Type == "income" {
-				if len(inputsArr) > 0 {
-					history.Inputs = []string{inputsArr[0]}
-				}else{
-					history.Inputs = []string{}
-				}
-				history.Outputs = []string{history.Address}
-			}else {
-				history.Inputs = []string{history.Address}
-				history.Outputs = []string{history.Outputs[0]}
+			if num <= 0 {
+				num = 1
 			}
+			from := (num - 1) * size
+			sql = "select address,txid,type,value,createTime,height,inputs,outputs,fee,txType,memo from chain_block_transaction_history where address = '" + address + "' order by id "+order+" limit " + strconv.FormatInt(from, 10) + "," + strconv.FormatInt(size, 10)
+		} else {
+			sql = "select address,txid,type,value,createTime,height,inputs,outputs,fee,txType,memo from chain_block_transaction_history where address = '" + address + "' order by id "+order
 		}
+		l, err := dba.Query(sql)
 		if err != nil {
 			w.Write([]byte(`{"result":"` + err.Error() + `","status":500}`))
 			return
 		}
-		rawMemo, err := hex.DecodeString(history.Memo)
-		if err != nil {
-			w.Write([]byte(`{"result":"` + err.Error() + `","status":500}`))
-			return
+		for e := l.Front(); e != nil; e = e.Next() {
+			history := new(chain.Block_transaction_history)
+			line := e.Value.(map[string]interface{})
+			tools.Map2Struct(line, history)
+			inputsArr := strings.Split(line["inputs"].(string), ",")
+			outputsArr := strings.Split(line["outputs"].(string), ",")
+			if f == "full" {
+				history.Inputs = inputsArr[:len(inputsArr)-1]
+				history.Outputs = outputsArr[:len(outputsArr)-1]
+			}else{
+				if history.Type == "income" {
+					if len(inputsArr) > 0 {
+						history.Inputs = []string{inputsArr[0]}
+					}else{
+						history.Inputs = []string{}
+					}
+					history.Outputs = []string{history.Address}
+				}else {
+					history.Inputs = []string{history.Address}
+					history.Outputs = []string{history.Outputs[0]}
+				}
+			}
+			if err != nil {
+				w.Write([]byte(`{"result":"` + err.Error() + `","status":500}`))
+				return
+			}
+			rawMemo, err := hex.DecodeString(history.Memo)
+			if err != nil {
+				w.Write([]byte(`{"result":"` + err.Error() + `","status":500}`))
+				return
+			}
+			history.Memo = string(rawMemo)
+			bhs = append(bhs, *history)
 		}
-		history.Memo = string(rawMemo)
-		bhs = append(bhs, *history)
 	}
-	l, err = dba.Query("select count(*) as count from chain_block_transaction_history where address = '" + address + "'")
+
+	l, err := dba.Query("select count(*) as count from chain_block_transaction_history where address = '" + address + "'")
 	if err != nil {
 		w.Write([]byte(`{"result":"` + err.Error() + `","status":500}`))
 		return
