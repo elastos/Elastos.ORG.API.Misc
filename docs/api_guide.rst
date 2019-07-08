@@ -3403,6 +3403,94 @@ check history of Address
             "status":200
         }
 
+Only show the history count of specific address
+
+.. http:get:: /api/1/history/(string:`addr`)?showCount=true
+
+   **Example request**:
+
+   .. sourcecode:: http
+
+      GET /api/1/history/EQoascGFzdQ1rLKfNEavJKTm3hMRhBaXBT HTTP/1.1
+      Host: localhost
+
+   **Example response**:
+
+   .. sourcecode:: http
+
+      HTTP/1.1 200 OK
+      Content-Type: application/json
+
+        {
+            "result":{
+                "History":[
+                ],
+                "TotalNum":1
+            },
+            "status":200
+        }
+
+get transaction history with your desired order
+
+.. http:get:: /api/1/history/(string:`addr`)?order=desc
+
+   **Example request**:
+
+   .. sourcecode:: http
+
+      GET /api/1/history/EM2wjL3jgNHDZtR1e266V269n5WH6sYbCf HTTP/1.1
+      Host: localhost
+
+   **Example response**:
+
+   .. sourcecode:: http
+
+      HTTP/1.1 200 OK
+      Content-Type: application/json
+
+        {
+            "result":{
+                "History":[
+                    {
+                        "Address":"EM2wjL3jgNHDZtR1e266V269n5WH6sYbCf",
+                        "Txid":"a962022bc4a295ab4683ab4079f03d1e5bdb9bfdf5dac9c4eea003d18af16fbd",
+                        "Type":"spend",
+                        "Value":50000000000,
+                        "CreateTime":1561557063,
+                        "Height":409201,
+                        "Fee":10000,
+                        "Inputs":[
+                            "EM2wjL3jgNHDZtR1e266V269n5WH6sYbCf"
+                        ],
+                        "Outputs":[
+                            "EUX2LMtHBV1Ni7nAXPhBdnudrUvddU2Ecv"
+                        ],
+                        "TxType":"TransferAsset",
+                        "Memo":""
+                    },
+                    {
+                        "Address":"EM2wjL3jgNHDZtR1e266V269n5WH6sYbCf",
+                        "Txid":"920954e00bd1e1d3f674703c9e31988940c4c326382e13a22323d6e5ea3c4c6c",
+                        "Type":"income",
+                        "Value":50000000000,
+                        "CreateTime":1533090125,
+                        "Height":159257,
+                        "Fee":0,
+                        "Inputs":[
+                            "8cTn9JAGXfqGgu8kVUaPBJXrhSjoJR9ymG"
+                        ],
+                        "Outputs":[
+                            "EM2wjL3jgNHDZtR1e266V269n5WH6sYbCf"
+                        ],
+                        "TxType":"TransferAsset",
+                        "Memo":""
+                    }
+                ],
+                "TotalNum":2
+            },
+            "status":200
+        }
+
 Get spending address public key
 ------------------------------------------------
 
