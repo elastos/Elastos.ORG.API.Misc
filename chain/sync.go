@@ -303,7 +303,7 @@ func doSync(tx *sql.Tx) error {
 				return err
 			}
 			count++
-			if count%100 == 0 {
+			if count%1000 == 0 {
 				return nil
 			}
 		}
