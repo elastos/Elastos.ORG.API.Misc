@@ -303,7 +303,7 @@ func doSync(tx *sql.Tx) error {
 				return err
 			}
 			count++
-			if count%1000 == 0 {
+			if count%100 == 0 {
 				return nil
 			}
 		}
@@ -519,7 +519,7 @@ func handleHeight(curr int, tx *sql.Tx) error {
 			}
 
 			for _, v := range coinbase {
-				_, err := stmt.Exec(v["address"], txid, _type, v["value"], strconv.FormatFloat(time, 'f', 0, 64), curr, 0, MINING_ADDR, to, "", txTypeMap[CoinBase], "")
+				_, err := stmt.Exec(v["address"], txid, _type, v["value"], strconv.FormatFloat(time, 'f', 0, 64), curr, 0, MINING_ADDR, v["address"], "", txTypeMap[CoinBase], "")
 				if err != nil {
 					return err
 				}
@@ -642,6 +642,7 @@ func handleHeight(curr int, tx *sql.Tx) error {
 				realFee := fee
 				if _type == INCOME {
 					realFee = 0
+					to = k
 				}
 				pub := ""
 				if _type == SPEND {
