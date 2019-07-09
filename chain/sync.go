@@ -647,6 +647,7 @@ func handleHeight(curr int, tx *sql.Tx) error {
 				pub := ""
 				if _type == SPEND {
 					pub = programs[k]
+					from = k
 				}
 				_, err := stmt.Exec(k, txid, _type, int64(value), strconv.FormatFloat(time, 'f', 0, 64), curr, realFee, from, to, memo, txTypeMap[int(t)], pub)
 				if err != nil {
@@ -656,7 +657,7 @@ func handleHeight(curr int, tx *sql.Tx) error {
 
 			for k, r := range spend {
 				_type = SPEND
-				_, err := stmt.Exec(k, txid, _type, int64(r*ELA), strconv.FormatFloat(time, 'f', 0, 64), curr, fee, from, to, memo, txTypeMap[int(t)], programs[k])
+				_, err := stmt.Exec(k, txid, _type, int64(r*ELA), strconv.FormatFloat(time, 'f', 0, 64), curr, fee, k, to, memo, txTypeMap[int(t)], programs[k])
 				if err != nil {
 					return err
 				}
