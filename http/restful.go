@@ -388,14 +388,30 @@ func producerRankByHeight(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"result":"invalid height","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 		return
 	}
-	rst, err := dba.ToStruct(`select m.*,(@row_number:=@row_number + 1) as "rank" from (select ifnull(a.producer_public_key,b.ownerpublickey) as producer_public_key , ifnull(a.value,0) as value , b.* from 
+	state := r.FormValue("state")
+	if state != "" && state != "active" && state != "inactive" && state != "pending" &&
+		state != "canceled" && state != "illegal" && state != "returned" {
+		http.Error(w, `{"result":"state can be one of the folowing values active,inactive,pending,canceled,illegal,returned","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
+		return
+	}
+	var err error
+	var rst []interface{}
+	if state == "" {
+		rst, err = dba.ToStruct(`select m.*,(@row_number:=@row_number + 1) as "rank" from (select ifnull(a.producer_public_key,b.ownerpublickey) as producer_public_key , ifnull(a.value,0) as value , b.* from 
 (select A.producer_public_key , ROUND(sum(value),8) as value from chain_vote_info A where (A.cancel_height > `+height+` or
  cancel_height is null) and height <= `+height+` group by producer_public_key) a right join chain_producer_info b on a.producer_public_key = b.ownerpublickey 
  order by value desc) m ,  (SELECT @row_number:=0) AS t `, chain.Vote_info{})
+	}else{
+		rst, err = dba.ToStruct(`select m.*,(@row_number:=@row_number + 1) as "rank" from (select ifnull(a.producer_public_key,b.ownerpublickey) as producer_public_key , ifnull(a.value,0) as value , b.* from 
+(select A.producer_public_key , ROUND(sum(value),8) as value from chain_vote_info A where (A.cancel_height > `+height+` or
+ cancel_height is null) and height <= `+height+` group by producer_public_key) a right join chain_producer_info b on a.producer_public_key = b.ownerpublickey where b.state = '`+strings.ToUpper(state[:1]) + state[1:]+`'
+ order by value desc) m ,  (SELECT @row_number:=0) AS t `, chain.Vote_info{})
+	}
 	if err != nil {
 		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 		return
 	}
+
 	totalVote, err := dba.ToFloat(`	select sum(a.value)  from (select A.producer_public_key , sum(value) as value from chain_vote_info A where A.cancel_height > ` + height + ` or
 	 cancel_height is null group by producer_public_key order by value desc limit 96) a`)
 	if err != nil {

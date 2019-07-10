@@ -80,7 +80,7 @@ func init() {
 		i := -1
 		sleepy, err := time.ParseDuration(config.Conf.Cmc.Inteval)
 		if err != nil {
-			fmt.Printf("%s", err.Error())
+			fmt.Printf("%s\n", err.Error())
 			os.Exit(-1)
 		}
 		for {
@@ -91,29 +91,29 @@ func init() {
 			}
 			cmcResponseUSD, err := fetchPrice(i, "USD")
 			if err != nil {
-				fmt.Printf("Error in cmc price %s", err.Error())
+				fmt.Printf("Error in cmc price %s\n", err.Error())
 				<-time.After(sleepy)
 				continue
 			}
 			cmcResponseCNY, err := fetchPrice(i, "CNY")
 			if err != nil {
-				fmt.Printf("Error in cmc price %s", err.Error())
+				fmt.Printf("Error in cmc price %s\n", err.Error())
 				<-time.After(sleepy)
 				continue
 			}
 			cmcResponseBTC, err := fetchPrice(i, "BTC")
 			if err != nil {
-				fmt.Printf("Error in cmc price %s", err.Error())
+				fmt.Printf("Error in cmc price %s\n", err.Error())
 				<-time.After(sleepy)
 				continue
 			}
 			cmcResponseBGX, err := fetchBGXPrice()
 			if err != nil {
-				fmt.Printf("Error in bgx price %s", err.Error())
+				fmt.Printf("Error in bgx price %s\n", err.Error())
 			}
 			err = saveToDb(cmcResponseUSD, cmcResponseCNY, cmcResponseBTC, cmcResponseBGX)
 			if err != nil {
-				fmt.Printf("Error in cmc price %s", err.Error())
+				fmt.Printf("Error in cmc price %s\n", err.Error())
 				<-time.After(sleepy)
 				continue
 			}
@@ -125,20 +125,20 @@ func init() {
 			<-time.After(time.Second * 10)
 			tx , err := dbaforela.Begin()
 			if err != nil {
-				fmt.Printf("Error fetching ela price from hbg: %s",err.Error())
+				fmt.Printf("Error fetching ela price from hbg: %s\n",err.Error())
 				tx.Rollback()
 				continue
 			}
 			btcPrice, err := getPriceFromHbg()
 			if err != nil {
 				tx.Rollback()
-				fmt.Printf("Error fetching ela price from hbg: %s",err.Error())
+				fmt.Printf("Error fetching ela price from hbg: %s\n",err.Error())
 				continue
 			}
 			_ , err = tx.Exec("update chain_cmc_price set price_btc = '"+btcPrice+"' where symbol = 'ELA' order by _id desc limit 1")
 			if err != nil {
 				tx.Rollback()
-				fmt.Printf("Error fetching ela price from hbg 111 : %s",err.Error())
+				fmt.Printf("Error fetching ela price from hbg 111 : %s\n",err.Error())
 				continue
 			}
 			tx.Commit()
@@ -170,7 +170,7 @@ type hg_price_data_data struct {
 func getPriceFromHbg() (string , error){
 	resp , err := http.Get(HBG_ENDPOINT_URL)
 	if err != nil {
-		fmt.Printf("Error fetching price from hbg")
+		fmt.Printf("Error fetching price from hbg\n")
 		return "",err
 	}else{
 		body, err := ioutil.ReadAll(resp.Body)
