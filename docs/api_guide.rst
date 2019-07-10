@@ -3200,6 +3200,52 @@ rank list of producer
                 "status":200
             }
 
+rank list of producer according to node state
+
+    .. http:get:: /api/1/dpos/rank/height/(int:`height`)?state=(string:`state`)
+
+       **Example request**:
+
+       .. sourcecode:: http
+
+          GET /api/1/dpos/rank/height/241762?state=illegal HTTP/1.1
+          Host: localhost
+
+       **Example response**:
+
+       .. sourcecode:: http
+
+          HTTP/1.1 200 OK
+          Content-Type: application/json
+
+            {
+              "result": [
+                {
+                  "Producer_public_key": "02f59c9e337d4102d49082fe641b2e8aac5b229583bfa27cfba87790ac0113518b",
+                  "Value": "1239723.59908182",
+                  "Address": "ESq8nLmYuYaNYqJh5HeDy4ywx1jCRfeKe1",
+                  "Rank": 1,
+                  "Ownerpublickey": "02f59c9e337d4102d49082fe641b2e8aac5b229583bfa27cfba87790ac0113518b",
+                  "Nodepublickey": "03a31e03e7b0e38fdf002a3d8954f1df357b638c63040f84955ee28345ce57e886",
+                  "Nickname": "The Houston Supernode",
+                  "Url": "https://twitter.com/elastos_houston/",
+                  "Location": 1001,
+                  "Active": 0,
+                  "Votes": "506625.45634569",
+                  "Netaddress": "",
+                  "State": "Illegal",
+                  "Registerheight": 360805,
+                  "Cancelheight": 0,
+                  "Inactiveheight": 408476,
+                  "Illegalheight": 409882,
+                  "Index": 81,
+                  "Reward": "213.93704808",
+                  "EstRewardPerYear": "8043.77456689"
+                }
+              ],
+              "status": 200
+            }
+
 
 Get dpos total vote of specific height
 ------------------------------------------------
