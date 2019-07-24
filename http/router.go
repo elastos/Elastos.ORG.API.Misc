@@ -44,7 +44,6 @@ var (
 			"POST": getProducerByTxs,
 		},
 
-
 		//heartbeat
 		"/api/1/ping": {
 			"GET": ping,
@@ -78,6 +77,11 @@ var (
 		"/api/1/cmc": {
 			"Get": getCmcPrice,
 		},
+
+		//eth
+		"/api/1/eth/balance/{addr}": {
+			"Get": getEthBalance,
+		},
 	}
 	router = mux.NewRouter()
 )
@@ -99,7 +103,7 @@ func cors(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 		if config.Conf.EnableCors {
 			w.Header().Add("Access-Control-Allow-Headers", "Authorization, Origin, X-Requested-With, Content-Type, Accept")
-			w.Header().Set("Access-Control-Allow-Methods","GET, POST, OPTIONS, HEAD")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD")
 			w.Header().Set("Access-Control-Allow-Origin", "*")
 		}
 	})

@@ -3,7 +3,6 @@ package chain
 import (
 	"bytes"
 	"database/sql"
-	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -12,10 +11,8 @@ import (
 	"github.com/elastos/Elastos.ORG.API.Misc/config"
 	"github.com/elastos/Elastos.ORG.API.Misc/db"
 	"github.com/elastos/Elastos.ORG.API.Misc/log"
-	"github.com/elastos/Elastos.ORG.API.Misc/tools"
-	"io/ioutil"
+	. "github.com/elastos/Elastos.ORG.API.Misc/tools"
 	"math"
-	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -169,9 +166,11 @@ type Vote_statistic struct {
 
 type Vote_statisticSorter []Vote_statistic
 
-func (a Vote_statisticSorter) Len() int           { return len(a) }
-func (a Vote_statisticSorter) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a Vote_statisticSorter) Less(i, j int) bool { return a[i].Vote_Header.Height > a[j].Vote_Header.Height }
+func (a Vote_statisticSorter) Len() int      { return len(a) }
+func (a Vote_statisticSorter) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a Vote_statisticSorter) Less(i, j int) bool {
+	return a[i].Vote_Header.Height > a[j].Vote_Header.Height
+}
 
 type Producer_info struct {
 	Ownerpublickey string
@@ -218,63 +217,13 @@ func Sync() {
 	}()
 }
 
-//get get data from givin url and return map as value
-func get(url string) (map[string]interface{}, error) {
-	log.Infof("Request URL = %v \n", url)
-	r, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		return nil, err
-	}
-	rstMap := make(map[string]interface{})
-	json.Unmarshal(resp, &rstMap)
-	return rstMap, nil
-}
-
-//get get data from givin url and return map as value
-func PostAuth(url, reqBody, user, pass string) (map[string]interface{}, error) {
-	log.Infof("Request URL = %v \n", url)
-	buf := bytes.NewBuffer([]byte(reqBody))
-	req, err := http.NewRequest("POST", url, buf)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	if user != "" && pass != "" {
-		req.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(config.Conf.Ela.JsonrpcUser+":"+config.Conf.Ela.JsonrpcPassword)))
-	}
-	r, err := http.DefaultClient.Do(req)
-	//r, err := http.Post(url, "application/json", buf)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		return nil, err
-	}
-	rstMap := make(map[string]interface{})
-	json.Unmarshal(resp, &rstMap)
-	if rstMap == nil || len(rstMap) == 0 {
-		return nil, errors.New("Invalid Post Request to Server")
-	}
-	return rstMap, nil
-}
-
-//get get data from givin url and return map as value
-func Post(url string, reqBody string) (map[string]interface{}, error) {
-	return PostAuth(url, reqBody, "", "")
-}
-
 func doSync(tx *sql.Tx) error {
 	var resp map[string]interface{}
 	var err error
-	if strings.HasPrefix(config.Conf.Ela.Restful,"http") {
-		resp , err = get(config.Conf.Ela.Restful + BlockHeight)
-	}else{
-		resp, err = get("http://" + config.Conf.Ela.Restful + BlockHeight)
+	if strings.HasPrefix(config.Conf.Ela.Restful, "http") {
+		resp, err = Get(config.Conf.Ela.Restful + BlockHeight)
+	} else {
+		resp, err = Get("http://" + config.Conf.Ela.Restful + BlockHeight)
 	}
 
 	if err != nil {
@@ -316,12 +265,11 @@ func handleRegisteredProducer(tx *sql.Tx) error {
 	reqBody := `{"method": "listproducers","params": {"state":"all"}}`
 	var resp map[string]interface{}
 	var err error
-	if strings.HasPrefix(config.Conf.Ela.Restful,"http") {
+	if strings.HasPrefix(config.Conf.Ela.Restful, "http") {
 		resp, err = PostAuth(config.Conf.Ela.Jsonrpc, reqBody, config.Conf.Ela.JsonrpcUser, config.Conf.Ela.JsonrpcPassword)
-	}else{
+	} else {
 		resp, err = PostAuth("http://"+config.Conf.Ela.Jsonrpc, reqBody, config.Conf.Ela.JsonrpcUser, config.Conf.Ela.JsonrpcPassword)
 	}
-
 
 	if err != nil {
 		return err
@@ -351,10 +299,10 @@ func handleRegisteredProducer(tx *sql.Tx) error {
 	for _, producer := range producers {
 		p := producer.(map[string]interface{})
 		pS := Producer_info{}
-		tools.Map2Struct(p, &pS)
-		if test, ok := p["active"].(bool);ok && test == true{
+		Map2Struct(p, &pS)
+		if test, ok := p["active"].(bool); ok && test == true {
 			pS.Active = 1
-		}else{
+		} else {
 			pS.Active = 0
 		}
 		_, err = stmt.Exec(pS.Ownerpublickey, pS.Nodepublickey, pS.Nickname, pS.Url, pS.Location, pS.Active, pS.Votes, pS.Netaddress, pS.State, pS.Registerheight, pS.Cancelheight, pS.Inactiveheight, pS.Illegalheight, pS.Index)
@@ -368,10 +316,10 @@ func handleRegisteredProducer(tx *sql.Tx) error {
 func handleHeight(curr int, tx *sql.Tx) error {
 	var resp map[string]interface{}
 	var err error
-	if strings.HasPrefix(config.Conf.Ela.Restful,"http") {
-		resp, err = get(config.Conf.Ela.Restful + BlockDetail + strconv.FormatInt(int64(curr), 10))
-	}else{
-		resp, err = get("http://" + config.Conf.Ela.Restful + BlockDetail + strconv.FormatInt(int64(curr), 10))
+	if strings.HasPrefix(config.Conf.Ela.Restful, "http") {
+		resp, err = Get(config.Conf.Ela.Restful + BlockDetail + strconv.FormatInt(int64(curr), 10))
+	} else {
+		resp, err = Get("http://" + config.Conf.Ela.Restful + BlockDetail + strconv.FormatInt(int64(curr), 10))
 	}
 	if err != nil {
 		return err
@@ -387,7 +335,7 @@ func handleHeight(curr int, tx *sql.Tx) error {
 	result := resp["Result"].(map[string]interface{})
 	// header
 	header := Block_header{}
-	tools.Map2Struct(result, &header)
+	Map2Struct(result, &header)
 
 	stmt, err := tx.Prepare("insert into chain_block_header (hash,weight,height,version,merkleroot,`time`,nonce,bits,difficulty,chainwork,previous_block_hash,next_block_hash,miner_info,`size`) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
 	if err != nil {
@@ -544,10 +492,10 @@ func handleHeight(curr int, tx *sql.Tx) error {
 				vinindex := vvm["vout"].(float64)
 				var txResp map[string]interface{}
 				var err error
-				if strings.HasPrefix(config.Conf.Ela.Restful,"http") {
-					txResp, err = get(config.Conf.Ela.Restful + TransactionDetail + vintxid)
-				}else{
-					txResp, err = get("http://" + config.Conf.Ela.Restful + TransactionDetail + vintxid)
+				if strings.HasPrefix(config.Conf.Ela.Restful, "http") {
+					txResp, err = Get(config.Conf.Ela.Restful + TransactionDetail + vintxid)
+				} else {
+					txResp, err = Get("http://" + config.Conf.Ela.Restful + TransactionDetail + vintxid)
 				}
 				if err != nil {
 					return err
@@ -620,7 +568,7 @@ func handleHeight(curr int, tx *sql.Tx) error {
 				code := pm["code"].(string)
 				publicKeyByte, _ := hex.DecodeString(code)
 				publicKeyStr := hex.EncodeToString(publicKeyByte[1:34])
-				address, _ := tools.GetAddress(publicKeyStr)
+				address, _ := GetAddress(publicKeyStr)
 				programs[address] = publicKeyStr
 			}
 			fee := int64(math.Round((totalInput - totalOutput) * ELA))

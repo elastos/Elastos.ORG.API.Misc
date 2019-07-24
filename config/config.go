@@ -11,6 +11,7 @@ type config struct {
 	Db         DB
 	Ela        ELA
 	Btc        BTC
+	Eth        ETH
 	Cmc        Cmc
 	VisitKey   string
 	EnableCors bool
@@ -40,6 +41,11 @@ type BTC struct {
 	Rpcpasswd  string
 	MinConfirm int
 	Net        string
+}
+
+type ETH struct {
+	Endpoint  string
+	InfuraKey string
 }
 
 var Conf *config

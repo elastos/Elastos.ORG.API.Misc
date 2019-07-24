@@ -123,22 +123,22 @@ func init() {
 	go func() {
 		for {
 			<-time.After(time.Second * 10)
-			tx , err := dbaforela.Begin()
+			tx, err := dbaforela.Begin()
 			if err != nil {
-				fmt.Printf("Error fetching ela price from hbg: %s\n",err.Error())
+				fmt.Printf("Error fetching ela price from hbg: %s\n", err.Error())
 				tx.Rollback()
 				continue
 			}
 			btcPrice, err := getPriceFromHbg()
 			if err != nil {
 				tx.Rollback()
-				fmt.Printf("Error fetching ela price from hbg: %s\n",err.Error())
+				fmt.Printf("Error fetching ela price from hbg: %s\n", err.Error())
 				continue
 			}
-			_ , err = tx.Exec("update chain_cmc_price set price_btc = '"+btcPrice+"' where symbol = 'ELA' order by _id desc limit 1")
+			_, err = tx.Exec("update chain_cmc_price set price_btc = '" + btcPrice + "' where symbol = 'ELA' order by _id desc limit 1")
 			if err != nil {
 				tx.Rollback()
-				fmt.Printf("Error fetching ela price from hbg 111 : %s\n",err.Error())
+				fmt.Printf("Error fetching ela price from hbg 111 : %s\n", err.Error())
 				continue
 			}
 			tx.Commit()
@@ -148,44 +148,44 @@ func init() {
 
 type hbg_price struct {
 	Status string
-	Ch string
-	Ts int64
-	Data []hbg_price_data
+	Ch     string
+	Ts     int64
+	Data   []hbg_price_data
 }
 
 type hbg_price_data struct {
-	Id int64
-	Ts int64
+	Id   int64
+	Ts   int64
 	Data []hg_price_data_data
 }
 
 type hg_price_data_data struct {
-	Amount float64
-	Ts int64
-	Id float64
-	Price float64
+	Amount    float64
+	Ts        int64
+	Id        float64
+	Price     float64
 	Direction string
 }
 
-func getPriceFromHbg() (string , error){
-	resp , err := http.Get(HBG_ENDPOINT_URL)
+func getPriceFromHbg() (string, error) {
+	resp, err := http.Get(HBG_ENDPOINT_URL)
 	if err != nil {
 		fmt.Printf("Error fetching price from hbg\n")
-		return "",err
-	}else{
+		return "", err
+	} else {
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return "",err
+			return "", err
 		}
 		var hbg_price hbg_price
-		err = json.Unmarshal(body,&hbg_price)
+		err = json.Unmarshal(body, &hbg_price)
 		if err != nil {
-			return "",err
+			return "", err
 		}
 		if len(hbg_price.Data) > 0 && len(hbg_price.Data[0].Data) > 0 {
-			return strconv.FormatFloat(hbg_price.Data[0].Data[0].Price,'f', 8, 64),nil
+			return strconv.FormatFloat(hbg_price.Data[0].Data[0].Price, 'f', 8, 64), nil
 		}
-		return "",errors.New("Error fetching price from hbg, data structure is changed")
+		return "", errors.New("Error fetching price from hbg, data structure is changed")
 	}
 }
 
@@ -195,8 +195,8 @@ func saveToDb(cmcResponseUSD, cmcResponseCNY, cmcResponseBTC, cmcResponseBGX Cmc
 		return err
 	}
 	data := cmcResponseUSD.Data
-	if(len(cmcResponseCNY.Data) != len(cmcResponseUSD.Data) || len(cmcResponseUSD.Data) != len(cmcResponseUSD.Data)){
-		fmt.Printf("Invalid Key fetch Cmc Data m CNY :%v, BTC :%v, USD :%v", cmcResponseCNY,cmcResponseBTC,cmcResponseUSD)
+	if len(cmcResponseCNY.Data) != len(cmcResponseUSD.Data) || len(cmcResponseUSD.Data) != len(cmcResponseUSD.Data) {
+		fmt.Printf("Invalid Key fetch Cmc Data m CNY :%v, BTC :%v, USD :%v", cmcResponseCNY, cmcResponseBTC, cmcResponseUSD)
 		return nil
 	}
 	tx.Exec("delete from chain_cmc_price")
@@ -208,8 +208,8 @@ func saveToDb(cmcResponseUSD, cmcResponseCNY, cmcResponseBTC, cmcResponseBGX Cmc
 				dba.Rollback(tx)
 				return err
 			}
-			fmt.Printf("Getting Price From Hbg " + btcPrice+"\n")
-		}else{
+			fmt.Printf("Getting Price From Hbg " + btcPrice + "\n")
+		} else {
 			btcPrice = strconv.FormatFloat(cmcResponseBTC.Data[i].Quote.BTC.Price, 'f', 8, 64)
 		}
 		_, err = tx.Exec("insert into chain_cmc_price(id,name,symbol,`rank`,price_usd,price_cny,price_btc,24h_volume_usd,market_cap_usd,available_supply,total_supply,max_supply,percent_change_1h,percent_change_24h,percent_change_7d,last_updated,24h_volume_btc,market_cap_btc,local_system_time,24h_volume_cny,market_cap_cny,platform_symbol,platform_token_address,num_market_pairs) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
@@ -242,7 +242,7 @@ func saveToDb(cmcResponseUSD, cmcResponseCNY, cmcResponseBTC, cmcResponseBGX Cmc
 			return err
 		}
 		// put price that not in the cmc at rank 100
-		if i == 99 && len(cmcResponseBGX.Data) > 0{
+		if i == 99 && len(cmcResponseBGX.Data) > 0 {
 			_, err = tx.Exec("insert into chain_cmc_price(id,name,symbol,`rank`,price_usd,price_cny,price_btc,24h_volume_usd,market_cap_usd,available_supply,total_supply,max_supply,percent_change_1h,percent_change_24h,percent_change_7d,last_updated,24h_volume_btc,market_cap_btc,local_system_time,24h_volume_cny,market_cap_cny,platform_symbol,platform_token_address,num_market_pairs) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
 				strconv.Itoa(int(cmcResponseBGX.Data[0].Id)),
 				cmcResponseBGX.Data[0].Name,

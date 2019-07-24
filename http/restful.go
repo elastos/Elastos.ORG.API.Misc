@@ -119,9 +119,9 @@ func history(w http.ResponseWriter, r *http.Request) {
 				num = 1
 			}
 			from := (num - 1) * size
-			sql = "select address,txid,type,value,createTime,height,inputs,outputs,fee,txType,memo from chain_block_transaction_history where address = '" + address + "' order by id "+order+" limit " + strconv.FormatInt(from, 10) + "," + strconv.FormatInt(size, 10)
+			sql = "select address,txid,type,value,createTime,height,inputs,outputs,fee,txType,memo from chain_block_transaction_history where address = '" + address + "' order by id " + order + " limit " + strconv.FormatInt(from, 10) + "," + strconv.FormatInt(size, 10)
 		} else {
-			sql = "select address,txid,type,value,createTime,height,inputs,outputs,fee,txType,memo from chain_block_transaction_history where address = '" + address + "' order by id "+order
+			sql = "select address,txid,type,value,createTime,height,inputs,outputs,fee,txType,memo from chain_block_transaction_history where address = '" + address + "' order by id " + order
 		}
 		l, err := dba.Query(sql)
 		if err != nil {
@@ -137,15 +137,15 @@ func history(w http.ResponseWriter, r *http.Request) {
 			if f == "full" {
 				history.Inputs = inputsArr[:len(inputsArr)-1]
 				history.Outputs = outputsArr[:len(outputsArr)-1]
-			}else{
+			} else {
 				if history.Type == "income" {
 					if len(inputsArr) > 0 {
 						history.Inputs = []string{inputsArr[0]}
-					}else{
+					} else {
 						history.Inputs = []string{}
 					}
 					history.Outputs = []string{history.Address}
-				}else {
+				} else {
 					history.Inputs = []string{history.Address}
 					history.Outputs = []string{history.Outputs[0]}
 				}
@@ -182,12 +182,12 @@ func history(w http.ResponseWriter, r *http.Request) {
 func getPublicKey(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	addr := params["addr"]
-	_ , err := common.Uint168FromAddress(addr)
+	_, err := common.Uint168FromAddress(addr)
 	if err != nil {
 		http.Error(w, `{"result":"Invalid address","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 		return
 	}
-	pub , err := dba.ToString("select publicKey from chain_block_transaction_history where address = '" + addr + "' and publicKey is not null and publicKey != '' limit 1")
+	pub, err := dba.ToString("select publicKey from chain_block_transaction_history where address = '" + addr + "' and publicKey is not null and publicKey != '' limit 1")
 
 	if pub == "" {
 		w.Write([]byte(`{"result":"Can not find pubkey of this address, please using this address send a transaction first","status":200}`))
@@ -195,7 +195,6 @@ func getPublicKey(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Write([]byte(`{"result":"` + pub + `","status":200}`))
 }
-
 
 func producerStatistic(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
@@ -293,11 +292,11 @@ func voterStatistic(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 	sort.Sort(voteStatisticSorter)
-	if !(from == 0 && size == 0) && int(from + 1 + size) <= len(voteStatisticSorter) {
-		voteStatisticSorter = voteStatisticSorter[from:from+size]
-	}else if !(from == 0 && size == 0) && int(from+1) <= len(voteStatisticSorter) && int(from + 1 + size) > len(voteStatisticSorter) {
+	if !(from == 0 && size == 0) && int(from+1+size) <= len(voteStatisticSorter) {
+		voteStatisticSorter = voteStatisticSorter[from : from+size]
+	} else if !(from == 0 && size == 0) && int(from+1) <= len(voteStatisticSorter) && int(from+1+size) > len(voteStatisticSorter) {
 		voteStatisticSorter = voteStatisticSorter[from:]
-	}else {
+	} else {
 		voteStatisticSorter = chain.Vote_statisticSorter{}
 	}
 	var voteStatistic chain.Vote_statisticSorter
@@ -305,7 +304,7 @@ func voterStatistic(w http.ResponseWriter, r *http.Request) {
 	//height+producer_public_key : index
 	ranklisthoderByProducer := make(map[string]int)
 	for _, _v := range voteStatisticSorter {
-		v:=_v.Vote_Header
+		v := _v.Vote_Header
 		rst, ok := ranklisthoder[v.Height]
 		if !ok {
 			rst, err = dba.ToStruct(`select m.*,(@row_number:=@row_number + 1) as "rank" from (select ifnull(a.producer_public_key,b.ownerpublickey) as producer_public_key , ifnull(a.value,0) as value , b.* from 
@@ -401,10 +400,10 @@ func producerRankByHeight(w http.ResponseWriter, r *http.Request) {
 (select A.producer_public_key , ROUND(sum(value),8) as value from chain_vote_info A where (A.cancel_height > `+height+` or
  cancel_height is null) and height <= `+height+` group by producer_public_key) a right join chain_producer_info b on a.producer_public_key = b.ownerpublickey 
  order by value desc) m ,  (SELECT @row_number:=0) AS t `, chain.Vote_info{})
-	}else{
+	} else {
 		rst, err = dba.ToStruct(`select m.*,(@row_number:=@row_number + 1) as "rank" from (select ifnull(a.producer_public_key,b.ownerpublickey) as producer_public_key , ifnull(a.value,0) as value , b.* from 
 (select A.producer_public_key , ROUND(sum(value),8) as value from chain_vote_info A where (A.cancel_height > `+height+` or
- cancel_height is null) and height <= `+height+` group by producer_public_key) a right join chain_producer_info b on a.producer_public_key = b.ownerpublickey where b.state = '`+strings.ToUpper(state[:1]) + state[1:]+`'
+ cancel_height is null) and height <= `+height+` group by producer_public_key) a right join chain_producer_info b on a.producer_public_key = b.ownerpublickey where b.state = '`+strings.ToUpper(state[:1])+state[1:]+`'
  order by value desc) m ,  (SELECT @row_number:=0) AS t `, chain.Vote_info{})
 	}
 	if err != nil {
@@ -432,8 +431,8 @@ func producerRankByHeight(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 		if val != "" {
-			iv , _ := strconv.Atoi(val)
-			vi.Reward = strconv.FormatFloat(float64(iv) / 100000000.0,'f',8,64)
+			iv, _ := strconv.Atoi(val)
+			vi.Reward = strconv.FormatFloat(float64(iv)/100000000.0, 'f', 8, 64)
 		} else {
 			vi.Reward = "0"
 		}
@@ -482,7 +481,7 @@ func totalVoteByHeight(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(`{"result":` + fmt.Sprintf("%.8f", rst) + `,"status":200}`))
 }
 
-func confirmedDetailByHeight(w http.ResponseWriter,r *http.Request) {
+func confirmedDetailByHeight(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	height := params["height"]
 	h, ok := strconv.Atoi(height)
@@ -490,20 +489,20 @@ func confirmedDetailByHeight(w http.ResponseWriter,r *http.Request) {
 		http.Error(w, `{"result":"invalid height","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 		return
 	}
-	reqBody := `{"method": "getconfirmbyheight","params": {"height":`+height+`,"verbosity":1}}`
+	reqBody := `{"method": "getconfirmbyheight","params": {"height":` + height + `,"verbosity":1}}`
 	var resp map[string]interface{}
 	var err error
-	if strings.HasPrefix(config.Conf.Ela.Restful,"http") {
-		resp, err = chain.PostAuth(config.Conf.Ela.Jsonrpc, reqBody, config.Conf.Ela.JsonrpcUser, config.Conf.Ela.JsonrpcPassword)
-	}else{
-		resp, err = chain.PostAuth("http://"+config.Conf.Ela.Jsonrpc, reqBody, config.Conf.Ela.JsonrpcUser, config.Conf.Ela.JsonrpcPassword)
+	if strings.HasPrefix(config.Conf.Ela.Restful, "http") {
+		resp, err = tools.PostAuth(config.Conf.Ela.Jsonrpc, reqBody, config.Conf.Ela.JsonrpcUser, config.Conf.Ela.JsonrpcPassword)
+	} else {
+		resp, err = tools.PostAuth("http://"+config.Conf.Ela.Jsonrpc, reqBody, config.Conf.Ela.JsonrpcUser, config.Conf.Ela.JsonrpcPassword)
 	}
 	if err != nil {
 		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 		return
 	}
 
-	buf , err := json.Marshal(resp["result"])
+	buf, err := json.Marshal(resp["result"])
 	if err != nil {
 		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 		return
@@ -797,4 +796,24 @@ func getCmcPrice(w http.ResponseWriter, r *http.Request) {
 	}
 	ret = append(ret, []byte("]"))
 	w.Write(bytes.Join(ret, nil))
+}
+
+//getEthBalance get eth balance
+func getEthBalance(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	addr := params["addr"]
+	endpoint := config.Conf.Eth.Endpoint
+	infuraKey := config.Conf.Eth.InfuraKey
+	reqBody := `{"jsonrpc":"2.0","method":"eth_getBalance","params": ["` + addr + `","latest"],"id":1}`
+	data, err := tools.Post(endpoint+infuraKey, reqBody)
+	if err != nil {
+		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+		return
+	}
+	ret, err := json.Marshal(data)
+	if err != nil {
+		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+		return
+	}
+	w.Write(ret)
 }
