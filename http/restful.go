@@ -807,10 +807,8 @@ func getCmcPrice(w http.ResponseWriter, r *http.Request) {
 func getEthBalance(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	addr := params["addr"]
-	endpoint := config.Conf.Eth.Endpoint
-	infuraKey := config.Conf.Eth.InfuraKey
 	reqBody := `{"jsonrpc":"2.0","method":"eth_getBalance","params": ["` + addr + `","latest"],"id":1}`
-	data, err := tools.Post(endpoint+infuraKey, reqBody)
+	data, err := tools.Post(config.Conf.Eth.Endpoint, reqBody)
 	if err != nil {
 		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 		return
@@ -825,7 +823,7 @@ func getEthBalance(w http.ResponseWriter, r *http.Request) {
 
 func sendEthRawTx(w http.ResponseWriter, r *http.Request) {
 	b, err := ioutil.ReadAll(r.Body)
-	data, err := tools.Post(config.Conf.Eth.Endpoint+config.Conf.Eth.InfuraKey, string(b))
+	data, err := tools.Post(config.Conf.Eth.Endpoint, string(b))
 	if err != nil {
 		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 		return

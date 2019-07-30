@@ -45,7 +45,6 @@ type BTC struct {
 
 type ETH struct {
 	Endpoint    string
-	InfuraKey   string
 	Enable      bool
 	StartHeight int64
 }

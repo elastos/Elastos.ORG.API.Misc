@@ -67,7 +67,7 @@ func doSyncEth(tx *sql.Tx) error {
 
 	var resp map[string]interface{}
 	var err error
-	resp, err = Post(config.Conf.Eth.Endpoint+config.Conf.Eth.InfuraKey, `{"jsonrpc":"2.0","method":"eth_blockNumber","params": [],"id":1}`)
+	resp, err = Post(config.Conf.Eth.Endpoint, `{"jsonrpc":"2.0","method":"eth_blockNumber","params": [],"id":1}`)
 	if err != nil {
 		return err
 	}
@@ -102,7 +102,7 @@ func handleHeightEth(curr int, tx *sql.Tx) error {
 	log.Infof("Syncing ETH Height %d\n", curr)
 	var resp map[string]interface{}
 	var err error
-	resp, err = Post(config.Conf.Eth.Endpoint+config.Conf.Eth.InfuraKey, `{"jsonrpc":"2.0","method":"eth_getBlockByNumber","params": ["`+hexutil.EncodeUint64(uint64(curr))+`",false],"id":1}`)
+	resp, err = Post(config.Conf.Eth.Endpoint, `{"jsonrpc":"2.0","method":"eth_getBlockByNumber","params": ["`+hexutil.EncodeUint64(uint64(curr))+`",false],"id":1}`)
 	if err != nil {
 		return err
 	}
@@ -117,13 +117,13 @@ func handleHeightEth(curr int, tx *sql.Tx) error {
 	timestamp := r["timestamp"]
 	for _, txv := range txArr {
 		transaction := txv.(string)
-		resp, err = Post(config.Conf.Eth.Endpoint+config.Conf.Eth.InfuraKey, `{"jsonrpc":"2.0","method":"eth_getTransactionByHash","params": ["`+transaction+`"],"id":1}`)
+		resp, err = Post(config.Conf.Eth.Endpoint, `{"jsonrpc":"2.0","method":"eth_getTransactionByHash","params": ["`+transaction+`"],"id":1}`)
 		if err != nil {
 			return err
 		}
 		t := eth_transaction{}
 		Map2Struct(resp["result"].(map[string]interface{}), &t)
-		resp, err = Post(config.Conf.Eth.Endpoint+config.Conf.Eth.InfuraKey, `{"jsonrpc":"2.0","method":"eth_getTransactionReceipt","params": ["`+transaction+`"],"id":1}`)
+		resp, err = Post(config.Conf.Eth.Endpoint, `{"jsonrpc":"2.0","method":"eth_getTransactionReceipt","params": ["`+transaction+`"],"id":1}`)
 		if err != nil {
 			return err
 		}

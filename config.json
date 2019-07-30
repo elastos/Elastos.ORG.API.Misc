@@ -1,0 +1,32 @@
+{
+  "ServerPort":"8080",
+  "Db":{
+    "DbDriverName":"mysql",
+    "DbDriverSource":"root:87654321@tcp(127.0.0.1:3306)/chain_mainnet"
+  },
+  "Ela":{
+    "Restful":"localhost:20334",
+    "Jsonrpc":"localhost:20336",
+    "JsonrpcUser":"clark",
+    "JsonrpcPassword":"123456"
+  },
+  "Cmc":{
+    "ApiKey":["521e2027-4f7e-4fa3-8a13-37ba061023f4"],
+    "Inteval":"30m",
+    "NumOfCoin":200
+  },
+  "Btc":{
+    "Host":"127.0.0.1:18332",
+    "Rpcuser":"clark",
+    "Rpcpasswd":"DrGhlxKuqP02m47TnDRAeZqir6Gt5V0secCHajUKW-0=",
+    "MinConfirm":1,
+    "Net":"testnet3"
+  },
+  "VisitKey":"729E2BB0AEEC048FF9DC7996D394889687BF76AFA832F07E011AA5A3BE272310",
+  "Eth":{
+    "Endpoint":"https://mainnet.infura.io",
+    "Enable":true,
+    "StartHeight":7000000
+  },
+  "EnableCors":false
+}
