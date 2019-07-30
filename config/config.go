@@ -13,7 +13,6 @@ type config struct {
 	Btc        BTC
 	Eth        ETH
 	Cmc        Cmc
-	VisitKey   string
 	EnableCors bool
 }
 

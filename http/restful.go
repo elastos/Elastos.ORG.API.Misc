@@ -2,7 +2,6 @@ package http
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -15,12 +14,10 @@ import (
 	"github.com/gorilla/mux"
 	"html/template"
 	"io/ioutil"
-	"math"
 	"net/http"
 	"sort"
 	"strconv"
 	"strings"
-	"time"
 )
 
 var (
@@ -737,27 +734,6 @@ func getBtcBlock(w http.ResponseWriter, r *http.Request) {
 
 //getCmcPrice get price from cmc
 func getCmcPrice(w http.ResponseWriter, r *http.Request) {
-	apiKey := r.Header["Apikey"]
-	tp_param := r.Header["Timestamp"]
-	if len(apiKey) == 0 || len(tp_param) == 0 {
-		http.Error(w, `{"result":"invalid request param : apiKey or timestamp can not be blank" ,"status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
-		return
-	}
-	itp_param, err := strconv.ParseInt(tp_param[0], 10, 64)
-	if err != nil {
-		http.Error(w, `{"result":"invalid request param : invalid timestamp","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
-		return
-	}
-	tp_local := time.Now().UTC().Unix() * 1000
-	if math.Abs(float64(tp_local-itp_param))/(1000*60) > 5 {
-		http.Error(w, `{"result":"invalid request param : apiKey out of date","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
-		return
-	}
-	keyHash := sha256.Sum256([]byte(config.Conf.VisitKey + tp_param[0]))
-	if hex.EncodeToString(keyHash[:]) != apiKey[0] {
-		http.Error(w, `{"result":"invalid request param : apiKey not correct ","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
-		return
-	}
 	limit := r.FormValue("limit")
 	if limit == "" {
 		http.Error(w, `{"result":"invalid request param : limit can not be blank" ,"status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
