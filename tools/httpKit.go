@@ -6,14 +6,12 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/elastos/Elastos.ORG.API.Misc/config"
-	"github.com/elastos/Elastos.ORG.API.Misc/log"
 	"io/ioutil"
 	"net/http"
 )
 
 //get get data from givin url and return map as value
 func Get(url string) (map[string]interface{}, error) {
-	log.Infof("Request URL = %v \n", url)
 	r, err := http.Get(url)
 	if err != nil {
 		return nil, err
@@ -29,7 +27,6 @@ func Get(url string) (map[string]interface{}, error) {
 
 //get get data from givin url and return map as value
 func PostAuth(url, reqBody, user, pass string) (map[string]interface{}, error) {
-	log.Infof("Request URL = %v \n", url)
 	buf := bytes.NewBuffer([]byte(reqBody))
 	req, err := http.NewRequest("POST", url, buf)
 	if err != nil {

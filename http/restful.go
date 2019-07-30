@@ -199,6 +199,7 @@ func getPublicKey(w http.ResponseWriter, r *http.Request) {
 func producerStatistic(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	pub := params["producer"]
+	height := params["height"]
 	if pub == "" || len(pub) != 66 {
 		http.Error(w, `{"result":"invalid public key","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 		return
@@ -213,7 +214,11 @@ func producerStatistic(w http.ResponseWriter, r *http.Request) {
 		Block_time          int64  `json:",omitempty"`
 		Height              int64  `json:",omitempty"`
 	}
-	rst, err := dba.ToStruct("select Producer_public_key,Vote_type,Txid,Value,Address,Block_time,Height from chain_vote_info where producer_public_key = '"+pub+"' and (outputlock = 0 or outputlock >= height) and is_valid = 'YES'", ret{})
+	iHeight, err := strconv.Atoi(height)
+	if err != nil {
+		iHeight = 99999999
+	}
+	rst, err := dba.ToStruct("select Producer_public_key,Vote_type,Txid,Value,Address,Block_time,Height from chain_vote_info where producer_public_key = '"+pub+"' and (outputlock = 0 or outputlock >= height) and is_valid = 'YES' and height <= "+strconv.Itoa(iHeight), ret{})
 	if err != nil {
 		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 		return

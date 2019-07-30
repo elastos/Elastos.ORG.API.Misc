@@ -16,15 +16,15 @@ using the following api ,we can get dpos vote statistic.
 
 Get dpos producer vote statistics
 ------------------------------------------------
-producer's vote statistics
+producer's vote statistics of specific height
 
-.. http:get:: /api/1/dpos/producer/(string:`producer_public_key`)
+.. http:get:: /api/1/dpos/producer/(string:`producer_public_key`)/(int:`height`)
 
    **Example request**:
 
    .. sourcecode:: http
 
-      GET /api/1/dpos/producer/03330ee8520088b7f578a9afabaef0c034fa31fe1354cb3a14410894f974132800 HTTP/1.1
+      GET /api/1/dpos/producer/03330ee8520088b7f578a9afabaef0c034fa31fe1354cb3a14410894f974132800/9999999 HTTP/1.1
       Host: localhost
 
    **Example response**:

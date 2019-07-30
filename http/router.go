@@ -23,7 +23,7 @@ var (
 		},
 
 		//ela dpos
-		"/api/1/dpos/producer/{producer}": {
+		"/api/1/dpos/producer/{producer}/{height}": {
 			"GET": producerStatistic,
 		},
 		"/api/1/dpos/address/{address}": {
