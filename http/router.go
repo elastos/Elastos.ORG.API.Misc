@@ -82,6 +82,9 @@ var (
 		"/api/1/eth/balance/{addr}": {
 			"Get": getEthBalance,
 		},
+		"/api/1/eth/sendRawTx": {
+			"POST": sendEthRawTx,
+		},
 	}
 	router = mux.NewRouter()
 )

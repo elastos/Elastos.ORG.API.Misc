@@ -822,3 +822,19 @@ func getEthBalance(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Write(ret)
 }
+
+func sendEthRawTx(w http.ResponseWriter, r *http.Request) {
+	b, err := ioutil.ReadAll(r.Body)
+	data, err := tools.Post(config.Conf.Eth.Endpoint+config.Conf.Eth.InfuraKey, string(b))
+	if err != nil {
+		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+		return
+	}
+	ret, err := json.Marshal(data)
+	if err != nil {
+		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+		return
+	}
+	w.Write(ret)
+
+}

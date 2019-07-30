@@ -28,7 +28,10 @@ type eth_transaction struct {
 	cumulativeGasUsed string
 }
 
-var dbaEth = db.NewInstance()
+var (
+	dbaEth     = db.NewInstance()
+	currHeight int64
+)
 
 //Sync sync chain data
 func SyncEth() {
@@ -39,15 +42,29 @@ func SyncEth() {
 				log.Infof("Sync ETH Height Error : %v \n", err.Error())
 				tx.Rollback()
 			} else {
-				println("Commit")
 				tx.Commit()
 			}
-			<-time.After(time.Millisecond * 500)
+			<-time.After(time.Millisecond * 1)
 		}
 	}()
 }
 
 func doSyncEth(tx *sql.Tx) error {
+	if currHeight == 0 {
+		r, err := tx.Query("select blockNumber from chain_eth_block_transaction_history order by id desc limit 1")
+		if err != nil {
+			return err
+		}
+		if r.Next() {
+			r.Scan(&currHeight)
+		}
+		r.Close()
+	}
+
+	if currHeight < config.Conf.Eth.StartHeight && config.Conf.Eth.StartHeight != 0 {
+		currHeight = config.Conf.Eth.StartHeight
+	}
+
 	var resp map[string]interface{}
 	var err error
 	resp, err = Post(config.Conf.Eth.Endpoint+config.Conf.Eth.InfuraKey, `{"jsonrpc":"2.0","method":"eth_blockNumber","params": [],"id":1}`)
@@ -55,40 +72,24 @@ func doSyncEth(tx *sql.Tx) error {
 		return err
 	}
 
-	if err != nil {
-		return err
-	}
-
-	r, err := tx.Query("select blockNumber from chain_eth_block_transaction_history order by id desc limit 1")
-	if err != nil {
-		return err
-	}
-	storeHeight := -1
-	if r.Next() {
-		r.Scan(&storeHeight)
-	}
-	if storeHeight < int(config.Conf.Eth.StartHeight) && config.Conf.Eth.StartHeight != 0{
-		storeHeight = int(config.Conf.Eth.StartHeight)
-	}
-	r.Close()
-
 	hexHeight, ok := resp["result"]
 	if ok {
 		height, err := hexutil.DecodeUint64(hexHeight.(string))
 		if err != nil {
 			return err
 		}
-		if storeHeight == int(height) {
+		if currHeight == int64(height) {
 			return nil
 		}
 		count := 0
-		for curr := storeHeight + 1; curr <= int(height); curr++ {
-			err = handleHeightEth(curr, tx)
+		for curr := currHeight + 1; curr <= int64(height); curr++ {
+			err = handleHeightEth(int(curr), tx)
 			if err != nil {
 				return err
 			}
 			count++
-			if count%100 == 0 {
+			currHeight++
+			if count%1 == 0 {
 				return nil
 			}
 		}
@@ -98,6 +99,7 @@ func doSyncEth(tx *sql.Tx) error {
 }
 
 func handleHeightEth(curr int, tx *sql.Tx) error {
+	log.Infof("Syncing ETH Height %d\n", curr)
 	var resp map[string]interface{}
 	var err error
 	resp, err = Post(config.Conf.Eth.Endpoint+config.Conf.Eth.InfuraKey, `{"jsonrpc":"2.0","method":"eth_getBlockByNumber","params": ["`+hexutil.EncodeUint64(uint64(curr))+`",false],"id":1}`)
