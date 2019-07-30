@@ -9,6 +9,8 @@ import (
 	. "github.com/elastos/Elastos.ORG.API.Misc/tools"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"strconv"
+	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -31,6 +33,7 @@ type eth_transaction struct {
 var (
 	dbaEth     = db.NewInstance()
 	currHeight int64
+	waitgroup  sync.WaitGroup
 )
 
 //Sync sync chain data
@@ -43,8 +46,9 @@ func SyncEth() {
 				tx.Rollback()
 			} else {
 				tx.Commit()
+				currHeight += int64(config.Conf.Eth.BatchSize)
 			}
-			<-time.After(time.Millisecond * 1)
+			<-time.After(time.Millisecond * 1000)
 		}
 	}()
 }
@@ -59,10 +63,13 @@ func doSyncEth(tx *sql.Tx) error {
 			r.Scan(&currHeight)
 		}
 		r.Close()
+		if currHeight == 0 {
+			currHeight = -1
+		}
 	}
 
 	if currHeight < config.Conf.Eth.StartHeight && config.Conf.Eth.StartHeight != 0 {
-		currHeight = config.Conf.Eth.StartHeight
+		currHeight = config.Conf.Eth.StartHeight - 1
 	}
 
 	var resp map[string]interface{}
@@ -81,25 +88,34 @@ func doSyncEth(tx *sql.Tx) error {
 		if currHeight == int64(height) {
 			return nil
 		}
+		waitgroup.Add(config.Conf.Eth.BatchSize)
+		var unexpected error
 		count := 0
-		for curr := currHeight + 1; curr <= int64(height); curr++ {
-			err = handleHeightEth(int(curr), tx)
-			if err != nil {
-				return err
-			}
+		log.Infof("Syncing ETH Height From %d To %d \n", currHeight+1, currHeight+int64(config.Conf.Eth.BatchSize)+1)
+		for curr := currHeight + 1; curr <= int64(height); {
+			go func() {
+				atomic.AddInt64(&curr, 1)
+				err = handleHeightEth(int(curr), tx)
+				if err != nil {
+					unexpected = err
+					log.Error("Error handle height " + err.Error() + "\n")
+				}
+				waitgroup.Done()
+			}()
 			count++
-			currHeight++
-			if count%1 == 0 {
-				return nil
+			if unexpected != nil {
+				return unexpected
+			}
+			if count%config.Conf.Eth.BatchSize == 0 {
+				break
 			}
 		}
 	}
-
+	waitgroup.Wait()
 	return nil
 }
 
 func handleHeightEth(curr int, tx *sql.Tx) error {
-	log.Infof("Syncing ETH Height %d\n", curr)
 	var resp map[string]interface{}
 	var err error
 	resp, err = Post(config.Conf.Eth.Endpoint, `{"jsonrpc":"2.0","method":"eth_getBlockByNumber","params": ["`+hexutil.EncodeUint64(uint64(curr))+`",false],"id":1}`)
@@ -122,10 +138,18 @@ func handleHeightEth(curr int, tx *sql.Tx) error {
 			return err
 		}
 		t := eth_transaction{}
+		if resp["result"] == nil {
+			log.Errorf("%v ", resp)
+			return errors.New("Invalid ETH Node , please change your ethereum node")
+		}
 		Map2Struct(resp["result"].(map[string]interface{}), &t)
 		resp, err = Post(config.Conf.Eth.Endpoint, `{"jsonrpc":"2.0","method":"eth_getTransactionReceipt","params": ["`+transaction+`"],"id":1}`)
 		if err != nil {
 			return err
+		}
+		if resp["result"] == nil {
+			log.Errorf("%v ", resp)
+			return errors.New("Invalid ETH Node , please change your ethereum node")
 		}
 		receipt := resp["result"].(map[string]interface{})
 		gasUsed := receipt["gasUsed"]

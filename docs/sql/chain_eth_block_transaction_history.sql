@@ -54,4 +54,5 @@ CREATE TABLE `chain_eth_block_transaction_history` (
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2019-07-30  9:01:07
-CREATE INDEX idx_chain_eth_block_transaction_history ON chain_eth_block_transaction_history (`from`,`to`);
+CREATE INDEX idx_chain_eth_block_transaction_history_from_to ON chain_eth_block_transaction_history (`from`,`to`);
+CREATE INDEX idx_chain_eth_block_transaction_history_blocknumber_desc ON chain_eth_block_transaction_history (`blockNumber` asc);

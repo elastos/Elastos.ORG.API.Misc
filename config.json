@@ -23,9 +23,10 @@
     "Net":"testnet3"
   },
   "Eth":{
-    "Endpoint":"https://mainnet.infura.io",
+    "Endpoint":"https://eth-mainnet.alchemyapi.io/jsonrpc/-vPGIFwUyjlMRF9beTLXiGQUK6Nf3k8z",
     "Enable":true,
-    "StartHeight":7000000
+    "StartHeight":7000000,
+    "BatchSize":10
   },
   "EnableCors":false
 }

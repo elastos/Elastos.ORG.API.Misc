@@ -46,6 +46,7 @@ type ETH struct {
 	Endpoint    string
 	Enable      bool
 	StartHeight int64
+	BatchSize   int
 }
 
 var Conf *config
