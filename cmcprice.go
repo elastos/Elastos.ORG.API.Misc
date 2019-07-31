@@ -195,7 +195,7 @@ func saveToDb(cmcResponseUSD, cmcResponseCNY, cmcResponseBTC, cmcResponseBGX Cmc
 		return err
 	}
 	data := cmcResponseUSD.Data
-	if len(cmcResponseCNY.Data) != len(cmcResponseUSD.Data) || len(cmcResponseUSD.Data) != len(cmcResponseUSD.Data) {
+	if len(cmcResponseCNY.Data) != len(cmcResponseUSD.Data) || len(cmcResponseUSD.Data) != len(cmcResponseBTC.Data) {
 		fmt.Printf("Invalid Key fetch Cmc Data m CNY :%v, BTC :%v, USD :%v", cmcResponseCNY, cmcResponseBTC, cmcResponseUSD)
 		return nil
 	}
