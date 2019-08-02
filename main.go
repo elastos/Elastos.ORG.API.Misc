@@ -8,7 +8,9 @@ import (
 )
 
 func main() {
-	go chain.Sync()
+	if config.Conf.Ela.Enable {
+		go chain.Sync()
+	}
 	if config.Conf.Eth.Enable {
 		go chain.SyncEth()
 	}

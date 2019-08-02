@@ -32,6 +32,7 @@ type ELA struct {
 	Jsonrpc         string
 	JsonrpcUser     string
 	JsonrpcPassword string
+	Enable          bool
 }
 
 type BTC struct {
@@ -47,6 +48,7 @@ type ETH struct {
 	Enable      bool
 	StartHeight int64
 	BatchSize   int
+	Retry       int
 }
 
 var Conf *config
