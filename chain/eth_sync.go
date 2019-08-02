@@ -55,7 +55,7 @@ func SyncEth() {
 
 func doSyncEth(tx *sql.Tx) error {
 	if currHeight == 0 {
-		r, err := tx.Query("select blockNumber from chain_eth_block_transaction_history order by id desc limit 1")
+		r, err := tx.Query("select blockNumber from chain_eth_block_transaction_history order by blockNumber desc limit 1")
 		if err != nil {
 			return err
 		}
@@ -80,6 +80,7 @@ func doSyncEth(tx *sql.Tx) error {
 	}
 
 	hexHeight, ok := resp["result"]
+	var unexpected error = nil
 	if ok {
 		height, err := hexutil.DecodeUint64(hexHeight.(string))
 		if err != nil {
@@ -89,36 +90,36 @@ func doSyncEth(tx *sql.Tx) error {
 			return nil
 		}
 		waitgroup.Add(config.Conf.Eth.BatchSize)
-		var unexpected error
 		count := 0
 		log.Infof("Syncing ETH Height From %d To %d \n", currHeight+1, currHeight+int64(config.Conf.Eth.BatchSize)+1)
-		for curr := currHeight + 1; curr <= int64(height); {
+		for curr := currHeight; curr <= int64(height); {
 			go func() {
 				atomic.AddInt64(&curr, 1)
 				err = handleHeightEth(int(curr), tx)
 				if err != nil {
 					unexpected = err
-					log.Error("Error handle height " + err.Error() + "\n")
 				}
 				waitgroup.Done()
 			}()
 			count++
-			if unexpected != nil {
-				return unexpected
-			}
 			if count%config.Conf.Eth.BatchSize == 0 {
 				break
 			}
 		}
 	}
 	waitgroup.Wait()
-	return nil
+	return unexpected
 }
 
 func handleHeightEth(curr int, tx *sql.Tx) error {
 	var resp map[string]interface{}
 	var err error
-	resp, err = Post(config.Conf.Eth.Endpoint, `{"jsonrpc":"2.0","method":"eth_getBlockByNumber","params": ["`+hexutil.EncodeUint64(uint64(curr))+`",false],"id":1}`)
+	for i := 0; i < config.Conf.Eth.Retry; i++ {
+		resp, err = Post(config.Conf.Eth.Endpoint, `{"jsonrpc":"2.0","method":"eth_getBlockByNumber","params": ["`+hexutil.EncodeUint64(uint64(curr))+`",true],"id":1}`)
+		if err == nil {
+			break
+		}
+	}
 	if err != nil {
 		return err
 	}
@@ -132,18 +133,15 @@ func handleHeightEth(curr int, tx *sql.Tx) error {
 	}
 	timestamp := r["timestamp"]
 	for _, txv := range txArr {
-		transaction := txv.(string)
-		resp, err = Post(config.Conf.Eth.Endpoint, `{"jsonrpc":"2.0","method":"eth_getTransactionByHash","params": ["`+transaction+`"],"id":1}`)
-		if err != nil {
-			return err
-		}
+		transaction := txv.(map[string]interface{})
 		t := eth_transaction{}
-		if resp["result"] == nil {
-			log.Errorf("%v ", resp)
-			return errors.New("Invalid ETH Node , please change your ethereum node")
+		Map2Struct(transaction, &t)
+		for i := 0; i < config.Conf.Eth.Retry; i++ {
+			resp, err = Post(config.Conf.Eth.Endpoint, `{"jsonrpc":"2.0","method":"eth_getTransactionReceipt","params": ["`+transaction["hash"].(string)+`"],"id":1}`)
+			if err == nil {
+				break
+			}
 		}
-		Map2Struct(resp["result"].(map[string]interface{}), &t)
-		resp, err = Post(config.Conf.Eth.Endpoint, `{"jsonrpc":"2.0","method":"eth_getTransactionReceipt","params": ["`+transaction+`"],"id":1}`)
 		if err != nil {
 			return err
 		}
@@ -153,6 +151,9 @@ func handleHeightEth(curr int, tx *sql.Tx) error {
 		}
 		receipt := resp["result"].(map[string]interface{})
 		gasUsed := receipt["gasUsed"]
+		if gasUsed == nil {
+			gasUsed = ""
+		}
 		status := receipt["status"]
 		var isError = "0"
 		if status != "0x1" {
@@ -176,6 +177,9 @@ func handleHeightEth(curr int, tx *sql.Tx) error {
 }
 
 func decode(str string) string {
+	if len(str) == 0 {
+		return ""
+	}
 	desc, _ := strconv.ParseUint(str[2:], 16, 64)
 	return strconv.Itoa(int(desc))
 }

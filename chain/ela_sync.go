@@ -431,19 +431,12 @@ func handleHeight(curr int, tx *sql.Tx) error {
 		attrArr := vm["attributes"].([]interface{})
 		memo := ""
 		if len(attrArr) != 0 {
-			var ok bool
 			attr := attrArr[0].(map[string]interface{})
 			usage := attr["usage"].(float64)
 
 			if int(usage) == Memo || int(usage) == DescriptionUrl {
-				memo, ok = attr["data"].(string)
-				if !ok {
-					log.Warn("wrong data format")
-				}
-				err := handleMemo(memo, curr, txid, int(time), tx)
-				if err != nil {
-					log.Warnf("Error parsing error memo = %v , error = %s", attrArr[0], err.Error())
-				}
+				memo, _ = attr["data"].(string)
+				handleMemo(memo, curr, txid, int(time), tx)
 			}
 		}
 		if int(t) == CoinBase {
