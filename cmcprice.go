@@ -76,74 +76,76 @@ var dba = db.NewInstance()
 var dbaforela = db.NewInstance()
 
 func init() {
-	go func() {
-		i := -1
-		sleepy, err := time.ParseDuration(config.Conf.Cmc.Inteval)
-		if err != nil {
-			fmt.Printf("%s\n", err.Error())
-			os.Exit(-1)
-		}
-		for {
-			if i == len(config.Conf.Cmc.ApiKey)-1 {
-				i = 0
-			} else {
-				i++
-			}
-			cmcResponseUSD, err := fetchPrice(i, "USD")
+	if config.Conf.Cmc.Enable {
+		go func() {
+			i := -1
+			sleepy, err := time.ParseDuration(config.Conf.Cmc.Inteval)
 			if err != nil {
-				fmt.Printf("Error in cmc price %s\n", err.Error())
+				fmt.Printf("%s\n", err.Error())
+				os.Exit(-1)
+			}
+			for {
+				if i == len(config.Conf.Cmc.ApiKey)-1 {
+					i = 0
+				} else {
+					i++
+				}
+				cmcResponseUSD, err := fetchPrice(i, "USD")
+				if err != nil {
+					fmt.Printf("Error in cmc price %s\n", err.Error())
+					<-time.After(sleepy)
+					continue
+				}
+				cmcResponseCNY, err := fetchPrice(i, "CNY")
+				if err != nil {
+					fmt.Printf("Error in cmc price %s\n", err.Error())
+					<-time.After(sleepy)
+					continue
+				}
+				cmcResponseBTC, err := fetchPrice(i, "BTC")
+				if err != nil {
+					fmt.Printf("Error in cmc price %s\n", err.Error())
+					<-time.After(sleepy)
+					continue
+				}
+				cmcResponseBGX, err := fetchBGXPrice()
+				if err != nil {
+					fmt.Printf("Error in bgx price %s\n", err.Error())
+				}
+				err = saveToDb(cmcResponseUSD, cmcResponseCNY, cmcResponseBTC, cmcResponseBGX)
+				if err != nil {
+					fmt.Printf("Error in cmc price %s\n", err.Error())
+					<-time.After(sleepy)
+					continue
+				}
 				<-time.After(sleepy)
-				continue
 			}
-			cmcResponseCNY, err := fetchPrice(i, "CNY")
-			if err != nil {
-				fmt.Printf("Error in cmc price %s\n", err.Error())
-				<-time.After(sleepy)
-				continue
+		}()
+		go func() {
+			for {
+				<-time.After(time.Second * 10)
+				tx, err := dbaforela.Begin()
+				if err != nil {
+					fmt.Printf("Error fetching ela price from hbg: %s\n", err.Error())
+					tx.Rollback()
+					continue
+				}
+				btcPrice, err := getPriceFromHbg()
+				if err != nil {
+					tx.Rollback()
+					fmt.Printf("Error fetching ela price from hbg: %s\n", err.Error())
+					continue
+				}
+				_, err = tx.Exec("update chain_cmc_price set price_btc = '" + btcPrice + "' where symbol = 'ELA' order by _id desc limit 1")
+				if err != nil {
+					tx.Rollback()
+					fmt.Printf("Error fetching ela price from hbg 111 : %s\n", err.Error())
+					continue
+				}
+				tx.Commit()
 			}
-			cmcResponseBTC, err := fetchPrice(i, "BTC")
-			if err != nil {
-				fmt.Printf("Error in cmc price %s\n", err.Error())
-				<-time.After(sleepy)
-				continue
-			}
-			cmcResponseBGX, err := fetchBGXPrice()
-			if err != nil {
-				fmt.Printf("Error in bgx price %s\n", err.Error())
-			}
-			err = saveToDb(cmcResponseUSD, cmcResponseCNY, cmcResponseBTC, cmcResponseBGX)
-			if err != nil {
-				fmt.Printf("Error in cmc price %s\n", err.Error())
-				<-time.After(sleepy)
-				continue
-			}
-			<-time.After(sleepy)
-		}
-	}()
-	go func() {
-		for {
-			<-time.After(time.Second * 10)
-			tx, err := dbaforela.Begin()
-			if err != nil {
-				fmt.Printf("Error fetching ela price from hbg: %s\n", err.Error())
-				tx.Rollback()
-				continue
-			}
-			btcPrice, err := getPriceFromHbg()
-			if err != nil {
-				tx.Rollback()
-				fmt.Printf("Error fetching ela price from hbg: %s\n", err.Error())
-				continue
-			}
-			_, err = tx.Exec("update chain_cmc_price set price_btc = '" + btcPrice + "' where symbol = 'ELA' order by _id desc limit 1")
-			if err != nil {
-				tx.Rollback()
-				fmt.Printf("Error fetching ela price from hbg 111 : %s\n", err.Error())
-				continue
-			}
-			tx.Commit()
-		}
-	}()
+		}()
+	}
 }
 
 type hbg_price struct {

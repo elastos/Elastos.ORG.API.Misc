@@ -24,7 +24,7 @@ type rpchelper struct {
 }
 
 func init() {
-	if config.Conf.Btc.Host != "" {
+	if config.Conf.Btc.Enable {
 		go func() {
 			var err error
 			client, err = rpcclient.New(&rpcclient.ConnConfig{

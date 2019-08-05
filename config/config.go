@@ -20,6 +20,7 @@ type Cmc struct {
 	ApiKey    []string
 	Inteval   string
 	NumOfCoin int
+	Enable    bool
 }
 
 type DB struct {
@@ -41,6 +42,7 @@ type BTC struct {
 	Rpcpasswd  string
 	MinConfirm int
 	Net        string
+	Enable     bool
 }
 
 type ETH struct {
