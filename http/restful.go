@@ -812,3 +812,33 @@ func sendEthRawTx(w http.ResponseWriter, r *http.Request) {
 	w.Write(ret)
 
 }
+
+func getEthHistory(w http.ResponseWriter, r *http.Request) {
+	b, err := ioutil.ReadAll(r.Body)
+	var req map[string]string
+	err = json.Unmarshal(b, &req)
+	if err != nil {
+		http.Error(w, `{"result":"invalid request : `+err.Error()+`","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
+		return
+	}
+	account := req["account"]
+	if account == "" {
+		http.Error(w, `{"result":"invalid request : `+err.Error()+`","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
+		return
+	}
+	history, err := chain.GetEthHistory(account)
+	if err != nil {
+		http.Error(w, `{"result":"invalid request : `+err.Error()+`","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
+		return
+	}
+	resp := make(map[string]interface{})
+	resp["status"] = 1
+	resp["message"] = "OK"
+	resp["result"] = history
+	retBuf, err := json.Marshal(resp)
+	if err != nil {
+		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+		return
+	}
+	w.Write(retBuf)
+}

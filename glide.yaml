@@ -8,3 +8,5 @@ import:
 - package: github.com/btcsuite/btcutil
 - package: github.com/btcsuite/btclog
 - package: github.com/ethereum/go-ethereum/common
+- package: github.com/syndtr/goleveldb/leveldb
+- package: github.com/golang/snappy

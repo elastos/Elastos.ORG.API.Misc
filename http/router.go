@@ -85,6 +85,9 @@ var (
 		"/api/1/eth/sendRawTx": {
 			"POST": sendEthRawTx,
 		},
+		"/api/1/eth/history": {
+			"POST": getEthHistory,
+		},
 	}
 	router = mux.NewRouter()
 )
