@@ -13,6 +13,7 @@ import (
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/util"
 	"io"
+	"math/rand"
 	"os"
 	"sort"
 	"strconv"
@@ -383,9 +384,10 @@ func doSyncEth(db *leveldb.DB, batch *leveldb.Batch) error {
 		}
 		waitGroup.Add(config.Conf.Eth.BatchSize)
 		count := 0
-		log.Infof("Syncing ETH Height From %d To %d \n", currHeight+1, currHeight+int64(config.Conf.Eth.BatchSize)+1)
+		log.Infof("Syncing ETH , Height From %d To %d \n", currHeight+1, currHeight+int64(config.Conf.Eth.BatchSize)+1)
 		for curr := currHeight; curr <= int64(height); {
 			go func() {
+				time.Sleep(time.Duration(rand.Int31n(1000)) * time.Millisecond)
 				atomic.AddInt64(&curr, 1)
 				err = handleHeightEth(int(curr), batch)
 				if err != nil {

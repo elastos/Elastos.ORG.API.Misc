@@ -314,7 +314,7 @@ func handleRegisteredProducer(tx *sql.Tx) error {
 }
 
 func handleHeight(curr int, tx *sql.Tx) error {
-	log.Infof("Syncing ELA Height %d\n", curr)
+	log.Infof("Syncing ELA , Height %d\n", curr)
 	var resp map[string]interface{}
 	var err error
 	if strings.HasPrefix(config.Conf.Ela.Restful, "http") {
