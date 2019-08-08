@@ -512,15 +512,9 @@ func handleHeightEth(curr int) error {
 		}
 	}
 	le.m.Lock()
-	var wait sync.WaitGroup
-	wait.Add(len(keys))
 	for i, k := range keys {
-		go func() {
-			le.b.Put(k, values[i])
-			wait.Done()
-		}()
+		le.b.Put(k, values[i])
 	}
-	wait.Wait()
 	le.m.Unlock()
 	return nil
 }
