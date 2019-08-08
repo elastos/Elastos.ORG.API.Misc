@@ -28,6 +28,7 @@ func StartServer() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Hello World!")
 	})
+	log.Infof("start server at: %s", config.Conf.ServerPort)
 	err := http.ListenAndServe(":"+config.Conf.ServerPort, router)
 	if err != nil {
 		log.Fatal("Error start server :" + err.Error())

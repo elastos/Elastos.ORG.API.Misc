@@ -23,11 +23,18 @@ import (
 )
 
 var (
-	level       *leveldb.DB
-	currHeight  int64
-	waitGroup   sync.WaitGroup
 	levelDbPath = "/.misc/eth"
+	le          *level
 )
+
+type level struct {
+	l          *leveldb.DB
+	b          *leveldb.Batch
+	currHeight int64
+	waitGroup  sync.WaitGroup
+	m          sync.Mutex
+	path       string
+}
 
 type key_prefix byte
 
@@ -305,28 +312,35 @@ func (tx *Eth_transaction) Serialize() []byte {
 }
 
 func init() {
-	var err error
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Printf("Error init lever db %s", err.Error())
-		os.Exit(-1)
-	}
-	dir := homeDir + levelDbPath
-	_, err = os.Stat(dir)
-	if err != nil {
-		if !os.IsExist(err) {
-			err = os.MkdirAll(dir, 0755)
-			if err != nil {
-				fmt.Printf("Error init lever db %s", err.Error())
-				os.Exit(-1)
+	if config.Conf.Eth.Enable {
+		var err error
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			fmt.Printf("Error init level db %s", err.Error())
+			os.Exit(-1)
+		}
+		dir := homeDir + levelDbPath
+		_, err = os.Stat(dir)
+		if err != nil {
+			if !os.IsExist(err) {
+				err = os.MkdirAll(dir, 0755)
+				if err != nil {
+					fmt.Printf("Error init level db %s", err.Error())
+					os.Exit(-1)
+				}
 			}
 		}
-	}
-	level, err = leveldb.OpenFile(dir, nil)
-	if err != nil {
-		fmt.Printf("Error init lever db %s", err.Error())
-		os.Exit(-1)
-		return
+		db, err := leveldb.OpenFile(dir, nil)
+		if err != nil {
+			fmt.Printf("Error init level db %s", err.Error())
+			os.Exit(-1)
+			return
+		}
+		le = &level{
+			l:    db,
+			path: levelDbPath,
+			b:    new(leveldb.Batch),
+		}
 	}
 }
 
@@ -334,35 +348,34 @@ func init() {
 func SyncEth() {
 	go func() {
 		for {
-			batch := new(leveldb.Batch)
-			if err := doSyncEth(level, batch); err != nil {
+			if err := doSyncEth(le); err != nil {
 				log.Infof("Sync ETH Height Error : %v \n", err.Error())
 			} else {
-				level.Write(batch, nil)
-				currHeight += int64(config.Conf.Eth.BatchSize)
-				level.Put([]byte{byte(curr_height_prefix)}, []byte(strconv.Itoa(int(currHeight))), nil)
+				le.l.Write(le.b, nil)
+				le.currHeight += int64(config.Conf.Eth.BatchSize)
+				le.l.Put([]byte{byte(curr_height_prefix)}, []byte(strconv.Itoa(int(le.currHeight))), nil)
 			}
 			<-time.After(time.Millisecond * 10000)
 		}
 	}()
 }
 
-func doSyncEth(db *leveldb.DB, batch *leveldb.Batch) error {
-	if currHeight == 0 {
-		data, err := db.Get([]byte{byte(curr_height_prefix)}, nil)
+func doSyncEth(le *level) error {
+	if le.currHeight == 0 {
+		data, err := le.l.Get([]byte{byte(curr_height_prefix)}, nil)
 		if data == nil || err != nil {
-			currHeight = -1
+			le.currHeight = -1
 		} else {
 			tmpInt, err := strconv.Atoi(string(data))
 			if err != nil {
 				return err
 			}
-			currHeight = int64(tmpInt)
+			le.currHeight = int64(tmpInt)
 		}
 	}
 
-	if currHeight < config.Conf.Eth.StartHeight && config.Conf.Eth.StartHeight != 0 {
-		currHeight = config.Conf.Eth.StartHeight - 1
+	if le.currHeight < config.Conf.Eth.StartHeight && config.Conf.Eth.StartHeight != 0 {
+		le.currHeight = config.Conf.Eth.StartHeight - 1
 	}
 
 	var resp map[string]interface{}
@@ -379,21 +392,21 @@ func doSyncEth(db *leveldb.DB, batch *leveldb.Batch) error {
 		if err != nil {
 			return err
 		}
-		if currHeight == int64(height) {
+		if le.currHeight == int64(height) {
 			return nil
 		}
-		waitGroup.Add(config.Conf.Eth.BatchSize)
+		le.waitGroup.Add(config.Conf.Eth.BatchSize)
 		count := 0
-		log.Infof("Syncing ETH , Height From %d To %d \n", currHeight+1, currHeight+int64(config.Conf.Eth.BatchSize)+1)
-		for curr := currHeight; curr <= int64(height); {
+		log.Infof("Syncing ETH , Height From %d To %d \n", le.currHeight+1, le.currHeight+int64(config.Conf.Eth.BatchSize)+1)
+		for curr := le.currHeight; curr <= int64(height); {
 			go func() {
 				time.Sleep(time.Duration(rand.Int31n(1000)) * time.Millisecond)
 				atomic.AddInt64(&curr, 1)
-				err = handleHeightEth(int(curr), batch)
+				err = handleHeightEth(int(curr), le.b)
 				if err != nil {
 					unexpected = err
 				}
-				waitGroup.Done()
+				le.waitGroup.Done()
 			}()
 			count++
 			if count%config.Conf.Eth.BatchSize == 0 {
@@ -401,7 +414,7 @@ func doSyncEth(db *leveldb.DB, batch *leveldb.Batch) error {
 			}
 		}
 	}
-	waitGroup.Wait()
+	le.waitGroup.Wait()
 	return unexpected
 }
 
@@ -474,7 +487,6 @@ func handleHeightEth(curr int, batch *leveldb.Batch) error {
 		val := v.Serialize()
 		// From
 		batch.Put(key.Bytes(), val)
-
 		// TO
 		if v.From != v.To {
 			key.Reset()
@@ -492,7 +504,7 @@ func GetEthHistory(addr string) ([]Eth_transaction, error) {
 	var buf bytes.Buffer
 	buf.Write([]byte{byte(eth_history_prefix)})
 	buf.Write(decodeHexToByte(addr))
-	iter := level.NewIterator(util.BytesPrefix(buf.Bytes()), nil)
+	iter := le.l.NewIterator(util.BytesPrefix(buf.Bytes()), nil)
 	ret := make(TransactionHistorySorter, 0)
 	for iter.Next() {
 		var v Eth_transaction
