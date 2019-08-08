@@ -390,7 +390,7 @@ func doSyncEth(le *level) error {
 		if err != nil {
 			return err
 		}
-		if le.currHeight == int64(height) {
+		if le.currHeight >= int64(height) {
 			return nil
 		}
 		le.waitGroup.Add(config.Conf.Eth.BatchSize)
