@@ -357,7 +357,7 @@ func SyncEth() {
 			} else {
 				le.l.Write(le.b, nil)
 			}
-			<-time.After(time.Millisecond * 10000)
+			<-time.After(time.Millisecond * 1000)
 		}
 	}()
 }
@@ -512,9 +512,15 @@ func handleHeightEth(curr int) error {
 		}
 	}
 	le.m.Lock()
+	var wait sync.WaitGroup
+	wait.Add(len(keys))
 	for i, k := range keys {
-		le.b.Put(k, values[i])
+		go func() {
+			le.b.Put(k, values[i])
+			wait.Done()
+		}()
 	}
+	wait.Wait()
 	le.m.Unlock()
 	return nil
 }
