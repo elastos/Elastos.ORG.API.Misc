@@ -353,7 +353,6 @@ func SyncEth() {
 			} else {
 				le.l.Write(le.b, nil)
 				le.currHeight += int64(config.Conf.Eth.BatchSize)
-				le.l.Put([]byte{byte(curr_height_prefix)}, []byte(strconv.Itoa(int(le.currHeight))), nil)
 			}
 			<-time.After(time.Millisecond * 10000)
 		}
@@ -415,6 +414,7 @@ func doSyncEth(le *level) error {
 		}
 	}
 	le.waitGroup.Wait()
+	le.b.Put([]byte{byte(curr_height_prefix)}, []byte(strconv.Itoa(int(le.currHeight))))
 	return unexpected
 }
 
@@ -478,28 +478,30 @@ func handleHeightEth(curr int, batch *leveldb.Batch) error {
 		v.IsError = isError
 		v.Input = "0x"
 
-		var key bytes.Buffer
-		key.Write([]byte{byte(eth_history_prefix)})
-		key.Write(decodeHexToByte(v.From))
-		key.WriteRune(rune(curr))
-		key.WriteRune(rune(index))
-
+		var keyFrom bytes.Buffer
+		keyFrom.Write([]byte{byte(eth_history_prefix)})
+		keyFrom.Write(decodeHexToByte(v.From))
+		keyFrom.WriteRune(rune(curr))
+		keyFrom.WriteRune(rune(index))
 		val := v.Serialize()
-		// From
-		le.m.Lock()
-		batch.Put(key.Bytes(), val)
-		le.m.Unlock()
+
+		var keyTo bytes.Buffer
 		// TO
 		if v.From != v.To {
-			key.Reset()
-			key.Write([]byte{byte(eth_history_prefix)})
-			key.Write(decodeHexToByte(v.To))
-			key.WriteRune(rune(curr))
-			key.WriteRune(rune(index))
+			keyTo.Write([]byte{byte(eth_history_prefix)})
+			keyTo.Write(decodeHexToByte(v.To))
+			keyTo.WriteRune(rune(curr))
+			keyTo.WriteRune(rune(index))
 			le.m.Lock()
-			batch.Put(key.Bytes(), val)
 			le.m.Unlock()
 		}
+		// From
+		le.m.Lock()
+		batch.Put(keyFrom.Bytes(), val)
+		if v.From != v.To {
+			batch.Put(keyTo.Bytes(), val)
+		}
+		le.m.Unlock()
 	}
 	return nil
 }
