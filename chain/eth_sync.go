@@ -398,13 +398,14 @@ func doSyncEth(le *level) error {
 			return nil
 		}
 		gap := int(height) - int(le.currHeight)
+		var waitSize int
 		if gap >= config.Conf.Eth.BatchSize {
-			le.waitGroup.Add(config.Conf.Eth.BatchSize)
-			log.Infof("Syncing ETH , Height From %d To %d \n", le.currHeight+1, le.currHeight+int64(config.Conf.Eth.BatchSize)+1)
+			waitSize = config.Conf.Eth.BatchSize
 		} else {
-			le.waitGroup.Add(gap)
-			log.Infof("Syncing ETH , Height From %d To %d \n", le.currHeight+1, le.currHeight+int64(gap)+1)
+			waitSize = gap
 		}
+		log.Infof("Syncing ETH , Height From %d To %d \n", le.currHeight+1, le.currHeight+int64(waitSize)+1)
+		le.waitGroup.Add(waitSize)
 		count := 0
 		for curr := le.currHeight; curr <= int64(height); {
 			go func() {
@@ -417,7 +418,7 @@ func doSyncEth(le *level) error {
 				le.waitGroup.Done()
 			}()
 			count++
-			if count%config.Conf.Eth.BatchSize == 0 {
+			if count%waitSize == 0 {
 				break
 			}
 		}
