@@ -11,6 +11,8 @@ import (
 	. "github.com/elastos/Elastos.ORG.API.Misc/tools"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/filter"
+	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/util"
 	"io"
 	"math/rand"
@@ -330,7 +332,9 @@ func init() {
 				}
 			}
 		}
-		db, err := leveldb.OpenFile(dir, nil)
+		db, err := leveldb.OpenFile(dir, &opt.Options{
+			Filter: filter.NewBloomFilter(10),
+		})
 		if err != nil {
 			fmt.Printf("Error init level db %s", err.Error())
 			os.Exit(-1)
@@ -393,14 +397,20 @@ func doSyncEth(le *level) error {
 		if le.currHeight >= int64(height) {
 			return nil
 		}
-		le.waitGroup.Add(config.Conf.Eth.BatchSize)
+		gap := int(height) - int(le.currHeight)
+		if gap >= config.Conf.Eth.BatchSize {
+			le.waitGroup.Add(config.Conf.Eth.BatchSize)
+			log.Infof("Syncing ETH , Height From %d To %d \n", le.currHeight+1, le.currHeight+int64(config.Conf.Eth.BatchSize)+1)
+		} else {
+			le.waitGroup.Add(gap)
+			log.Infof("Syncing ETH , Height From %d To %d \n", le.currHeight+1, le.currHeight+int64(gap)+1)
+		}
 		count := 0
-		log.Infof("Syncing ETH , Height From %d To %d \n", le.currHeight+1, le.currHeight+int64(config.Conf.Eth.BatchSize)+1)
 		for curr := le.currHeight; curr <= int64(height); {
 			go func() {
 				time.Sleep(time.Duration(rand.Int31n(1000)) * time.Millisecond)
 				atomic.AddInt64(&curr, 1)
-				err = handleHeightEth(int(curr), le.b)
+				err = handleHeightEth(int(curr))
 				if err != nil {
 					unexpected = err
 				}
@@ -418,7 +428,7 @@ func doSyncEth(le *level) error {
 	return unexpected
 }
 
-func handleHeightEth(curr int, batch *leveldb.Batch) error {
+func handleHeightEth(curr int) error {
 	var resp map[string]interface{}
 	var err error
 	for i := 0; i < config.Conf.Eth.Retry; i++ {
@@ -439,6 +449,8 @@ func handleHeightEth(curr int, batch *leveldb.Batch) error {
 		return nil
 	}
 	timestamp := r["timestamp"]
+	var keys [][]byte
+	var values [][]byte
 	for index, txv := range txArr {
 		transaction := txv.(map[string]interface{})
 		v := Eth_transaction{}
@@ -477,13 +489,15 @@ func handleHeightEth(curr int, batch *leveldb.Batch) error {
 		v.GasUsed = gasUsed.(string)
 		v.IsError = isError
 		v.Input = "0x"
-
+		// From
 		var keyFrom bytes.Buffer
 		keyFrom.Write([]byte{byte(eth_history_prefix)})
 		keyFrom.Write(decodeHexToByte(v.From))
 		keyFrom.WriteRune(rune(curr))
 		keyFrom.WriteRune(rune(index))
 		val := v.Serialize()
+		keys = append(keys, keyFrom.Bytes())
+		values = append(values, val)
 
 		var keyTo bytes.Buffer
 		// TO
@@ -492,17 +506,15 @@ func handleHeightEth(curr int, batch *leveldb.Batch) error {
 			keyTo.Write(decodeHexToByte(v.To))
 			keyTo.WriteRune(rune(curr))
 			keyTo.WriteRune(rune(index))
-			le.m.Lock()
-			le.m.Unlock()
+			keys = append(keys, keyTo.Bytes())
+			values = append(values, val)
 		}
-		// From
-		le.m.Lock()
-		batch.Put(keyFrom.Bytes(), val)
-		if v.From != v.To {
-			batch.Put(keyTo.Bytes(), val)
-		}
-		le.m.Unlock()
 	}
+	le.m.Lock()
+	for i, k := range keys {
+		le.b.Put(k, values[i])
+	}
+	le.m.Unlock()
 	return nil
 }
 
