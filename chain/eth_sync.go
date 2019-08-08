@@ -486,7 +486,9 @@ func handleHeightEth(curr int, batch *leveldb.Batch) error {
 
 		val := v.Serialize()
 		// From
+		le.m.Lock()
 		batch.Put(key.Bytes(), val)
+		le.m.Unlock()
 		// TO
 		if v.From != v.To {
 			key.Reset()
@@ -494,7 +496,9 @@ func handleHeightEth(curr int, batch *leveldb.Batch) error {
 			key.Write(decodeHexToByte(v.To))
 			key.WriteRune(rune(curr))
 			key.WriteRune(rune(index))
+			le.m.Lock()
 			batch.Put(key.Bytes(), val)
+			le.m.Unlock()
 		}
 	}
 	return nil
