@@ -352,7 +352,6 @@ func SyncEth() {
 				log.Infof("Sync ETH Height Error : %v \n", err.Error())
 			} else {
 				le.l.Write(le.b, nil)
-				le.currHeight += int64(config.Conf.Eth.BatchSize)
 			}
 			<-time.After(time.Millisecond * 10000)
 		}
@@ -414,6 +413,7 @@ func doSyncEth(le *level) error {
 		}
 	}
 	le.waitGroup.Wait()
+	le.currHeight += int64(config.Conf.Eth.BatchSize)
 	le.b.Put([]byte{byte(curr_height_prefix)}, []byte(strconv.Itoa(int(le.currHeight))))
 	return unexpected
 }
