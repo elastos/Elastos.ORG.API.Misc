@@ -389,6 +389,7 @@ func doSyncEth(le *level) error {
 
 	hexHeight, ok := resp["result"]
 	var unexpected error = nil
+	var waitSize int
 	if ok {
 		height, err := hexutil.DecodeUint64(hexHeight.(string))
 		if err != nil {
@@ -398,7 +399,6 @@ func doSyncEth(le *level) error {
 			return nil
 		}
 		gap := int(height) - int(le.currHeight)
-		var waitSize int
 		if gap >= config.Conf.Eth.BatchSize {
 			waitSize = config.Conf.Eth.BatchSize
 		} else {
@@ -424,7 +424,7 @@ func doSyncEth(le *level) error {
 		}
 	}
 	le.waitGroup.Wait()
-	le.currHeight += int64(config.Conf.Eth.BatchSize)
+	le.currHeight += int64(waitSize)
 	le.b.Put([]byte{byte(curr_height_prefix)}, []byte(strconv.Itoa(int(le.currHeight))))
 	return unexpected
 }
