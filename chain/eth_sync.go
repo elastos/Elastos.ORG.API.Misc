@@ -343,7 +343,6 @@ func init() {
 		le = &level{
 			l:    db,
 			path: levelDbPath,
-			b:    new(leveldb.Batch),
 		}
 	}
 }
@@ -352,10 +351,14 @@ func init() {
 func SyncEth() {
 	go func() {
 		for {
+			le.b = new(leveldb.Batch)
 			if err := doSyncEth(le); err != nil {
-				log.Infof("Sync ETH Height Error : %v \n", err.Error())
+				log.Infof("Sync ETH Height Error : %v", err.Error())
 			} else {
-				le.l.Write(le.b, nil)
+				err := le.l.Write(le.b, nil)
+				if err != nil {
+					log.Errorf(" Error Syncing From Height : %d", le.currHeight+1)
+				}
 			}
 			<-time.After(time.Millisecond * 1000)
 		}

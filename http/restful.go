@@ -782,64 +782,76 @@ func getCmcPrice(w http.ResponseWriter, r *http.Request) {
 
 //getEthBalance get eth balance
 func getEthBalance(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	addr := params["addr"]
-	reqBody := `{"jsonrpc":"2.0","method":"eth_getBalance","params": ["` + addr + `","latest"],"id":1}`
-	data, err := tools.Post(config.Conf.Eth.Endpoint, reqBody)
-	if err != nil {
-		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
-		return
+	if config.Conf.Eth.Enable {
+		params := mux.Vars(r)
+		addr := params["addr"]
+		reqBody := `{"jsonrpc":"2.0","method":"eth_getBalance","params": ["` + addr + `","latest"],"id":1}`
+		data, err := tools.Post(config.Conf.Eth.Endpoint, reqBody)
+		if err != nil {
+			http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+			return
+		}
+		ret, err := json.Marshal(data)
+		if err != nil {
+			http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+			return
+		}
+		w.Write(ret)
+	} else {
+		http.Error(w, `{"result":" Eth service is not enabled  ","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 	}
-	ret, err := json.Marshal(data)
-	if err != nil {
-		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
-		return
-	}
-	w.Write(ret)
 }
 
 func sendEthRawTx(w http.ResponseWriter, r *http.Request) {
-	b, err := ioutil.ReadAll(r.Body)
-	data, err := tools.Post(config.Conf.Eth.Endpoint, string(b))
-	if err != nil {
-		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
-		return
+	if config.Conf.Eth.Enable {
+		b, err := ioutil.ReadAll(r.Body)
+		data, err := tools.Post(config.Conf.Eth.Endpoint, string(b))
+		if err != nil {
+			http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+			return
+		}
+		ret, err := json.Marshal(data)
+		if err != nil {
+			http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+			return
+		}
+		w.Write(ret)
+	} else {
+		http.Error(w, `{"result":" Eth service is not enabled  ","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 	}
-	ret, err := json.Marshal(data)
-	if err != nil {
-		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
-		return
-	}
-	w.Write(ret)
-
 }
 
 func getEthHistory(w http.ResponseWriter, r *http.Request) {
-	b, err := ioutil.ReadAll(r.Body)
-	var req map[string]string
-	err = json.Unmarshal(b, &req)
-	if err != nil {
-		http.Error(w, `{"result":"invalid request : `+err.Error()+`","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
-		return
+	if config.Conf.Eth.Enable {
+		b, err := ioutil.ReadAll(r.Body)
+		var req map[string]string
+		err = json.Unmarshal(b, &req)
+		if err != nil {
+			http.Error(w, `{"result":"invalid request : `+err.Error()+`","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
+			return
+		}
+		account := req["account"]
+		if account == "" {
+			http.Error(w, `{"result":"invalid request : `+err.Error()+`","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
+			return
+		}
+		history, err := chain.GetEthHistory(account)
+		if err != nil {
+			http.Error(w, `{"result":"invalid request : `+err.Error()+`","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
+			return
+		}
+		resp := make(map[string]interface{})
+		resp["status"] = 1
+		resp["message"] = "OK"
+		resp["result"] = history
+		retBuf, err := json.Marshal(resp)
+		if err != nil {
+			http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+			return
+		}
+		w.Write(retBuf)
+	} else {
+		http.Error(w, `{"result":" Eth service is not enabled  ","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 	}
-	account := req["account"]
-	if account == "" {
-		http.Error(w, `{"result":"invalid request : `+err.Error()+`","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
-		return
-	}
-	history, err := chain.GetEthHistory(account)
-	if err != nil {
-		http.Error(w, `{"result":"invalid request : `+err.Error()+`","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
-		return
-	}
-	resp := make(map[string]interface{})
-	resp["status"] = 1
-	resp["message"] = "OK"
-	resp["result"] = history
-	retBuf, err := json.Marshal(resp)
-	if err != nil {
-		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
-		return
-	}
-	w.Write(retBuf)
+
 }
