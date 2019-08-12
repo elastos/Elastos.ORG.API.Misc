@@ -3658,7 +3658,7 @@ transaction history of specific address
 
 Wrap Ethereum rpc
 ------------------------------------------------
-you can through request to this api as long as it compatible with ethereum rpc reqeust param
+you can throw request to this api as long as it compatible with ethereum rpc reqeust param
 
 .. http:post:: /api/1/eth/wrap
 
