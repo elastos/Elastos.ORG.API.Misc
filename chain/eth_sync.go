@@ -318,11 +318,12 @@ func init() {
 	if config.Conf.Eth.Enable {
 		var err error
 		user.Current()
-		homeDir, err := os.UserHomeDir()
+		user, err := user.Current()
 		if err != nil {
 			fmt.Printf("Error init level db %s", err.Error())
 			os.Exit(-1)
 		}
+		homeDir := user.HomeDir
 		dir := homeDir + levelDbPath
 		_, err = os.Stat(dir)
 		if err != nil {
