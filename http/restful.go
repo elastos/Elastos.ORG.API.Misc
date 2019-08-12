@@ -780,29 +780,7 @@ func getCmcPrice(w http.ResponseWriter, r *http.Request) {
 	w.Write(bytes.Join(ret, nil))
 }
 
-//getEthBalance get eth balance
-func getEthBalance(w http.ResponseWriter, r *http.Request) {
-	if config.Conf.Eth.Enable {
-		params := mux.Vars(r)
-		addr := params["addr"]
-		reqBody := `{"jsonrpc":"2.0","method":"eth_getBalance","params": ["` + addr + `","latest"],"id":1}`
-		data, err := tools.Post(config.Conf.Eth.Endpoint, reqBody)
-		if err != nil {
-			http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
-			return
-		}
-		ret, err := json.Marshal(data)
-		if err != nil {
-			http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
-			return
-		}
-		w.Write(ret)
-	} else {
-		http.Error(w, `{"result":" Eth service is not enabled  ","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
-	}
-}
-
-func sendEthRawTx(w http.ResponseWriter, r *http.Request) {
+func postRpc(w http.ResponseWriter, r *http.Request) {
 	if config.Conf.Eth.Enable {
 		b, err := ioutil.ReadAll(r.Body)
 		data, err := tools.Post(config.Conf.Eth.Endpoint, string(b))

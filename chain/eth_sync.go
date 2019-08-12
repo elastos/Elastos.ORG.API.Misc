@@ -17,6 +17,7 @@ import (
 	"io"
 	"math/rand"
 	"os"
+	"os/user"
 	"sort"
 	"strconv"
 	"sync"
@@ -316,6 +317,7 @@ func (tx *Eth_transaction) Serialize() []byte {
 func init() {
 	if config.Conf.Eth.Enable {
 		var err error
+		user.Current()
 		homeDir, err := os.UserHomeDir()
 		if err != nil {
 			fmt.Printf("Error init level db %s", err.Error())

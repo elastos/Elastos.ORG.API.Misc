@@ -3581,3 +3581,142 @@ If we can not get the public key of this adress.
             "result":"Can not find pubkey of this address, please using this address send a transaction first",
             "status":200
         }
+
+
+
+Ethereum
+=================================
+using the following api ,we can get eth statistic.
+
+Get transaction history
+------------------------------------------------
+transaction history of specific address
+
+.. http:post:: /api/1/eth/history
+
+   **Example request**:
+
+   .. sourcecode:: http
+
+    POST /api/1/eth/history HTTP/1.1
+    Host: localhost
+
+      {
+            "id":"19",
+            "account":"0x4ce978642500aa7b056A0329bfA8622f468211e6"
+      }
+
+   **Example response**:
+
+   .. sourcecode:: http
+
+      HTTP/1.1 200 OK
+      Content-Type: application/json
+
+      {
+          "message": "OK",
+          "result": [
+            {
+              "blockHash": "0x176e0840d64e7c0c147314d9c7daa225b7f4c972d323130da65cb91920cdc058",
+              "blockNumber": "8277549",
+              "from": "0x4ce978642500aa7b056a0329bfa8622f468211e6",
+              "gas": "37159",
+              "to": "0x30c9be0141938774caf58aea9887142493960476",
+              "gasPrice": "100000000000",
+              "hash": "0x85122cd584291c886325b3de83c3d2db12268246792e4d56297fa3267fae259e",
+              "input": "0x",
+              "nonce": "5",
+              "transactionIndex": "1",
+              "value": "0",
+              "gasUsed": "37159",
+              "cumulativeGasUsed": "58159",
+              "isError": "0",
+              "contractAddress": "0x0000000000000000000000000000000000000000",
+              "timeStamp": "1564833009"
+            },
+            {
+              "blockHash": "0x176e0840d64e7c0c147314d9c7daa225b7f4c972d323130da65cb91920cdc058",
+              "blockNumber": "8277549",
+              "from": "0x4ce978642500aa7b056a0329bfa8622f468211e6",
+              "gas": "37159",
+              "to": "0x30c9be0141938774caf58aea9887142493960476",
+              "gasPrice": "100000000000",
+              "hash": "0x8313932388c6199d9e5437c862662c835d1b641892914850a30a2b40a4f1b6a7",
+              "input": "0x",
+              "nonce": "6",
+              "transactionIndex": "2",
+              "value": "0",
+              "gasUsed": "37159",
+              "cumulativeGasUsed": "95318",
+              "isError": "0",
+              "contractAddress": "0x0000000000000000000000000000000000000000",
+              "timeStamp": "1564833009"
+            }
+          ],
+          "status": 1
+        }
+
+Wrap Ethereum rpc
+------------------------------------------------
+you can through request to this api as long as it compatible with ethereum rpc reqeust param
+
+.. http:post:: /api/1/eth/wrap
+
+   **Example request**:
+
+   .. sourcecode:: http
+
+    POST /api/1/eth/wrap HTTP/1.1
+    Host: localhost
+
+      {
+          "jsonrpc": "2.0",
+          "method": "eth_getBalance",
+          "params": [
+            "0xD109D62aD5bfAcC8869e35B4c0261dE5976d3b69",
+            "latest"
+          ],
+          "id": 5
+      }
+
+   **Example response**:
+
+   .. sourcecode:: http
+
+      HTTP/1.1 200 OK
+      Content-Type: application/json
+
+      {
+          "id":1,
+          "jsonrpc": "2.0",
+          "result": "0x0234c8a3397aab58" // 158972490234375000
+      }
+
+   **Example request**:
+
+   .. sourcecode:: http
+
+    POST /api/1/eth/wrap HTTP/1.1
+    Host: localhost
+
+      {
+          "jsonrpc": "2.0",
+          "method": "eth_sendRawTransaction",
+          "params": [
+            "0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675..."
+          ],
+          "id": 1
+      }
+
+   **Example response**:
+
+   .. sourcecode:: http
+
+      HTTP/1.1 200 OK
+      Content-Type: application/json
+
+      {
+          "id":1,
+          "jsonrpc": "2.0",
+          "result": "0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331"
+      }

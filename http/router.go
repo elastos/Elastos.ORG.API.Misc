@@ -79,11 +79,8 @@ var (
 		},
 
 		//eth
-		"/api/1/eth/balance/{addr}": {
-			"Get": getEthBalance,
-		},
-		"/api/1/eth/sendRawTx": {
-			"POST": sendEthRawTx,
+		"/api/1/eth/wrap": {
+			"POST": postRpc,
 		},
 		"/api/1/eth/history": {
 			"POST": getEthHistory,
