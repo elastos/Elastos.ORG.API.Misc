@@ -63,6 +63,7 @@ type Eth_transaction struct {
 	IsError           string `json:"isError"`
 	ContractAddress   string `json:"contractAddress"`
 	Timestamp         string `json:"timeStamp"`
+	Confirmations     string `json:"confirmations"`
 }
 
 type TransactionHistorySorter []Eth_transaction
@@ -538,6 +539,11 @@ func GetEthHistory(addr string) ([]Eth_transaction, error) {
 		if err != nil {
 			return nil, err
 		}
+		bn, err := strconv.Atoi(v.BlockNumber)
+		if err != nil {
+			return nil, err
+		}
+		v.Confirmations = strconv.Itoa(int(le.currHeight) - bn)
 		ret = append(ret, v)
 	}
 	defer iter.Release()
