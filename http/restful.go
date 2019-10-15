@@ -801,14 +801,24 @@ func postRpc(w http.ResponseWriter, r *http.Request) {
 
 func getEthHistory(w http.ResponseWriter, r *http.Request) {
 	if config.Conf.Eth.Enable {
-		b, err := ioutil.ReadAll(r.Body)
-		var req map[string]string
-		err = json.Unmarshal(b, &req)
-		if err != nil {
-			http.Error(w, `{"result":"invalid request : `+err.Error()+`","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
-			return
+		var account string
+		var err error
+		if strings.ToUpper(r.Method) == "POST"  {
+			b, err := ioutil.ReadAll(r.Body)
+			var req map[string]string
+			err = json.Unmarshal(b, &req)
+			if err != nil {
+				http.Error(w, `{"result":"invalid request : `+err.Error()+`","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
+				return
+			}
+			account = req["account"]
+			if account == "" {
+				http.Error(w, `{"result":"invalid request : `+err.Error()+`","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
+				return
+			}
+		}else {
+			account = r.FormValue("address")
 		}
-		account := req["account"]
 		if account == "" {
 			http.Error(w, `{"result":"invalid request : `+err.Error()+`","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 			return

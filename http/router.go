@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	"strings"
 )
 
 var (
@@ -83,7 +84,7 @@ var (
 			"POST": postRpc,
 		},
 		"/api/1/eth/history": {
-			"POST": getEthHistory,
+			"POST,GET": getEthHistory,
 		},
 	}
 	router = mux.NewRouter()
@@ -92,7 +93,10 @@ var (
 func init() {
 	for p, r := range routers {
 		for m, h := range r {
-			router.HandleFunc(p, h).Methods(m)
+			ms := strings.Split(m,",")
+			for _ , v := range ms {
+				router.HandleFunc(p, h).Methods(v)
+			}
 		}
 	}
 	router.Use(cors)
