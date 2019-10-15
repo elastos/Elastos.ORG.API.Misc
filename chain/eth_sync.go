@@ -431,8 +431,10 @@ func doSyncEth(le *level) error {
 		}
 	}
 	le.waitGroup.Wait()
-	le.currHeight += int64(waitSize)
-	le.b.Put([]byte{byte(curr_height_prefix)}, []byte(strconv.Itoa(int(le.currHeight))))
+	if unexpected == nil {
+		le.currHeight += int64(waitSize)
+		le.b.Put([]byte{byte(curr_height_prefix)}, []byte(strconv.Itoa(int(le.currHeight))))
+	}
 	return unexpected
 }
 

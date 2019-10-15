@@ -1461,6 +1461,70 @@ transaction history of specific address
           "status": 1
         }
 
+.. http:get:: /api/1/eth/history?address=(string:`addr`)
+
+get eth transaction history
+
+   **Example request**:
+
+   .. sourcecode:: http
+
+      GET /api/1/eth/history?address=0x4ce978642500aa7b056A0329bfA8622f468211e6 HTTP/1.1
+      Host: localhost
+
+   **Example response**:
+
+   .. sourcecode:: http
+
+      HTTP/1.1 200 OK
+      Content-Type: application/json
+
+        {
+          "message": "OK",
+          "result": [
+            {
+              "blockHash": "0x6be299e7ad6a8c2f2e958e30f3804f9732c744ce5563fe26917b621de78c9d2c",
+              "blockNumber": "7000510",
+              "from": "0x3f5ce5fbfe3e9af3971dd833d26ba9b5c936f0be",
+              "gas": "21000",
+              "to": "0xd68c7a32cdb5b1f8a9c540e7781fa370145af27c",
+              "gasPrice": "40000000000",
+              "hash": "0x6b3ba1970bb2e5148866868f30b522aa0d64940a6f10f95a9a99f5e2c885fc2f",
+              "input": "0x",
+              "nonce": "2858612",
+              "transactionIndex": "18",
+              "value": "485139180000000000",
+              "gasUsed": "21000",
+              "cumulativeGasUsed": "537088",
+              "isError": "0",
+              "contractAddress": "0x0000000000000000000000000000000000000000",
+              "timeStamp": "1546474873",
+              "confirmations": "11"
+            },
+            {
+              "blockHash": "0xba0afb0c3cd2049026b9b75216fc4ac16672d8bcce67954e75e536ebffa6a901",
+              "blockNumber": "7000517",
+              "from": "0xd68c7a32cdb5b1f8a9c540e7781fa370145af27c",
+              "gas": "50000",
+              "to": "0xf7793d27a1b76cdf14db7c83e82c772cf7c92910",
+              "gasPrice": "2000000000",
+              "hash": "0x59865d793c58704ea09e23f351b6ee1e327c8c52ecda3f91dcc06b4a003e32d4",
+              "input": "0x",
+              "nonce": "0",
+              "transactionIndex": "136",
+              "value": "485039180000000000",
+              "gasUsed": "21000",
+              "cumulativeGasUsed": "7878416",
+              "isError": "0",
+              "contractAddress": "0x0000000000000000000000000000000000000000",
+              "timeStamp": "1546474993",
+              "confirmations": "4"
+            }
+          ],
+          "status": 1
+        }
+
+
 Wrap Ethereum rpc
 ------------------------------------------------
 you can throw request to this api as long as it compatible with ethereum rpc reqeust param
