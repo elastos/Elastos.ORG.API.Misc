@@ -216,7 +216,7 @@ func producerStatistic(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		iHeight = 99999999
 	}
-	rst, err := dba.ToStruct("select Producer_public_key,Vote_type,Txid,Value,Address,Block_time,Height from chain_vote_info where producer_public_key = '"+pub+"' and (outputlock = 0 or outputlock >= height) and is_valid = 'YES' and height <= "+strconv.Itoa(iHeight), ret{})
+	rst, err := dba.ToStruct("select Producer_public_key,Vote_type,Txid,Value,Address,Block_time,Height from chain_vote_info where producer_public_key = '"+pub+"' and (outputlock = 0 or outputlock >= height) and (cancel_height > "+strconv.Itoa(iHeight)+" or cancel_height is null) and height <=  "+strconv.Itoa(iHeight), ret{})
 	if err != nil {
 		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 		return
@@ -829,7 +829,7 @@ func getEthHistory(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		resp := make(map[string]interface{})
-		resp["status"] = 1
+		resp["status"] = "1"
 		resp["message"] = "OK"
 		resp["result"] = history
 		retBuf, err := json.Marshal(resp)
@@ -842,4 +842,96 @@ func getEthHistory(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"result":" Eth service is not enabled  ","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 	}
 
+}
+
+func getCurrencies(w http.ResponseWriter, r *http.Request) {
+	b := tools.ReadFile("erc20.json")
+	if b == nil {
+		http.Error(w, `{"result":"internal error ","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+	}
+	w.Write(b)
+}
+
+func getLogs(w http.ResponseWriter, r *http.Request){
+	fromBlock, toBlock,topic0 ,topic1,topic1_2_opr,topic2 := r.FormValue("fromBlock"), r.FormValue("toBlock"),r.FormValue("topic0"),r.FormValue("topic1"),r.FormValue("topic1_2_opr"),r.FormValue("topic2")
+	if fromBlock == "" || toBlock == "" || topic0 == "" || topic1 == "" || topic1_2_opr == "" || topic2 == "" {
+		http.Error(w, `{"result":"invalid request param ","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
+		return
+	}
+	req_prefix := `{
+    	"jsonrpc":"2.0",
+    	"method":"eth_getLogs",
+    	"params":[{
+            	"topics":[`
+	req_suffix :=`
+            	],	    	
+				"fromBlock":"%s",
+	    		"toBlock":"%s"
+        	}
+    	],
+    	"id":67
+	}`
+	var data map[string]interface{}
+	var err error
+	if topic1_2_opr == "and" {
+		print(req_prefix +"\"" + topic0+ "\",\"" + topic1+"\",\""+topic2+"\"" +fmt.Sprintf(req_suffix ,fromBlock,toBlock))
+		data, err = tools.Post(config.Conf.Eth.Endpoint, req_prefix +"\"" + topic0+ "\",\"" + topic1+"\",\""+topic2+"\"" +fmt.Sprintf(req_suffix ,fromBlock,toBlock))
+		if err != nil {
+			http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+			return
+		}
+	}else if topic1_2_opr == "or" {
+		print(req_prefix +"\"" + topic0+ "\",null,\""+topic2+"\"" +fmt.Sprintf(req_suffix ,fromBlock,toBlock))
+		data_p1, err := tools.Post(config.Conf.Eth.Endpoint, req_prefix +"\"" + topic0+ "\",null,\""+topic2+"\"" +fmt.Sprintf(req_suffix ,fromBlock,toBlock))
+		if err != nil {
+			http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+			return
+		}
+		print(req_prefix +"\"" + topic0+ "\","+topic1+",null" +fmt.Sprintf(req_suffix ,fromBlock,toBlock))
+		data_p2, err := tools.Post(config.Conf.Eth.Endpoint, req_prefix +"\"" + topic0+ "\",\""+topic1+"\",null" +fmt.Sprintf(req_suffix ,fromBlock,toBlock))
+		if err != nil {
+			http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+			return
+		}
+		r1 , ok := data_p1["result"].([]interface{})
+		if !ok {
+			http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+			return
+		}
+		r2 , ok := data_p2["result"].([]interface{})
+		if !ok {
+			http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+			return
+		}
+		copy(r1,r2)
+		data = data_p1
+	}
+
+	ret, err := json.Marshal(data)
+	if err != nil {
+		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+		return
+	}
+	w.Write(ret)
+}
+
+func getTokenBalance(w http.ResponseWriter, r *http.Request){
+	address, contractaddress := r.FormValue("address"), r.FormValue("contractaddress")
+	if address == "" || contractaddress == "" {
+		http.Error(w, `{"result":"invalid request param ","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
+		return
+	}
+	req := `{"jsonrpc":"2.0","method":"eth_call","params":[{"to":"%s","data":"%s"},"latest"],"id":67}`
+	println(fmt.Sprintf(req , contractaddress, "0x70a08231000000000000000000000000" + address[2:]))
+	data, err := tools.Post(config.Conf.Eth.Endpoint, fmt.Sprintf(req , contractaddress, "0x70a08231000000000000000000000000" + address[2:]))
+	if err != nil {
+		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+		return
+	}
+	ret, err := json.Marshal(data)
+	if err != nil {
+		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+		return
+	}
+	w.Write(ret)
 }
