@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/elastos/Elastos.ORG.API.Misc/config"
@@ -28,6 +29,7 @@ import (
 var (
 	levelDbPath = "/.misc/eth"
 	le          *level
+	Tokens      = make([]interface{}, 0)
 )
 
 type level struct {
@@ -37,13 +39,15 @@ type level struct {
 	waitGroup  sync.WaitGroup
 	m          sync.Mutex
 	path       string
+	tokens     map[string]bool
 }
 
 type key_prefix byte
 
 var (
-	curr_height_prefix key_prefix = 0x01
-	eth_history_prefix key_prefix = 0x02
+	curr_height_prefix       key_prefix = 0x01
+	eth_history_prefix       key_prefix = 0x02
+	eth_token_history_prefix key_prefix = 0x03
 )
 
 type Eth_transaction struct {
@@ -64,6 +68,19 @@ type Eth_transaction struct {
 	ContractAddress   string `json:"contractAddress"`
 	Timestamp         string `json:"timeStamp"`
 	Confirmations     string `json:"confirmations"`
+}
+
+type Eth_token_transaction struct {
+	Address          string        `json:"address"`
+	BlockNumber      string        `json:"blockNumber"`
+	Data             string        `json:"data"`
+	LogIndex         string        `json:"logIndex"`
+	Topics           []interface{} `json:"topics"`
+	TransactionHash  string        `json:"transactionHash"`
+	TransactionIndex string        `json:"transactionIndex"`
+	GasUsed          string        `json:"gasUsed"`
+	GasPrice         string        `json:"gasPrice"`
+	TimeStamp        string        `json:"timeStamp"`
 }
 
 type TransactionHistorySorter []Eth_transaction
@@ -260,6 +277,198 @@ func (tx *Eth_transaction) Deserialize(data []byte) error {
 	return nil
 }
 
+func (tx *Eth_token_transaction) Deserialize(data []byte) error {
+	var r bytes.Buffer
+	_, err := r.Write(data)
+	if err != nil {
+		return err
+	}
+
+	// blockNumber
+	len, err := readByte(&r)
+	if err != nil {
+		return err
+	}
+	blockNumber, err := readBytesToStr(&r, len, true)
+	if err != nil {
+		return err
+	}
+	tx.BlockNumber = blockNumber
+
+	// GasPrice
+
+	len, err = readByte(&r)
+	if err != nil {
+		return err
+	}
+	GasPrice, err := readBytesToStr(&r, len, true)
+	if err != nil {
+		return err
+	}
+	tx.GasPrice = GasPrice
+
+	// Hash
+
+	len, err = readByte(&r)
+	if err != nil {
+		return err
+	}
+	Hash, err := readBytesToHexStr(&r, len)
+	if err != nil {
+		return err
+	}
+	tx.TransactionHash = Hash
+
+	// TransactionIndex
+
+	len, err = readByte(&r)
+	if err != nil {
+		return err
+	}
+	TransactionIndex, err := readBytesToStr(&r, len, true)
+	if err != nil {
+		return err
+	}
+	tx.TransactionIndex = TransactionIndex
+
+	// GasUsed
+
+	len, err = readByte(&r)
+	if err != nil {
+		return err
+	}
+	GasUsed, err := readBytesToStr(&r, len, true)
+	if err != nil {
+		return err
+	}
+	tx.GasUsed = GasUsed
+
+	// ContractAddress
+
+	len, err = readByte(&r)
+	if err != nil {
+		return err
+	}
+	ContractAddress, err := readBytesToHexStr(&r, len)
+	if err != nil {
+		return err
+	}
+	tx.Address = ContractAddress
+
+	//Timestamp
+
+	len, err = readByte(&r)
+	if err != nil {
+		return err
+	}
+	Timestamp, err := readBytesToStr(&r, len, true)
+	if err != nil {
+		return err
+	}
+	tx.TimeStamp = Timestamp
+
+	//Topics
+	len, err = readByte(&r)
+	if err != nil {
+		return err
+	}
+	tLen, err := readBytesToStr(&r, len, false)
+	if err != nil {
+		return err
+	}
+	l, err := strconv.Atoi(tLen)
+	if err != nil {
+		return err
+	}
+	var topics []interface{}
+	for i := 0; i < l; i++ {
+		len, err = readByte(&r)
+		if err != nil {
+			return err
+		}
+		topic, err := readBytesToHexStr(&r, len)
+		if err != nil {
+			return err
+		}
+		topics = append(topics, topic)
+	}
+	tx.Topics = topics
+
+	//Data
+	len, err = readByte(&r)
+	if err != nil {
+		return err
+	}
+	d, err := readBytesToHexStr(&r, len)
+	if err != nil {
+		return err
+	}
+	tx.Data = d
+
+	// LogIndex
+	len, err = readByte(&r)
+	if err != nil {
+		return err
+	}
+	LogIndex, err := readBytesToStr(&r, len, true)
+	if err != nil {
+		return err
+	}
+	tx.LogIndex = LogIndex
+
+	return nil
+}
+
+func (txt *Eth_token_transaction) Serialize() []byte {
+	var b bytes.Buffer
+
+	b.WriteByte(byte(len(txt.BlockNumber) - 2))
+	b.Write([]byte(txt.BlockNumber[2:]))
+
+	b.WriteByte(byte(len(txt.GasPrice) - 2))
+	b.Write([]byte(txt.GasPrice[2:]))
+
+	hash := decodeHexToByte(txt.TransactionHash)
+	b.WriteByte(byte(len(hash)))
+	b.Write(hash)
+
+	b.WriteByte(byte(len(txt.TransactionIndex) - 2))
+	b.Write([]byte(txt.TransactionIndex[2:]))
+
+	b.WriteByte(byte(len(txt.GasUsed) - 2))
+	b.Write([]byte(txt.GasUsed[2:]))
+
+	contractAddress := decodeHexToByte(txt.Address)
+	b.WriteByte(byte(len(contractAddress)))
+	b.Write(contractAddress)
+
+	b.WriteByte(byte(len(txt.TimeStamp) - 2))
+	b.Write([]byte(txt.TimeStamp[2:]))
+
+	b.WriteByte(byte(len(strconv.Itoa(len(txt.Topics)))))
+	b.Write([]byte(strconv.Itoa(len(txt.Topics))))
+	for _, topic := range txt.Topics {
+		t := decodeHexToByte(topic.(string))
+		b.WriteByte(byte(len(t)))
+		b.Write(t)
+	}
+
+	data := decodeHexToByte(txt.Data)
+	b.WriteByte(byte(len(data)))
+	b.Write(data)
+
+	b.WriteByte(byte(len(txt.LogIndex) - 2))
+	b.Write([]byte(txt.LogIndex[2:]))
+
+	return b.Bytes()
+}
+
+type TransactionTokenHistorySorter []Eth_token_transaction
+
+func (a TransactionTokenHistorySorter) Len() int           { return len(a) }
+func (a TransactionTokenHistorySorter) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a TransactionTokenHistorySorter) Less(i, j int) bool { return a[i].TimeStamp < a[j].TimeStamp }
+
 func (tx *Eth_transaction) Serialize() []byte {
 	var b bytes.Buffer
 	blockHash := decodeHexToByte(tx.BlockHash)
@@ -344,10 +553,29 @@ func init() {
 			os.Exit(-1)
 			return
 		}
-		le = &level{
-			l:    db,
-			path: levelDbPath,
+
+		erc20 := ReadFile("erc20.json")
+		if erc20 == nil {
+			fmt.Printf("Error init erc20 token")
+			os.Exit(-1)
 		}
+		err = json.Unmarshal(erc20, &Tokens)
+		if err != nil {
+			fmt.Printf("Error init erc20 token %s", err.Error())
+			os.Exit(-1)
+		}
+		tokens := make(map[string]bool)
+		for _, v := range Tokens {
+			t := v.(map[string]interface{})
+			tokens[t["contract_address"].(string)] = true
+		}
+
+		le = &level{
+			l:      db,
+			path:   levelDbPath,
+			tokens: tokens,
+		}
+
 	}
 }
 
@@ -519,6 +747,49 @@ func handleHeightEth(curr int) error {
 			keys = append(keys, keyTo.Bytes())
 			values = append(values, val)
 		}
+
+		if isError == "0" {
+			_, ok := le.tokens[v.To]
+			if ok {
+				logs, ok := receipt["logs"].([]interface{})
+				if ok {
+					for _, l := range logs {
+						rl := l.(map[string]interface{})
+						topics, ok := rl["topics"].([]interface{})
+						if ok && len(topics) >= 3 && topics[0].(string) == "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef" {
+							ett := Eth_token_transaction{}
+							Map2Struct(rl, &ett)
+							ett.GasUsed = v.GasUsed
+							ett.GasPrice = v.GasPrice
+							ett.TimeStamp = v.Timestamp
+
+							// From
+							var keyFromToken bytes.Buffer
+							keyFromToken.Write([]byte{byte(eth_token_history_prefix)})
+							keyFromToken.Write(decodeHexToByte(GetEthAddress(topics[1].(string))))
+							keyFromToken.WriteRune(rune(curr))
+							keyFromToken.WriteRune(rune(index))
+							val := ett.Serialize()
+							keys = append(keys, keyFromToken.Bytes())
+							fmt.Printf(" address from %v \n", GetEthAddress(topics[1].(string)))
+							values = append(values, val)
+
+							var keyToToken bytes.Buffer
+							// TO
+							if topics[1].(string) != topics[2].(string) {
+								keyToToken.Write([]byte{byte(eth_token_history_prefix)})
+								keyToToken.Write(decodeHexToByte(GetEthAddress(topics[2].(string))))
+								keyToToken.WriteRune(rune(curr))
+								keyToToken.WriteRune(rune(index))
+								keys = append(keys, keyToToken.Bytes())
+								fmt.Printf(" address to %v \n", GetEthAddress(topics[2].(string)))
+								values = append(values, val)
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 	le.m.Lock()
 	for i, k := range keys {
@@ -550,6 +821,44 @@ func GetEthHistory(addr string) ([]Eth_transaction, error) {
 	}
 	defer iter.Release()
 	sort.Sort(ret)
+	return ret, nil
+}
+
+func GetEthTokenLogs(from string, to string) ([]Eth_token_transaction, error) {
+	spend, err := doGetEthTokenLogs(from)
+	if err != nil {
+		return nil, err
+	}
+	var income TransactionTokenHistorySorter
+	if from != to {
+		income, err = doGetEthTokenLogs(to)
+		if err != nil {
+			return nil, err
+		}
+	}
+	ret := make(TransactionTokenHistorySorter, len(spend)+len(income))
+	copy(ret, spend)
+	copy(ret[len(spend):], income)
+	sort.Sort(ret)
+	return ret, nil
+}
+
+func doGetEthTokenLogs(addr string) (TransactionTokenHistorySorter, error) {
+	var buf bytes.Buffer
+	buf.Write([]byte{byte(eth_token_history_prefix)})
+	buf.Write(decodeHexToByte(addr))
+	iter := le.l.NewIterator(util.BytesPrefix(buf.Bytes()), nil)
+	ret := make(TransactionTokenHistorySorter, 0)
+	for iter.Next() {
+		var v Eth_token_transaction
+		value := iter.Value()
+		err := v.Deserialize(value)
+		if err != nil {
+			return nil, err
+		}
+		ret = append(ret, v)
+	}
+	defer iter.Release()
 	return ret, nil
 }
 

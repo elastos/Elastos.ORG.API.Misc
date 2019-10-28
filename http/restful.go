@@ -11,6 +11,7 @@ import (
 	"github.com/elastos/Elastos.ORG.API.Misc/db"
 	"github.com/elastos/Elastos.ORG.API.Misc/log"
 	"github.com/elastos/Elastos.ORG.API.Misc/tools"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/gorilla/mux"
 	"html/template"
 	"io/ioutil"
@@ -803,7 +804,7 @@ func getEthHistory(w http.ResponseWriter, r *http.Request) {
 	if config.Conf.Eth.Enable {
 		var account string
 		var err error
-		if strings.ToUpper(r.Method) == "POST"  {
+		if strings.ToUpper(r.Method) == "POST" {
 			b, err := ioutil.ReadAll(r.Body)
 			var req map[string]string
 			err = json.Unmarshal(b, &req)
@@ -816,7 +817,7 @@ func getEthHistory(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, `{"result":"invalid request : `+err.Error()+`","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 				return
 			}
-		}else {
+		} else {
 			account = r.FormValue("address")
 		}
 		if account == "" {
@@ -845,93 +846,80 @@ func getEthHistory(w http.ResponseWriter, r *http.Request) {
 }
 
 func getCurrencies(w http.ResponseWriter, r *http.Request) {
-	b := tools.ReadFile("erc20.json")
-	if b == nil {
-		http.Error(w, `{"result":"internal error ","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+	if config.Conf.Eth.Enable {
+		d, err := json.Marshal(chain.Tokens)
+		if err != nil {
+			http.Error(w, `{"result":"internal error ","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+			return
+		}
+		w.Write(d)
+	} else {
+		http.Error(w, `{"result":" Eth service is not enabled  ","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 	}
-	w.Write(b)
 }
 
-func getLogs(w http.ResponseWriter, r *http.Request){
-	fromBlock, toBlock,topic0 ,topic1,topic1_2_opr,topic2 := r.FormValue("fromBlock"), r.FormValue("toBlock"),r.FormValue("topic0"),r.FormValue("topic1"),r.FormValue("topic1_2_opr"),r.FormValue("topic2")
-	if fromBlock == "" || toBlock == "" || topic0 == "" || topic1 == "" || topic1_2_opr == "" || topic2 == "" {
-		http.Error(w, `{"result":"invalid request param ","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
-		return
-	}
-	req_prefix := `{
-    	"jsonrpc":"2.0",
-    	"method":"eth_getLogs",
-    	"params":[{
-            	"topics":[`
-	req_suffix :=`
-            	],	    	
-				"fromBlock":"%s",
-	    		"toBlock":"%s"
-        	}
-    	],
-    	"id":67
-	}`
-	var data map[string]interface{}
-	var err error
-	if topic1_2_opr == "and" {
-		print(req_prefix +"\"" + topic0+ "\",\"" + topic1+"\",\""+topic2+"\"" +fmt.Sprintf(req_suffix ,fromBlock,toBlock))
-		data, err = tools.Post(config.Conf.Eth.Endpoint, req_prefix +"\"" + topic0+ "\",\"" + topic1+"\",\""+topic2+"\"" +fmt.Sprintf(req_suffix ,fromBlock,toBlock))
+func getLogs(w http.ResponseWriter, r *http.Request) {
+	if config.Conf.Eth.Enable {
+		fromBlock, toBlock, topic0, topic1, topic1_2_opr, topic2 := r.FormValue("fromBlock"), r.FormValue("toBlock"), r.FormValue("topic0"), r.FormValue("topic1"), r.FormValue("topic1_2_opr"), r.FormValue("topic2")
+		if fromBlock == "" || toBlock == "" || topic0 == "" || topic1 == "" || topic1_2_opr == "" || topic2 == "" {
+			http.Error(w, `{"result":"invalid request param ","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
+			return
+		}
+		if topic1_2_opr != "or" || fromBlock != "0" || toBlock != "latest" {
+			http.Error(w, `{"result":"invalid instruction","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
+			return
+		}
+		if len(tools.GetEthAddress(topic1)) != 42 || len(tools.GetEthAddress(topic2)) != 42 {
+			http.Error(w, `{"result":"invalid topic","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
+			return
+		}
+		from := strings.TrimLeft(topic1[2:], "0")
+		to := strings.TrimLeft(topic2[2:], "0")
+		logs, err := chain.GetEthTokenLogs("0x"+from, "0x"+to)
 		if err != nil {
 			http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 			return
 		}
-	}else if topic1_2_opr == "or" {
-		print(req_prefix +"\"" + topic0+ "\",null,\""+topic2+"\"" +fmt.Sprintf(req_suffix ,fromBlock,toBlock))
-		data_p1, err := tools.Post(config.Conf.Eth.Endpoint, req_prefix +"\"" + topic0+ "\",null,\""+topic2+"\"" +fmt.Sprintf(req_suffix ,fromBlock,toBlock))
+		smb := make(map[string]interface{})
+		smb["status"] = "1"
+		smb["message"] = "OK"
+		smb["result"] = logs
+		ret, err := json.Marshal(smb)
 		if err != nil {
 			http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
 			return
 		}
-		print(req_prefix +"\"" + topic0+ "\","+topic1+",null" +fmt.Sprintf(req_suffix ,fromBlock,toBlock))
-		data_p2, err := tools.Post(config.Conf.Eth.Endpoint, req_prefix +"\"" + topic0+ "\",\""+topic1+"\",null" +fmt.Sprintf(req_suffix ,fromBlock,toBlock))
-		if err != nil {
-			http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
-			return
-		}
-		r1 , ok := data_p1["result"].([]interface{})
-		if !ok {
-			http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
-			return
-		}
-		r2 , ok := data_p2["result"].([]interface{})
-		if !ok {
-			http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
-			return
-		}
-		copy(r1,r2)
-		data = data_p1
+		w.Write(ret)
+	} else {
+		http.Error(w, `{"result":" Eth service is not enabled  ","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 	}
-
-	ret, err := json.Marshal(data)
-	if err != nil {
-		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
-		return
-	}
-	w.Write(ret)
 }
 
-func getTokenBalance(w http.ResponseWriter, r *http.Request){
-	address, contractaddress := r.FormValue("address"), r.FormValue("contractaddress")
-	if address == "" || contractaddress == "" {
-		http.Error(w, `{"result":"invalid request param ","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
-		return
+func getTokenBalance(w http.ResponseWriter, r *http.Request) {
+	if config.Conf.Eth.Enable {
+		address, contractaddress := r.FormValue("address"), r.FormValue("contractaddress")
+		if address == "" || contractaddress == "" {
+			http.Error(w, `{"result":"invalid request param ","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
+			return
+		}
+		req := `{"jsonrpc":"2.0","method":"eth_call","params":[{"to":"%s","data":"%s"},"latest"],"id":67}`
+		data, err := tools.Post(config.Conf.Eth.Endpoint, fmt.Sprintf(req, contractaddress, "0x70a08231000000000000000000000000"+address[2:]))
+		if err != nil {
+			http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+			return
+		}
+		d := data["result"].(string)
+		token := strings.TrimLeft(strings.Replace(d, "0x", "", -1), "0")
+		if len(token) == 0 {
+			token = "0"
+		}
+		decimalToken, err := hexutil.DecodeUint64("0x" + token)
+		if err != nil {
+			http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
+			return
+		}
+		w.Write([]byte(`{"result":"` + fmt.Sprintf("%d", decimalToken) + `","status":"1","message":"OK"}`))
+	} else {
+		http.Error(w, `{"result":" Eth service is not enabled  ","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 	}
-	req := `{"jsonrpc":"2.0","method":"eth_call","params":[{"to":"%s","data":"%s"},"latest"],"id":67}`
-	println(fmt.Sprintf(req , contractaddress, "0x70a08231000000000000000000000000" + address[2:]))
-	data, err := tools.Post(config.Conf.Eth.Endpoint, fmt.Sprintf(req , contractaddress, "0x70a08231000000000000000000000000" + address[2:]))
-	if err != nil {
-		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
-		return
-	}
-	ret, err := json.Marshal(data)
-	if err != nil {
-		http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
-		return
-	}
-	w.Write(ret)
 }

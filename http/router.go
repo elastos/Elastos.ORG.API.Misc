@@ -86,6 +86,15 @@ var (
 		"/api/1/eth/history": {
 			"POST,GET": getEthHistory,
 		},
+		"/api/1/eth/currencies": {
+			"Get": getCurrencies,
+		},
+		"/api/1/eth/getLogs": {
+			"GeT": getLogs,
+		},
+		"/api/1/eth/token/balance": {
+			"GeT": getTokenBalance,
+		},
 	}
 	router = mux.NewRouter()
 )
@@ -93,8 +102,8 @@ var (
 func init() {
 	for p, r := range routers {
 		for m, h := range r {
-			ms := strings.Split(m,",")
-			for _ , v := range ms {
+			ms := strings.Split(m, ",")
+			for _, v := range ms {
 				router.HandleFunc(p, h).Methods(v)
 			}
 		}

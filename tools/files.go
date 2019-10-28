@@ -6,17 +6,17 @@ import (
 	"os"
 )
 
-func ReadFile(fullPath string) (b []byte){
+func ReadFile(fullPath string) (b []byte) {
 
-	_ , err := os.Stat(fullPath)
+	_, err := os.Stat(fullPath)
 	if err != nil {
-		log.Warnf("Can not find %s ",fullPath)
+		log.Warnf("Can not find %s ", fullPath)
 		return nil
 	}
 
-	b , err = ioutil.ReadFile(fullPath)
+	b, err = ioutil.ReadFile(fullPath)
 	if err != nil {
-		log.Warnf("Read file err %s ",err.Error())
+		log.Warnf("Read file err %s ", err.Error())
 	}
 	return
 }
