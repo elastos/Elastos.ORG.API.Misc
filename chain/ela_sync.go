@@ -82,7 +82,7 @@ const (
 	Confirmations  int = 0x92
 )
 
-var dba = db.NewInstance()
+var dba *db.Dialect
 
 type Address_history struct {
 	History  []Block_transaction_history
@@ -759,4 +759,10 @@ func CreateRegistedRedeemedScript(publicKey *crypto.PublicKey) ([]byte, error) {
 	buf.WriteByte(byte(common.REGISTERID))
 
 	return buf.Bytes(), nil
+}
+
+func init(){
+	if config.Conf.Ela.Enable {
+		dba = db.NewInstance()
+	}
 }

@@ -22,7 +22,7 @@ import (
 )
 
 var (
-	dba = db.NewInstance()
+	dba *db.Dialect
 )
 
 func StartServer() {
@@ -921,5 +921,11 @@ func getTokenBalance(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`{"result":"` + fmt.Sprintf("%d", decimalToken) + `","status":"1","message":"OK"}`))
 	} else {
 		http.Error(w, `{"result":" Eth service is not enabled  ","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
+	}
+}
+
+func init(){
+	if config.Conf.Ela.Enable {
+		dba = db.NewInstance()
 	}
 }

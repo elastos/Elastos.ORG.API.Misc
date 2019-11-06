@@ -72,11 +72,13 @@ type CmcResponse struct {
 	Data   []Data
 }
 
-var dba = db.NewInstance()
-var dbaforela = db.NewInstance()
+var dba *db.Dialect
+var dbaforela *db.Dialect
 
 func init() {
 	if config.Conf.Cmc.Enable {
+		dba = db.NewInstance()
+		dbaforela = db.NewInstance()
 		go func() {
 			i := -1
 			sleepy, err := time.ParseDuration(config.Conf.Cmc.Inteval)
