@@ -925,7 +925,7 @@ func getTokenBalance(w http.ResponseWriter, r *http.Request) {
 }
 
 func init(){
-	if config.Conf.Ela.Enable {
+	if config.Conf.Ela.Enable || config.Conf.Cmc.Enable{
 		dba = db.NewInstance()
 	}
 }
