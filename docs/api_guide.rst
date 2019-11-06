@@ -1525,7 +1525,7 @@ get eth transaction history
         }
 
 
-Wrap Ethereum rpc
+Wrap ethereum rpc
 ------------------------------------------------
 you can throw request to this api as long as it compatible with ethereum rpc reqeust param
 
@@ -1591,10 +1591,10 @@ you can throw request to this api as long as it compatible with ethereum rpc req
       }
 
 
-Get Token Balance
+Get token balance
 ------------------------------------------------
 
-.. http:get:: /api/1/eth/token/balance?address=0x289B44672d8499A51130d65d2087A151c4e45966&contractaddress=0xa8cac329f783edac931815c5466e283d48c9d7f7
+.. http:get:: /api/1/eth/token/balance
 
 get token balance
 
@@ -1602,7 +1602,7 @@ get token balance
 
    .. sourcecode:: http
 
-      GET /api/1/eth/token/balance? HTTP/1.1
+      GET /api/1/eth/token/balance?address=0x289B44672d8499A51130d65d2087A151c4e45966&contractaddress=0xa8cac329f783edac931815c5466e283d48c9d7f7 HTTP/1.1
       Host: localhost
 
    **Example response**:
@@ -1618,8 +1618,10 @@ get token balance
             "message":"OK"
         }
 
-Get Supported Erc20 Currencies
+
+Get supported erc20 Currencies
 ------------------------------------------------
+
 
 .. http:get:: /api/1/eth/currencies
 
@@ -1657,9 +1659,13 @@ Get Supported Erc20 Currencies
             }
         ]
 
+Get erc20 transaction logs
+------------------------------------------------
+
+
 .. http:get:: /api/1/eth/getLogs
 
-get eth20 transaction history
+get erc20 transaction history
 
    **Example request**:
 
