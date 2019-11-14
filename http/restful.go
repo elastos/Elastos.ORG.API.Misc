@@ -821,7 +821,7 @@ func getEthHistory(w http.ResponseWriter, r *http.Request) {
 			account = r.FormValue("address")
 		}
 		if account == "" {
-			http.Error(w, `{"result":"invalid request : `+err.Error()+`","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
+			http.Error(w, `{"result":"account can not be blank","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 			return
 		}
 		history, err := chain.GetEthHistory(account)
