@@ -783,6 +783,10 @@ func getCmcPrice(w http.ResponseWriter, r *http.Request) {
 
 func postRpc(w http.ResponseWriter, r *http.Request) {
 	if config.Conf.Eth.Enable {
+		if strings.ToUpper(r.Method) != "POST" {
+			http.Error(w, `{"result":"405 Method Not Support","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
+			return
+		}
 		b, err := ioutil.ReadAll(r.Body)
 		data, err := tools.Post(config.Conf.Eth.Endpoint, string(b))
 		if err != nil {

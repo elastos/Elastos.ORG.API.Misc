@@ -57,43 +57,43 @@ var (
 
 		//ela frontend
 		"/api/1/list": {
-			"Get": list,
+			"GET": list,
 		},
 
 		//btc
 		"/api/1/btc/block/height": {
-			"Get": getBtcBlockHeight,
+			"GET": getBtcBlockHeight,
 		},
 		"/api/1/btc/transaction/{txid}": {
-			"Get": getBtcTransaction,
+			"GET": getBtcTransaction,
 		},
 		"/api/1/btc/balance/{addr}": {
-			"Get": getBtcBalance,
+			"GET": getBtcBalance,
 		},
 		"/api/1/btc/detail/block/{height}": {
-			"Get": getBtcBlock,
+			"GET": getBtcBlock,
 		},
 
 		//CoinMarketCap
 		"/api/1/cmc": {
-			"Get": getCmcPrice,
+			"GET": getCmcPrice,
 		},
 
 		//eth
 		"/api/1/eth/wrap": {
-			"POST": postRpc,
+			"POST,GET": postRpc,
 		},
 		"/api/1/eth/history": {
 			"POST,GET": getEthHistory,
 		},
 		"/api/1/eth/currencies": {
-			"Get": getCurrencies,
+			"GET": getCurrencies,
 		},
 		"/api/1/eth/getLogs": {
-			"GeT": getLogs,
+			"GET": getLogs,
 		},
 		"/api/1/eth/token/balance": {
-			"GeT": getTokenBalance,
+			"GET": getTokenBalance,
 		},
 	}
 	router = mux.NewRouter()
