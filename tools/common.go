@@ -40,3 +40,8 @@ func GetEthAddress(tpc string) string {
 	}
 	return "0x" + dst
 }
+
+func GetEthValue(val string) string {
+	dst := strings.TrimLeft(val[2:], "0")
+	return "0x" + dst
+}

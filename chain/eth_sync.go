@@ -21,6 +21,7 @@ import (
 	"os/user"
 	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -68,6 +69,7 @@ type Eth_transaction struct {
 	ContractAddress   string `json:"contractAddress"`
 	Timestamp         string `json:"timeStamp"`
 	Confirmations     string `json:"confirmations"`
+	TransferType      string `json:"transferType,omitempty"`
 }
 
 type Eth_token_transaction struct {
@@ -82,6 +84,12 @@ type Eth_token_transaction struct {
 	GasPrice         string        `json:"gasPrice"`
 	TimeStamp        string        `json:"timeStamp"`
 }
+
+const (
+	sidechain_crossChain_deposit  = "crossChainEthDeposit"
+	sidechain_crossChain_withdraw = "crossChainEthWithdraw"
+	sidechain_eth_transfer        = "ethTransfer"
+)
 
 type TransactionHistorySorter []Eth_transaction
 
@@ -727,6 +735,29 @@ func handleHeightEth(curr int) error {
 		v.GasUsed = gasUsed.(string)
 		v.IsError = isError
 		v.Input = "0x"
+
+		if config.Conf.Eth.SideChain {
+			v.TransferType = sidechain_eth_transfer
+		}
+
+		if v.To == "0x0000000000000000000000000000000000000000" {
+			logs, ok := receipt["logs"].([]interface{})
+			if ok && len(logs) == 1{
+				l := logs[0]
+				rl := l.(map[string]interface{})
+				topics, ok := rl["topics"].([]interface{})
+				if ok && len(topics) >= 5 && topics[0].(string) == "0x09f15c376272c265d7fcb47bf57d8f84a928195e6ea156d12f5a3cd05b8fed5a" {
+					v.To = GetEthAddress(topics[3].(string))
+					v.Value = GetEthValue(topics[4].(string))
+					v.TransferType = sidechain_crossChain_deposit
+				}
+			}
+		}
+
+		if strings.ToUpper(v.To) == strings.ToUpper("0xC445f9487bF570fF508eA9Ac320b59730e81e503") {
+			v.TransferType = sidechain_crossChain_withdraw
+		}
+
 		// From
 		var keyFrom bytes.Buffer
 		keyFrom.Write([]byte{byte(eth_history_prefix)})

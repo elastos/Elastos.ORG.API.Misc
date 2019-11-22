@@ -1,15 +1,15 @@
 {
   "ServerPort":"8080",
   "Db":{
-    "DbDriverName":"mysql",
-    "DbDriverSource":"root:87654321@tcp(127.0.0.1:3306)/chain_mainnet"
+    "DbDriverName":"",
+    "DbDriverSource":""
   },
   "Ela":{
     "Restful":"localhost:20334",
     "Jsonrpc":"localhost:20336",
     "JsonrpcUser":"clark",
     "JsonrpcPassword":"123456",
-    "Enable":true
+    "Enable":false
   },
   "Btc":{
     "Host":"127.0.0.1:18332",
@@ -21,16 +21,11 @@
   },
   "Eth":{
     "Endpoint":"https://eth-mainnet.alchemyapi.io/jsonrpc/-vPGIFwUyjlMRF9beTLXiGQUK6Nf3k8z",
-    "StartHeight":7000000,
-    "BatchSize":10,
+    "StartHeight":0,
+    "BatchSize":1,
     "Retry":10,
-    "Enable":false
-  },
-  "Cmc":{
-    "ApiKey":["521e2027-4f7e-4fa3-8a13-37ba061023f4"],
-    "Inteval":"30m",
-    "NumOfCoin":200,
-    "Enable":true
+    "Enable":true,
+    "SideChain":false
   },
   "EnableCors":false
 }

@@ -51,6 +51,7 @@ type ETH struct {
 	StartHeight int64
 	BatchSize   int
 	Retry       int
+	SideChain   bool
 }
 
 var Conf *config
