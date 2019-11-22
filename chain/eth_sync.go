@@ -281,6 +281,20 @@ func (tx *Eth_transaction) Deserialize(data []byte) error {
 	}
 	tx.Timestamp = decodeHexToDecimal(string(Timestamp))
 
+	//TxType
+
+	if config.Conf.Eth.SideChain {
+		len, err = readByte(&r)
+		if err != nil {
+			return err
+		}
+		TxType, err := readBytesToStr(&r, len, false)
+		if err != nil {
+			return err
+		}
+		tx.TransferType = TxType
+	}
+
 	tx.Input = "0x"
 	return nil
 }
@@ -528,6 +542,11 @@ func (tx *Eth_transaction) Serialize() []byte {
 
 	b.WriteByte(byte(len(tx.Timestamp) - 2))
 	b.Write([]byte(tx.Timestamp[2:]))
+
+	if config.Conf.Eth.SideChain {
+		b.WriteByte(byte(len(tx.TransferType)))
+		b.Write([]byte(tx.TransferType))
+	}
 
 	return b.Bytes()
 }
