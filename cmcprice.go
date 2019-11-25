@@ -138,7 +138,7 @@ func init() {
 					fmt.Printf("Error fetching ela price from hbg: %s\n", err.Error())
 					continue
 				}
-				_, err = tx.Exec("update chain_cmc_price set price_btc = '" + btcPrice + "' where symbol = 'ELA' order by _id desc limit 1")
+				_, err = tx.Exec("update chain_cmc_price set price_btc = '" + btcPrice + "', local_system_time=current_timestamp() where symbol = 'ELA' order by _id desc limit 1")
 				if err != nil {
 					tx.Rollback()
 					fmt.Printf("Error fetching ela price from hbg 111 : %s\n", err.Error())
