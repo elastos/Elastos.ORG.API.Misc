@@ -887,7 +887,7 @@ func getLogs(w http.ResponseWriter, r *http.Request) {
 		smb := make(map[string]interface{})
 		smb["status"] = "1"
 		smb["message"] = "OK"
-		smb["result"] = logs
+		smb["result"] = filterLogs(logs, topic0)
 		ret, err := json.Marshal(smb)
 		if err != nil {
 			http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
@@ -897,6 +897,16 @@ func getLogs(w http.ResponseWriter, r *http.Request) {
 	} else {
 		http.Error(w, `{"result":" Eth service is not enabled  ","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 	}
+}
+
+func filterLogs(logs []chain.Eth_token_transaction, c string) []chain.Eth_token_transaction {
+	ret := make([]chain.Eth_token_transaction, 0)
+	for _, l := range logs {
+		if l.Address == c {
+			ret = append(ret, l)
+		}
+	}
+	return ret
 }
 
 func getTokenBalance(w http.ResponseWriter, r *http.Request) {
@@ -928,8 +938,8 @@ func getTokenBalance(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func init(){
-	if config.Conf.Ela.Enable || config.Conf.Cmc.Enable{
+func init() {
+	if config.Conf.Ela.Enable || config.Conf.Cmc.Enable {
 		dba = db.NewInstance()
 	}
 }
