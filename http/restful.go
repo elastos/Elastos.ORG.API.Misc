@@ -877,8 +877,8 @@ func getLogs(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, `{"result":"invalid topic","status":`+strconv.Itoa(http.StatusBadRequest)+`}`, http.StatusBadRequest)
 			return
 		}
-		from := strings.TrimLeft(topic1[2:], "0")
-		to := strings.TrimLeft(topic2[2:], "0")
+		from := topic1[26:]
+		to := topic2[26:]
 		logs, err := chain.GetEthTokenLogs("0x"+from, "0x"+to)
 		if err != nil {
 			http.Error(w, `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`, http.StatusInternalServerError)
