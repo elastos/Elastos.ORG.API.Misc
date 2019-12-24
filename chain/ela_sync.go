@@ -373,6 +373,7 @@ func handleHeight(curr int, tx *sql.Tx) error {
 					if !ok {
 						continue
 					}
+					version, ok := payload["version"].(float64)
 					value := vm["value"]
 					n := vm["n"]
 					address := vm["address"]
@@ -386,13 +387,20 @@ func handleHeight(curr int, tx *sql.Tx) error {
 						} else if votetype.(float64) == 1 {
 							votetypeStr = "CRC"
 						}
-						candidates := cvm["candidates"].([]interface{})
-						for _, pub := range candidates {
-							_, err := stmt.Exec(pub, votetypeStr, txid, n, value, outputlock, address, header.Time, header.Height)
-							if err != nil {
-								return err
+						if votetypeStr == "Delegate" {
+							candidates := cvm["candidates"].([]interface{})
+							for _, can := range candidates {
+								detail := can.(map[string]interface{})
+								pub := detail["candidate"]
+								if version == 1 {
+									value = detail["votes"]
+								}
+								_, err := stmt.Exec(pub, votetypeStr, txid, n, value, outputlock, address, header.Time, header.Height)
+								if err != nil {
+									return err
+								}
+								voteTxHolder[txid.(string)] = Vote
 							}
-							voteTxHolder[txid.(string)] = Vote
 						}
 					}
 				}
@@ -761,7 +769,7 @@ func CreateRegistedRedeemedScript(publicKey *crypto.PublicKey) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func init(){
+func init() {
 	if config.Conf.Ela.Enable {
 		dba = db.NewInstance()
 	}

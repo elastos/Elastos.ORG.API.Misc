@@ -761,7 +761,7 @@ func handleHeightEth(curr int) error {
 
 		if v.To == "0x0000000000000000000000000000000000000000" {
 			logs, ok := receipt["logs"].([]interface{})
-			if ok && len(logs) == 1{
+			if ok && len(logs) == 1 {
 				l := logs[0]
 				rl := l.(map[string]interface{})
 				topics, ok := rl["topics"].([]interface{})
