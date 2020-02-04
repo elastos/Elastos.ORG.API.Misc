@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/elastos/Elastos.ORG.API.Misc/config"
@@ -40,7 +39,6 @@ type level struct {
 	waitGroup  sync.WaitGroup
 	m          sync.Mutex
 	path       string
-	tokens     map[string]bool
 }
 
 type key_prefix byte
@@ -581,26 +579,9 @@ func init() {
 			return
 		}
 
-		erc20 := ReadFile("erc20.json")
-		if erc20 == nil {
-			fmt.Printf("Error init erc20 token")
-			os.Exit(-1)
-		}
-		err = json.Unmarshal(erc20, &Tokens)
-		if err != nil {
-			fmt.Printf("Error init erc20 token %s", err.Error())
-			os.Exit(-1)
-		}
-		tokens := make(map[string]bool)
-		for _, v := range Tokens {
-			t := v.(map[string]interface{})
-			tokens[t["contract_address"].(string)] = true
-		}
-
 		le = &level{
-			l:      db,
-			path:   levelDbPath,
-			tokens: tokens,
+			l:    db,
+			path: levelDbPath,
 		}
 
 	}
@@ -799,42 +780,39 @@ func handleHeightEth(curr int) error {
 		}
 
 		if isError == "0" {
-			_, ok := le.tokens[v.To]
+			logs, ok := receipt["logs"].([]interface{})
 			if ok {
-				logs, ok := receipt["logs"].([]interface{})
-				if ok {
-					for _, l := range logs {
-						rl := l.(map[string]interface{})
-						topics, ok := rl["topics"].([]interface{})
-						if ok && len(topics) >= 3 && topics[0].(string) == "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef" {
-							ett := Eth_token_transaction{}
-							Map2Struct(rl, &ett)
-							ett.GasUsed = v.GasUsed
-							ett.GasPrice = v.GasPrice
-							ett.TimeStamp = v.Timestamp
+				for _, l := range logs {
+					rl := l.(map[string]interface{})
+					topics, ok := rl["topics"].([]interface{})
+					if ok && len(topics) >= 3 && topics[0].(string) == "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef" {
+						ett := Eth_token_transaction{}
+						Map2Struct(rl, &ett)
+						ett.GasUsed = v.GasUsed
+						ett.GasPrice = v.GasPrice
+						ett.TimeStamp = v.Timestamp
+						fmt.Printf(" txid %v \n", ett.TransactionHash)
+						// From
+						var keyFromToken bytes.Buffer
+						keyFromToken.Write([]byte{byte(eth_token_history_prefix)})
+						keyFromToken.Write(decodeHexToByte(GetEthAddress(topics[1].(string))))
+						keyFromToken.WriteRune(rune(curr))
+						keyFromToken.WriteRune(rune(index))
+						val := ett.Serialize()
+						keys = append(keys, keyFromToken.Bytes())
+						fmt.Printf(" address from %v \n", GetEthAddress(topics[1].(string)))
+						values = append(values, val)
 
-							// From
-							var keyFromToken bytes.Buffer
-							keyFromToken.Write([]byte{byte(eth_token_history_prefix)})
-							keyFromToken.Write(decodeHexToByte(GetEthAddress(topics[1].(string))))
-							keyFromToken.WriteRune(rune(curr))
-							keyFromToken.WriteRune(rune(index))
-							val := ett.Serialize()
-							keys = append(keys, keyFromToken.Bytes())
-							fmt.Printf(" address from %v \n", GetEthAddress(topics[1].(string)))
+						var keyToToken bytes.Buffer
+						// TO
+						if topics[1].(string) != topics[2].(string) {
+							keyToToken.Write([]byte{byte(eth_token_history_prefix)})
+							keyToToken.Write(decodeHexToByte(GetEthAddress(topics[2].(string))))
+							keyToToken.WriteRune(rune(curr))
+							keyToToken.WriteRune(rune(index))
+							keys = append(keys, keyToToken.Bytes())
+							fmt.Printf(" address to %v \n", GetEthAddress(topics[2].(string)))
 							values = append(values, val)
-
-							var keyToToken bytes.Buffer
-							// TO
-							if topics[1].(string) != topics[2].(string) {
-								keyToToken.Write([]byte{byte(eth_token_history_prefix)})
-								keyToToken.Write(decodeHexToByte(GetEthAddress(topics[2].(string))))
-								keyToToken.WriteRune(rune(curr))
-								keyToToken.WriteRune(rune(index))
-								keys = append(keys, keyToToken.Bytes())
-								fmt.Printf(" address to %v \n", GetEthAddress(topics[2].(string)))
-								values = append(values, val)
-							}
 						}
 					}
 				}
