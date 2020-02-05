@@ -697,7 +697,8 @@ func handleHeightEth(curr int) error {
 	timestamp := r["timestamp"]
 	var keys [][]byte
 	var values [][]byte
-	for index, txv := range txArr {
+	var nonce_index = 0
+	for _, txv := range txArr {
 		transaction := txv.(map[string]interface{})
 		v := Eth_transaction{}
 		Map2Struct(transaction, &v)
@@ -763,7 +764,8 @@ func handleHeightEth(curr int) error {
 		keyFrom.Write([]byte{byte(eth_history_prefix)})
 		keyFrom.Write(decodeHexToByte(v.From))
 		keyFrom.WriteRune(rune(curr))
-		keyFrom.WriteRune(rune(index))
+		keyFrom.WriteRune(rune(nonce_index))
+		nonce_index++
 		val := v.Serialize()
 		keys = append(keys, keyFrom.Bytes())
 		values = append(values, val)
@@ -774,7 +776,8 @@ func handleHeightEth(curr int) error {
 			keyTo.Write([]byte{byte(eth_history_prefix)})
 			keyTo.Write(decodeHexToByte(v.To))
 			keyTo.WriteRune(rune(curr))
-			keyTo.WriteRune(rune(index))
+			keyTo.WriteRune(rune(nonce_index))
+			nonce_index++
 			keys = append(keys, keyTo.Bytes())
 			values = append(values, val)
 		}
@@ -797,7 +800,8 @@ func handleHeightEth(curr int) error {
 						keyFromToken.Write([]byte{byte(eth_token_history_prefix)})
 						keyFromToken.Write(decodeHexToByte(GetEthAddress(topics[1].(string))))
 						keyFromToken.WriteRune(rune(curr))
-						keyFromToken.WriteRune(rune(index))
+						keyFromToken.WriteRune(rune(nonce_index))
+						nonce_index++
 						val := ett.Serialize()
 						keys = append(keys, keyFromToken.Bytes())
 						fmt.Printf(" address from %v \n", GetEthAddress(topics[1].(string)))
@@ -809,7 +813,8 @@ func handleHeightEth(curr int) error {
 							keyToToken.Write([]byte{byte(eth_token_history_prefix)})
 							keyToToken.Write(decodeHexToByte(GetEthAddress(topics[2].(string))))
 							keyToToken.WriteRune(rune(curr))
-							keyToToken.WriteRune(rune(index))
+							keyToToken.WriteRune(rune(nonce_index))
+							nonce_index++
 							keys = append(keys, keyToToken.Bytes())
 							fmt.Printf(" address to %v \n", GetEthAddress(topics[2].(string)))
 							values = append(values, val)
