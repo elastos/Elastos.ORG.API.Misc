@@ -674,6 +674,12 @@ func doSyncEth(le *level) error {
 	return unexpected
 }
 
+func int2bytes(i uint32) []byte {
+	bs := make([]byte, 4)
+	binary.LittleEndian.PutUint32(bs, i)
+	return bs
+}
+
 func handleHeightEth(curr int) error {
 	var resp map[string]interface{}
 	var err error
@@ -690,6 +696,11 @@ func handleHeightEth(curr int) error {
 	if !ok {
 		return errors.New("illegal ETH Height")
 	}
+
+	if _ , ok :=r["transactions"]; !ok {
+		return errors.New("illegal ETH Height, transaction can not be found")
+	}
+
 	txArr := r["transactions"].([]interface{})
 	if len(txArr) == 0 {
 		return nil
@@ -716,6 +727,10 @@ func handleHeightEth(curr int) error {
 			return errors.New("Invalid ETH Node , please change your ethereum node")
 		}
 		receipt := resp["result"].(map[string]interface{})
+		if _, ok :=receipt["gasUsed"];!ok {
+			log.Errorf("%v ", receipt)
+			return errors.New("Invalid ETH Node , please change your ethereum node")
+		}
 		gasUsed := receipt["gasUsed"]
 		if gasUsed == nil {
 			gasUsed = ""
@@ -763,7 +778,7 @@ func handleHeightEth(curr int) error {
 		var keyFrom bytes.Buffer
 		keyFrom.Write([]byte{byte(eth_history_prefix)})
 		keyFrom.Write(decodeHexToByte(v.From))
-		keyFrom.WriteRune(rune(curr))
+		keyFrom.Write(int2bytes(uint32(curr)))
 		keyFrom.WriteRune(rune(nonce_index))
 		nonce_index++
 		val := v.Serialize()
@@ -775,7 +790,7 @@ func handleHeightEth(curr int) error {
 		if v.From != v.To {
 			keyTo.Write([]byte{byte(eth_history_prefix)})
 			keyTo.Write(decodeHexToByte(v.To))
-			keyTo.WriteRune(rune(curr))
+			keyTo.Write(int2bytes(uint32(curr)))
 			keyTo.WriteRune(rune(nonce_index))
 			nonce_index++
 			keys = append(keys, keyTo.Bytes())
@@ -799,7 +814,7 @@ func handleHeightEth(curr int) error {
 						var keyFromToken bytes.Buffer
 						keyFromToken.Write([]byte{byte(eth_token_history_prefix)})
 						keyFromToken.Write(decodeHexToByte(GetEthAddress(topics[1].(string))))
-						keyFromToken.WriteRune(rune(curr))
+						keyFromToken.Write(int2bytes(uint32(curr)))
 						keyFromToken.WriteRune(rune(nonce_index))
 						nonce_index++
 						val := ett.Serialize()
@@ -812,7 +827,7 @@ func handleHeightEth(curr int) error {
 						if topics[1].(string) != topics[2].(string) {
 							keyToToken.Write([]byte{byte(eth_token_history_prefix)})
 							keyToToken.Write(decodeHexToByte(GetEthAddress(topics[2].(string))))
-							keyToToken.WriteRune(rune(curr))
+							keyToToken.Write(int2bytes(uint32(curr)))
 							keyToToken.WriteRune(rune(nonce_index))
 							nonce_index++
 							keys = append(keys, keyToToken.Bytes())
