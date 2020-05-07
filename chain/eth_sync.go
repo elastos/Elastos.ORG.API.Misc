@@ -864,6 +864,9 @@ func GetEthHistory(addr string) ([]Eth_transaction, error) {
 		if err != nil {
 			return nil, err
 		}
+		if v.To == "0x" {
+			v.To = "0x0000000000000000000000000000000000000000"
+		}
 		v.Confirmations = strconv.Itoa(int(le.currHeight) - bn)
 		ret = append(ret, v)
 	}
