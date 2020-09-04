@@ -15,6 +15,7 @@ import (
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/util"
 	"io"
+	"math/big"
 	"math/rand"
 	"os"
 	"os/user"
@@ -917,9 +918,24 @@ func decodeHexToDecimal(str string) string {
 	if len(str) == 0 {
 		return ""
 	}
-	desc, _ := strconv.ParseUint(str[2:], 16, 64)
-	return strconv.Itoa(int(desc))
+	var buf []byte
+	var err error
+	if len(str) % 2 != 0 {
+		buf , err =  hex.DecodeString("0" + str[2:])
+	}else{
+		buf , err =  hex.DecodeString(str[2:])
+	}
+	if err != nil {
+		fmt.Println(err.Error())
+		return ""
+	}
+	var b big.Int
+	b.SetBytes(buf)
+	return b.String()
+	//desc, _ := strconv.ParseUint(str[2:], 16, 64)
+	//return fmt.Sprintf("%d",desc)
 }
+
 
 func decodeHexToByte(str string) []byte {
 	if len(str) == 0 {
