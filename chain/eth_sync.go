@@ -636,6 +636,7 @@ func doSyncEth(le *level) error {
 	var waitSize int
 	if ok {
 		height, err := hexutil.DecodeUint64(hexHeight.(string))
+		height = height - 6
 		if err != nil {
 			return err
 		}
