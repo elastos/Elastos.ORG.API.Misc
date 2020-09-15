@@ -943,3 +943,7 @@ func init() {
 		dba = db.NewInstance()
 	}
 }
+
+func syncHeight(w http.ResponseWriter, r *http.Request) {
+	w.Write( []byte(`{"result":"`+chain.SyncHeight()+`","status":`+strconv.Itoa(http.StatusOK)+`}`))
+}

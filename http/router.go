@@ -95,6 +95,9 @@ var (
 		"/api/1/eth/token/balance": {
 			"GET": getTokenBalance,
 		},
+		"/api/1/eth/height": {
+			"GET": syncHeight,
+		},
 	}
 	router = mux.NewRouter()
 )

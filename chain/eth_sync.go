@@ -991,3 +991,7 @@ func readBytesToStr(r io.Reader, len int, prefix bool) (string, error) {
 		return string(buf), nil
 	}
 }
+
+func SyncHeight() string {
+	return strconv.Itoa(int(le.currHeight))
+}
