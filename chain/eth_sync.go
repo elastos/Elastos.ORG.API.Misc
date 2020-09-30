@@ -48,6 +48,7 @@ var (
 	curr_height_prefix       key_prefix = 0x01
 	eth_history_prefix       key_prefix = 0x02
 	eth_token_history_prefix key_prefix = 0x03
+	eth_token_list_prefix 	 key_prefix = 0x04
 )
 
 type Eth_transaction struct {
@@ -711,6 +712,7 @@ func handleHeightEth(curr int) error {
 	var keys [][]byte
 	var values [][]byte
 	var nonce_index = 0
+	tah := make(map[string]bool)
 	for _, txv := range txArr {
 		transaction := txv.(map[string]interface{})
 		v := Eth_transaction{}
@@ -811,7 +813,7 @@ func handleHeightEth(curr int) error {
 						ett.GasUsed = v.GasUsed
 						ett.GasPrice = v.GasPrice
 						ett.TimeStamp = v.Timestamp
-						fmt.Printf(" txid %v \n", ett.TransactionHash)
+						//fmt.Printf(" txid %v \n", ett.TransactionHash)
 						// From
 						var keyFromToken bytes.Buffer
 						keyFromToken.Write([]byte{byte(eth_token_history_prefix)})
@@ -821,7 +823,7 @@ func handleHeightEth(curr int) error {
 						nonce_index++
 						val := ett.Serialize()
 						keys = append(keys, keyFromToken.Bytes())
-						fmt.Printf(" address from %v \n", GetEthAddress(topics[1].(string)))
+						//fmt.Printf(" address from %v \n", GetEthAddress(topics[1].(string)))
 						values = append(values, val)
 
 						var keyToToken bytes.Buffer
@@ -833,7 +835,27 @@ func handleHeightEth(curr int) error {
 							keyToToken.WriteRune(rune(nonce_index))
 							nonce_index++
 							keys = append(keys, keyToToken.Bytes())
-							fmt.Printf(" address to %v \n", GetEthAddress(topics[2].(string)))
+							//fmt.Printf(" address to %v \n", GetEthAddress(topics[2].(string)))
+							values = append(values, val)
+						}
+						_ ,exist :=tah[ett.Address]
+						if  !exist && !isTokenExist(ett.Address) {
+							tah[ett.Address] = true
+							token , err := Call(ett.Address,curr)
+							if err != nil {
+								log.Warnf("contract call %s", err.Error())
+								continue
+							}
+							log.Info("token details ,token address ", token.Address, " token decimal ", token.Decimal,
+								" token name ", token.Name, " token address " , token.Symbol)
+							var keyTokenList bytes.Buffer
+							keyTokenList.Write([]byte{byte(eth_token_list_prefix)})
+							keyTokenList.Write(decodeHexToByte(GetEthAddress(token.Address)))
+							keyTokenList.Write(int2bytes(uint32(curr)))
+							keyTokenList.WriteRune(rune(nonce_index))
+							nonce_index++
+							val := token.Serialize()
+							keys = append(keys, keyTokenList.Bytes())
 							values = append(values, val)
 						}
 					}
@@ -846,6 +868,7 @@ func handleHeightEth(curr int) error {
 		le.b.Put(k, values[i])
 	}
 	le.m.Unlock()
+
 	return nil
 }
 
@@ -894,6 +917,10 @@ func GetEthTokenLogs(from string, to string) ([]Eth_token_transaction, error) {
 	copy(ret[len(spend):], income)
 	sort.Sort(ret)
 	return ret, nil
+}
+
+func SyncHeight() string {
+	return strconv.Itoa(int(le.currHeight))
 }
 
 func doGetEthTokenLogs(addr string) (TransactionTokenHistorySorter, error) {
@@ -990,8 +1017,4 @@ func readBytesToStr(r io.Reader, len int, prefix bool) (string, error) {
 	} else {
 		return string(buf), nil
 	}
-}
-
-func SyncHeight() string {
-	return strconv.Itoa(int(le.currHeight))
 }

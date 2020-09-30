@@ -804,6 +804,29 @@ func postRpc(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func getErc20TokenList(w http.ResponseWriter, r *http.Request) {
+	if config.Conf.Eth.Enable {
+		var err error
+		history, err := chain.GetTokenList()
+		if err != nil {
+			w.Write([]byte( `{"result":"invalid request : `+err.Error()+`","status":`+strconv.Itoa(http.StatusBadRequest)+`}`))
+			return
+		}
+		resp := make(map[string]interface{})
+		resp["status"] = "1"
+		resp["message"] = "OK"
+		resp["result"] = history
+		retBuf, err := json.Marshal(resp)
+		if err != nil {
+			w.Write([]byte( `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`))
+			return
+		}
+		w.Write(retBuf)
+	} else {
+		w.Write([]byte( `{"result":" Eth service is not enabled  ","status":`+strconv.Itoa(http.StatusBadRequest)+`}`))
+	}
+}
+
 func getEthHistory(w http.ResponseWriter, r *http.Request) {
 	if config.Conf.Eth.Enable {
 		var account string

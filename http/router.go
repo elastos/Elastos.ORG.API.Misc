@@ -98,6 +98,9 @@ var (
 		"/api/1/eth/height": {
 			"GET": syncHeight,
 		},
+		"/api/1/eth/erc20/list": {
+			"GET": getErc20TokenList,
+		},
 	}
 	router = mux.NewRouter()
 )
