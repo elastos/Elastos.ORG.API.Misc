@@ -1,3 +1,6 @@
+// Code generated - DO NOT EDIT.
+// This file is a generated binding and any manual changes will be lost.
+
 package chain
 
 import (
@@ -25,7 +28,7 @@ var (
 )
 
 // Erc20ABI is the input ABI used to generate the binding from.
-const Erc20ABI = "[{\"constant\":true,\"inputs\":[],\"name\":\"name\",\"outputs\":[{\"name\":\"\",\"type\":\"string\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"decimals\",\"outputs\":[{\"name\":\"\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"symbol\",\"outputs\":[{\"name\":\"\",\"type\":\"string\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}]"
+const Erc20ABI = "[{\"constant\":true,\"inputs\":[],\"name\":\"name\",\"outputs\":[{\"name\":\"\",\"type\":\"string\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"decimals\",\"outputs\":[{\"name\":\"\",\"type\":\"uint8\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"description\",\"outputs\":[{\"name\":\"\",\"type\":\"string\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"defaultGasLimit\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"symbol\",\"outputs\":[{\"name\":\"\",\"type\":\"string\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"defaultGasPrice\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}]"
 
 // Erc20 is an auto generated Go binding around an Ethereum contract.
 type Erc20 struct {
@@ -195,6 +198,84 @@ func (_Erc20 *Erc20CallerSession) Decimals() (uint8, error) {
 	return _Erc20.Contract.Decimals(&_Erc20.CallOpts)
 }
 
+// DefaultGasLimit is a free data retrieval call binding the contract method 0x95368d2e.
+//
+// Solidity: function defaultGasLimit() constant returns(uint256)
+func (_Erc20 *Erc20Caller) DefaultGasLimit(opts *bind.CallOpts) (*big.Int, error) {
+	var (
+		ret0 = new(*big.Int)
+	)
+	out := ret0
+	err := _Erc20.contract.Call(opts, out, "defaultGasLimit")
+	return *ret0, err
+}
+
+// DefaultGasLimit is a free data retrieval call binding the contract method 0x95368d2e.
+//
+// Solidity: function defaultGasLimit() constant returns(uint256)
+func (_Erc20 *Erc20Session) DefaultGasLimit() (*big.Int, error) {
+	return _Erc20.Contract.DefaultGasLimit(&_Erc20.CallOpts)
+}
+
+// DefaultGasLimit is a free data retrieval call binding the contract method 0x95368d2e.
+//
+// Solidity: function defaultGasLimit() constant returns(uint256)
+func (_Erc20 *Erc20CallerSession) DefaultGasLimit() (*big.Int, error) {
+	return _Erc20.Contract.DefaultGasLimit(&_Erc20.CallOpts)
+}
+
+// DefaultGasPrice is a free data retrieval call binding the contract method 0xe7b4294c.
+//
+// Solidity: function defaultGasPrice() constant returns(uint256)
+func (_Erc20 *Erc20Caller) DefaultGasPrice(opts *bind.CallOpts) (*big.Int, error) {
+	var (
+		ret0 = new(*big.Int)
+	)
+	out := ret0
+	err := _Erc20.contract.Call(opts, out, "defaultGasPrice")
+	return *ret0, err
+}
+
+// DefaultGasPrice is a free data retrieval call binding the contract method 0xe7b4294c.
+//
+// Solidity: function defaultGasPrice() constant returns(uint256)
+func (_Erc20 *Erc20Session) DefaultGasPrice() (*big.Int, error) {
+	return _Erc20.Contract.DefaultGasPrice(&_Erc20.CallOpts)
+}
+
+// DefaultGasPrice is a free data retrieval call binding the contract method 0xe7b4294c.
+//
+// Solidity: function defaultGasPrice() constant returns(uint256)
+func (_Erc20 *Erc20CallerSession) DefaultGasPrice() (*big.Int, error) {
+	return _Erc20.Contract.DefaultGasPrice(&_Erc20.CallOpts)
+}
+
+// Description is a free data retrieval call binding the contract method 0x7284e416.
+//
+// Solidity: function description() constant returns(string)
+func (_Erc20 *Erc20Caller) Description(opts *bind.CallOpts) (string, error) {
+	var (
+		ret0 = new(string)
+	)
+	out := ret0
+	err := _Erc20.contract.Call(opts, out, "description")
+	return *ret0, err
+}
+
+// Description is a free data retrieval call binding the contract method 0x7284e416.
+//
+// Solidity: function description() constant returns(string)
+func (_Erc20 *Erc20Session) Description() (string, error) {
+	return _Erc20.Contract.Description(&_Erc20.CallOpts)
+}
+
+// Description is a free data retrieval call binding the contract method 0x7284e416.
+//
+// Solidity: function description() constant returns(string)
+func (_Erc20 *Erc20CallerSession) Description() (string, error) {
+	return _Erc20.Contract.Description(&_Erc20.CallOpts)
+}
+
 // Name is a free data retrieval call binding the contract method 0x06fdde03.
 //
 // Solidity: function name() constant returns(string)
@@ -246,4 +327,3 @@ func (_Erc20 *Erc20Session) Symbol() (string, error) {
 func (_Erc20 *Erc20CallerSession) Symbol() (string, error) {
 	return _Erc20.Contract.Symbol(&_Erc20.CallOpts)
 }
-

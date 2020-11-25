@@ -20,11 +20,14 @@ func (a Erc20TokenSorter) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a Erc20TokenSorter) Less(i, j int) bool { return a[i].Height > a[j].Height }
 
 type Erc20Token struct {
-	Address string `json:"address"`
-	Name    string `json:"name"`
-	Symbol  string `json:"symbol"`
-	Decimal string `json:"decimal"`
-	Height  string `json:"height"`
+	Address         string `json:"address"`
+	Name            string `json:"name"`
+	Symbol          string `json:"symbol"`
+	Decimal         string `json:"decimal"`
+	Height          string `json:"height"`
+	Description     string `json:"description"`
+	DefaultGasLimit string `json:"defaultGasLimit"`
+	DefaultGasPrice string `json:"defaultGasPrice"`
 }
 
 func (token *Erc20Token) Deserialize(data []byte) error {
@@ -89,6 +92,38 @@ func (token *Erc20Token) Deserialize(data []byte) error {
 	}
 	token.Height = Height
 
+	// Description
+	len, err = readByte(&r)
+	if err != nil {
+		return err
+	}
+	Desc, err := readBytesToStr(&r, len, false)
+	if err != nil {
+		return err
+	}
+	token.Description = Desc
+
+	// DefaultGasLimit
+	len, err = readByte(&r)
+	if err != nil {
+		return err
+	}
+	DefaultGasLimit, err := readBytesToStr(&r, len, false)
+	if err != nil {
+		return err
+	}
+	token.DefaultGasLimit = DefaultGasLimit
+
+	// DefaultGasPrice
+	len, err = readByte(&r)
+	if err != nil {
+		return err
+	}
+	DefaultGasPrice, err := readBytesToStr(&r, len, false)
+	if err != nil {
+		return err
+	}
+	token.DefaultGasPrice = DefaultGasPrice
 	return nil
 }
 
@@ -112,6 +147,14 @@ func (token *Erc20Token) Serialize() []byte {
 	b.WriteByte(byte(len(token.Height)))
 	b.Write([]byte(token.Height))
 
+	b.WriteByte(byte(len(token.Description)))
+	b.Write([]byte(token.Description))
+
+	b.WriteByte(byte(len(token.DefaultGasLimit)))
+	b.Write([]byte(token.DefaultGasLimit))
+
+	b.WriteByte(byte(len(token.DefaultGasPrice)))
+	b.Write([]byte(token.DefaultGasPrice))
 	return b.Bytes()
 }
 
@@ -144,12 +187,39 @@ func Call(contract string, height int) (Erc20Token, error) {
 		return Erc20Token{}, errors.New("decimal fetching failed " + err.Error())
 	}
 
+	desc, err := erc20.Description(nil)
+	if err != nil {
+		log.Warn("No description")
+		desc = ""
+	}
+
+	var defaultGasLimit string
+	gasLimit, err := erc20.DefaultGasLimit(nil)
+	if err != nil {
+		log.Warn("No defaultGasLimit ", err.Error())
+		defaultGasLimit = "0"
+	} else {
+		defaultGasLimit = gasLimit.String()
+	}
+
+	var defaultGasPrice string
+	gasPrice, err := erc20.DefaultGasPrice(nil)
+	if err != nil {
+		log.Warn("No defaultGasLimit", err.Error())
+		defaultGasPrice = "0"
+	} else {
+		defaultGasPrice = gasPrice.String()
+	}
+
 	return Erc20Token{
-		Name:    name,
-		Decimal: strconv.Itoa(int(decimal)),
-		Symbol:  symbol,
-		Address: contract,
-		Height:  strconv.Itoa(int(height)),
+		Name:            name,
+		Decimal:         strconv.Itoa(int(decimal)),
+		Symbol:          symbol,
+		Description:     desc,
+		DefaultGasPrice: defaultGasPrice,
+		DefaultGasLimit: defaultGasLimit,
+		Address:         contract,
+		Height:          strconv.Itoa(int(height)),
 	}, nil
 }
 
@@ -183,4 +253,3 @@ func GetTokenList() ([]Erc20Token, error) {
 	sort.Sort(ret)
 	return ret, nil
 }
-
