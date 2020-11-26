@@ -23,7 +23,7 @@ type Erc20Token struct {
 	Address         string `json:"address"`
 	Name            string `json:"name"`
 	Symbol          string `json:"symbol"`
-	Decimal         string `json:"decimal"`
+	Decimals        string `json:"decimals"`
 	Height          string `json:"height"`
 	Description     string `json:"description"`
 	DefaultGasLimit string `json:"defaultGasLimit"`
@@ -70,16 +70,16 @@ func (token *Erc20Token) Deserialize(data []byte) error {
 	}
 	token.Name = Name
 
-	// Decimal
+	// Decimals
 	len, err = readByte(&r)
 	if err != nil {
 		return err
 	}
-	Decimal, err := readBytesToStr(&r, len, false)
+	Decimals, err := readBytesToStr(&r, len, false)
 	if err != nil {
 		return err
 	}
-	token.Decimal = Decimal
+	token.Decimals = Decimals
 
 	// Height
 	len, err = readByte(&r)
@@ -141,8 +141,8 @@ func (token *Erc20Token) Serialize() []byte {
 	b.WriteByte(byte(len(name)))
 	b.Write(name)
 
-	b.WriteByte(byte(len(token.Decimal)))
-	b.Write([]byte(token.Decimal))
+	b.WriteByte(byte(len(token.Decimals)))
+	b.Write([]byte(token.Decimals))
 
 	b.WriteByte(byte(len(token.Height)))
 	b.Write([]byte(token.Height))
@@ -182,7 +182,7 @@ func Call(contract string, height int) (Erc20Token, error) {
 		return Erc20Token{}, errors.New("symbol fetching failed " + err.Error())
 	}
 
-	decimal, err := erc20.Decimals(nil)
+	decimals, err := erc20.Decimals(nil)
 	if err != nil {
 		return Erc20Token{}, errors.New("decimal fetching failed " + err.Error())
 	}
@@ -213,7 +213,7 @@ func Call(contract string, height int) (Erc20Token, error) {
 
 	return Erc20Token{
 		Name:            name,
-		Decimal:         strconv.Itoa(int(decimal)),
+		Decimals:        strconv.Itoa(int(decimals)),
 		Symbol:          symbol,
 		Description:     desc,
 		DefaultGasPrice: defaultGasPrice,

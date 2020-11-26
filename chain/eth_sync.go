@@ -846,7 +846,7 @@ func handleHeightEth(curr int) error {
 								log.Warnf("contract call %s", err.Error())
 								continue
 							}
-							log.Info("token details ,token address ", token.Address, " token decimal ", token.Decimal,
+							log.Info("token details ,token address ", token.Address, " token decimals ", token.Decimals,
 								" token name ", token.Name, " token address " , token.Symbol)
 							var keyTokenList bytes.Buffer
 							keyTokenList.Write([]byte{byte(eth_token_list_prefix)})
