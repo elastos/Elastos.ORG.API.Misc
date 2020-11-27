@@ -31,6 +31,7 @@ var (
 	levelDbPath = "/.misc/eth"
 	le          *level
 	Tokens      = make([]interface{}, 0)
+	tah         = make(map[string]bool)
 )
 
 type level struct {
@@ -48,7 +49,7 @@ var (
 	curr_height_prefix       key_prefix = 0x01
 	eth_history_prefix       key_prefix = 0x02
 	eth_token_history_prefix key_prefix = 0x03
-	eth_token_list_prefix 	 key_prefix = 0x04
+	eth_token_list_prefix    key_prefix = 0x04
 )
 
 type Eth_transaction struct {
@@ -700,7 +701,7 @@ func handleHeightEth(curr int) error {
 		return errors.New("illegal ETH Height")
 	}
 
-	if _ , ok :=r["transactions"]; !ok {
+	if _, ok := r["transactions"]; !ok {
 		return errors.New("illegal ETH Height, transaction can not be found")
 	}
 
@@ -712,7 +713,6 @@ func handleHeightEth(curr int) error {
 	var keys [][]byte
 	var values [][]byte
 	var nonce_index = 0
-	tah := make(map[string]bool)
 	for _, txv := range txArr {
 		transaction := txv.(map[string]interface{})
 		v := Eth_transaction{}
@@ -731,7 +731,7 @@ func handleHeightEth(curr int) error {
 			return errors.New("Invalid ETH Node , please change your ethereum node")
 		}
 		receipt := resp["result"].(map[string]interface{})
-		if _, ok :=receipt["gasUsed"];!ok {
+		if _, ok := receipt["gasUsed"]; !ok {
 			log.Errorf("%v ", receipt)
 			return errors.New("Invalid ETH Node , please change your ethereum node")
 		}
@@ -838,16 +838,16 @@ func handleHeightEth(curr int) error {
 							//fmt.Printf(" address to %v \n", GetEthAddress(topics[2].(string)))
 							values = append(values, val)
 						}
-						_ ,exist :=tah[ett.Address]
-						if  !exist && !isTokenExist(ett.Address) {
+						_, exist := tah[ett.Address]
+						if !exist && !isTokenExist(ett.Address) {
 							tah[ett.Address] = true
-							token , err := Call(ett.Address,curr)
+							token, err := Call(ett.Address, curr)
 							if err != nil {
 								log.Warnf("contract call %s", err.Error())
 								continue
 							}
 							log.Info("token details ,token address ", token.Address, " token decimals ", token.Decimals,
-								" token name ", token.Name, " token address " , token.Symbol)
+								" token name ", token.Name, " token address ", token.Symbol)
 							var keyTokenList bytes.Buffer
 							keyTokenList.Write([]byte{byte(eth_token_list_prefix)})
 							keyTokenList.Write(decodeHexToByte(GetEthAddress(token.Address)))
@@ -948,10 +948,10 @@ func decodeHexToDecimal(str string) string {
 	}
 	var buf []byte
 	var err error
-	if len(str) % 2 != 0 {
-		buf , err =  hex.DecodeString("0" + str[2:])
-	}else{
-		buf , err =  hex.DecodeString(str[2:])
+	if len(str)%2 != 0 {
+		buf, err = hex.DecodeString("0" + str[2:])
+	} else {
+		buf, err = hex.DecodeString(str[2:])
 	}
 	if err != nil {
 		fmt.Println(err.Error())
@@ -963,7 +963,6 @@ func decodeHexToDecimal(str string) string {
 	//desc, _ := strconv.ParseUint(str[2:], 16, 64)
 	//return fmt.Sprintf("%d",desc)
 }
-
 
 func decodeHexToByte(str string) []byte {
 	if len(str) == 0 {
