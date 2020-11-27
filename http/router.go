@@ -101,6 +101,9 @@ var (
 		"/api/1/eth/erc20/list": {
 			"GET": getErc20TokenList,
 		},
+		"/api/1/eth/erc20/token/details": {
+			"POST": getSpecificERC20s,
+		},
 	}
 	router = mux.NewRouter()
 )

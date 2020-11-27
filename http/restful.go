@@ -804,12 +804,61 @@ func postRpc(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func getSpecificERC20s(w http.ResponseWriter, r *http.Request) {
+	if config.Conf.Eth.Enable {
+		var err error
+		b, err := ioutil.ReadAll(r.Body)
+		var req map[string]interface{}
+		err = json.Unmarshal(b, &req)
+		if err != nil {
+			w.Write([]byte(`{"result":"invalid request : ` + err.Error() + `","status":` + strconv.Itoa(http.StatusBadRequest) + `}`))
+			return
+		}
+		addresses, ok := req["addresses"]
+		convertedAddresses, ok1 := addresses.([]interface{})
+		if !ok || !ok1 {
+			w.Write([]byte(`{"result":"invalid request : addresses can not be found or addresses is not a array","status":` + strconv.Itoa(http.StatusBadRequest) + `}`))
+			return
+		}
+		history, err := chain.GetTokenList()
+		if err != nil {
+			w.Write([]byte(`{"result":"invalid request : ` + err.Error() + `","status":` + strconv.Itoa(http.StatusBadRequest) + `}`))
+			return
+		}
+		resp := make(map[string]interface{})
+		resp["status"] = "1"
+		resp["message"] = "OK"
+		resp["result"] = filterTokenList(convertedAddresses, history)
+		retBuf, err := json.Marshal(resp)
+		if err != nil {
+			w.Write([]byte(`{"result":"internal error : ` + err.Error() + `","status":` + strconv.Itoa(http.StatusInternalServerError) + `}`))
+			return
+		}
+		w.Write(retBuf)
+	} else {
+		w.Write([]byte(`{"result":" Eth service is not enabled  ","status":` + strconv.Itoa(http.StatusBadRequest) + `}`))
+	}
+}
+
+func filterTokenList(filter []interface{}, tokenList []chain.Erc20Token) []chain.Erc20Token {
+	result := make([]chain.Erc20Token, 0)
+	for _, v := range tokenList {
+		for _, f := range filter {
+			if f == v.Address {
+				result = append(result, v)
+				continue
+			}
+		}
+	}
+	return result
+}
+
 func getErc20TokenList(w http.ResponseWriter, r *http.Request) {
 	if config.Conf.Eth.Enable {
 		var err error
 		history, err := chain.GetTokenList()
 		if err != nil {
-			w.Write([]byte( `{"result":"invalid request : `+err.Error()+`","status":`+strconv.Itoa(http.StatusBadRequest)+`}`))
+			w.Write([]byte(`{"result":"invalid request : ` + err.Error() + `","status":` + strconv.Itoa(http.StatusBadRequest) + `}`))
 			return
 		}
 		resp := make(map[string]interface{})
@@ -818,12 +867,12 @@ func getErc20TokenList(w http.ResponseWriter, r *http.Request) {
 		resp["result"] = history
 		retBuf, err := json.Marshal(resp)
 		if err != nil {
-			w.Write([]byte( `{"result":"internal error : `+err.Error()+`","status":`+strconv.Itoa(http.StatusInternalServerError)+`}`))
+			w.Write([]byte(`{"result":"internal error : ` + err.Error() + `","status":` + strconv.Itoa(http.StatusInternalServerError) + `}`))
 			return
 		}
 		w.Write(retBuf)
 	} else {
-		w.Write([]byte( `{"result":" Eth service is not enabled  ","status":`+strconv.Itoa(http.StatusBadRequest)+`}`))
+		w.Write([]byte(`{"result":" Eth service is not enabled  ","status":` + strconv.Itoa(http.StatusBadRequest) + `}`))
 	}
 }
 
@@ -968,5 +1017,5 @@ func init() {
 }
 
 func syncHeight(w http.ResponseWriter, r *http.Request) {
-	w.Write( []byte(`{"result":"`+chain.SyncHeight()+`","status":`+strconv.Itoa(http.StatusOK)+`}`))
+	w.Write([]byte(`{"result":"` + chain.SyncHeight() + `","status":` + strconv.Itoa(http.StatusOK) + `}`))
 }
