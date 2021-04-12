@@ -2,7 +2,6 @@ package db
 
 import (
 	"fmt"
-	"github.com/elastos/Elastos.ORG.API.Misc/log"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
@@ -83,9 +82,9 @@ func Test_QueryResult(t *testing.T) {
 	// toInt
 	i, err := dialect.ToInt("select count(*) as count from test")
 	if err != nil {
-		log.Error(err.Error())
+		fmt.Println(err.Error())
 	}
-	log.Infof("Toint =%d \n", i)
+	fmt.Printf("Toint =%d \n", i)
 
 	type s struct {
 		Name string
@@ -96,19 +95,15 @@ func Test_QueryResult(t *testing.T) {
 	ss := s{}
 	r, err := dialect.ToStruct("select * from test", ss)
 	if err != nil {
-		log.Error(err.Error())
+		fmt.Println(err.Error())
 	}
-	log.Infof("ToStruct , Name = %s , value = %d \n", r[0].(*s).Name, r[0].(*s).Id)
+	fmt.Printf("ToStruct , Name = %s , value = %d \n", r[0].(*s).Name, r[0].(*s).Id)
 
 	// toString
 	r1, err := dialect.ToString("select name from test limit 1")
 	if err != nil {
-		log.Error(err.Error())
+		fmt.Println(err.Error())
 	}
-	log.Info(r1)
+	fmt.Println(r1)
 
-}
-
-func init() {
-	log.InitLog(1, 0)
 }

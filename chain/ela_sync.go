@@ -6,11 +6,11 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/elastos/Elastos.ELA.Utility/common"
 	"github.com/elastos/Elastos.ELA.Utility/crypto"
 	"github.com/elastos/Elastos.ORG.API.Misc/config"
 	"github.com/elastos/Elastos.ORG.API.Misc/db"
-	"github.com/elastos/Elastos.ORG.API.Misc/log"
 	. "github.com/elastos/Elastos.ORG.API.Misc/tools"
 	"math"
 	"strconv"
@@ -195,7 +195,7 @@ func Sync() {
 		for {
 			tx, err := dba.Begin()
 			if err = doSync(tx); err != nil {
-				log.Infof("Sync Height Error : %v \n", err.Error())
+				fmt.Printf("Sync Height Error : %v \n", err.Error())
 				tx.Rollback()
 			} else {
 				tx.Commit()
@@ -207,7 +207,7 @@ func Sync() {
 		for {
 			tx, err := dba.Begin()
 			if err = handleRegisteredProducer(tx); err != nil {
-				log.Infof("handleRegisteredProducer Error : %v \n", err.Error())
+				fmt.Printf("handleRegisteredProducer Error : %v \n", err.Error())
 				tx.Rollback()
 			} else {
 				tx.Commit()
@@ -314,7 +314,7 @@ func handleRegisteredProducer(tx *sql.Tx) error {
 }
 
 func handleHeight(curr int, tx *sql.Tx) error {
-	log.Infof("Syncing ELA , Height %d\n", curr)
+	fmt.Printf("Syncing ELA , Height %d\n", curr)
 	var resp map[string]interface{}
 	var err error
 	if strings.HasPrefix(config.Conf.Ela.Restful, "http") {
@@ -707,23 +707,23 @@ func handleMemo(memo string, height int, txid string, createTime int, tx *sql.Tx
 			}
 		}
 		if !(ko6) {
-			log.Warn("invalid Key or Value or Status in properties")
+			fmt.Println("invalid Key or Value or Status in properties")
 			continue
 		}
 
 		did, _ := getDid(pub)
 		if err != nil {
-			log.Warn(err.Error())
+			fmt.Println(err.Error())
 			continue
 		}
 		stmt, err := tx.Prepare("insert into chain_did_property(did,did_status,public_key,property_key,property_key_status,property_value,txid,block_time,height) values(?,?,?,?,?,?,?,?,?)")
 		if err != nil {
-			log.Warn(err.Error())
+			fmt.Println(err.Error())
 			continue
 		}
 		_, err = stmt.Exec(did, istats, pub, v.Key, keyStats, v.Value, txid, createTime, height)
 		if err != nil {
-			log.Warn(err)
+			fmt.Println(err)
 			continue
 		}
 		stmt.Close()

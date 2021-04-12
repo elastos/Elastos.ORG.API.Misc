@@ -3,12 +3,12 @@ package http
 import (
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcd/rpcclient"
 	"github.com/btcsuite/btcutil"
 	"github.com/elastos/Elastos.ORG.API.Misc/config"
-	"github.com/elastos/Elastos.ORG.API.Misc/log"
 	"github.com/elastos/Elastos.ORG.API.Misc/tools"
 	"github.com/syndtr/goleveldb/leveldb/errors"
 	"strconv"
@@ -35,7 +35,7 @@ func init() {
 				Pass:         config.Conf.Btc.Rpcpasswd,
 			}, nil)
 			if err != nil {
-				log.Error("Error Connect to Bitcoin node :", err.Error())
+				fmt.Println("Error Connect to Bitcoin node :", err.Error())
 			}
 			net := config.Conf.Btc.Net
 			if net == "mainet" {
@@ -68,7 +68,7 @@ func (h *rpchelper) getBalance() (float64, error, int) {
 	for _, txId := range txIds {
 		txInfo, err := client.GetRawTransactionVerbose(txId)
 		if err != nil {
-			log.Warnf("Error fetching transaction %s", txId.String())
+			fmt.Printf("Error fetching transaction %s \n", txId.String())
 			continue
 		}
 		for _, in := range txInfo.Vin {
@@ -77,7 +77,7 @@ func (h *rpchelper) getBalance() (float64, error, int) {
 			hash.SetBytes(tools.ReverseBytes(b))
 			r, err := client.GetRawTransactionVerbose(hash)
 			if err != nil {
-				log.Warnf("Error fetching transaction %s", in.Txid)
+				fmt.Printf("Error fetching transaction %s \n", in.Txid)
 				continue
 			}
 			opAddrs := r.Vout[in.Vout].ScriptPubKey.Addresses

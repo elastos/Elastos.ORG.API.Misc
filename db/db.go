@@ -4,8 +4,8 @@ import (
 	"container/list"
 	"database/sql"
 	"errors"
+	"fmt"
 	"github.com/elastos/Elastos.ORG.API.Misc/config"
-	"github.com/elastos/Elastos.ORG.API.Misc/log"
 	"github.com/elastos/Elastos.ORG.API.Misc/tools"
 	_ "github.com/go-sql-driver/mysql"
 	"reflect"
@@ -25,7 +25,7 @@ func NewInstance() *Dialect {
 	var dia = new(Dialect)
 	err := dia.Create(config.Conf.Db.DbDriverSource)
 	if err != nil {
-		log.Fatalf("init Db Error : %s ", err.Error())
+		fmt.Printf("init Db Error : %s \n", err.Error())
 	}
 	return dia
 }
@@ -87,7 +87,7 @@ func (dia *Dialect) Rollback(tx *sql.Tx) error {
 
 //Execute data manipulate language
 func (dia *Dialect) Execute(sql string, args ...string) (int64, error) {
-	log.Info(sql)
+	fmt.Println(sql)
 	stmt, err := dia.db.Prepare(sql)
 	if err != nil {
 		return 0, err
@@ -108,7 +108,7 @@ func (dia *Dialect) Execute(sql string, args ...string) (int64, error) {
 
 //BatchExecute batch data manipulate
 func (dia *Dialect) BatchExecute(sql string, tx *sql.Tx) (int64, error) {
-	log.Info(sql)
+	fmt.Println(sql)
 	stmt, err := tx.Prepare(sql)
 	if err != nil {
 		return 0, err
@@ -128,7 +128,7 @@ func (dia *Dialect) BatchExecute(sql string, tx *sql.Tx) (int64, error) {
 }
 
 func (dia *Dialect) Query(s string) (*list.List, error) {
-	log.Info(s)
+	fmt.Println(s)
 	rows, err := dia.db.Query(s)
 	if err != nil {
 		return nil, err

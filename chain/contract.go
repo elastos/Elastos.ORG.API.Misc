@@ -3,8 +3,8 @@ package chain
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"github.com/elastos/Elastos.ORG.API.Misc/config"
-	"github.com/elastos/Elastos.ORG.API.Misc/log"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/syndtr/goleveldb/leveldb/util"
@@ -159,17 +159,17 @@ func (token *Erc20Token) Serialize() []byte {
 }
 
 func Call(contract string, height int) (Erc20Token, error) {
-	log.Info("contract address ", contract)
+	fmt.Println("contract address ", contract)
 	client, err := ethclient.Dial(config.Conf.Eth.Endpoint)
 	if err != nil {
-		log.Error("Unable to connect to eth")
+		fmt.Println("Unable to connect to eth")
 		os.Exit(-1)
 	}
 
 	address := common.HexToAddress(contract)
 	erc20, err := NewErc20(address, client)
 	if err != nil {
-		log.Errorf("Unable to create eth exchange contract instance, wrong contract address ? , %s ", err.Error())
+		fmt.Printf("Unable to create eth exchange contract instance, wrong contract address ? , %s ", err.Error())
 		os.Exit(-1)
 	}
 	name, err := erc20.Name(nil)
@@ -189,14 +189,14 @@ func Call(contract string, height int) (Erc20Token, error) {
 
 	desc, err := erc20.Description(nil)
 	if err != nil {
-		log.Warn("No description")
+		fmt.Println("No description")
 		desc = ""
 	}
 
 	var defaultGasLimit string
 	gasLimit, err := erc20.DefaultGasLimit(nil)
 	if err != nil {
-		log.Warn("No defaultGasLimit ", err.Error())
+		fmt.Println("No defaultGasLimit ", err.Error())
 		defaultGasLimit = "0"
 	} else {
 		defaultGasLimit = gasLimit.String()
@@ -205,7 +205,7 @@ func Call(contract string, height int) (Erc20Token, error) {
 	var defaultGasPrice string
 	gasPrice, err := erc20.DefaultGasPrice(nil)
 	if err != nil {
-		log.Warn("No defaultGasLimit", err.Error())
+		fmt.Println("No defaultGasLimit", err.Error())
 		defaultGasPrice = "0"
 	} else {
 		defaultGasPrice = gasPrice.String()

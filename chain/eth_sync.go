@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/elastos/Elastos.ORG.API.Misc/config"
-	"github.com/elastos/Elastos.ORG.API.Misc/log"
 	. "github.com/elastos/Elastos.ORG.API.Misc/tools"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/syndtr/goleveldb/leveldb"
@@ -596,11 +595,11 @@ func SyncEth() {
 		for {
 			le.b = new(leveldb.Batch)
 			if err := doSyncEth(le); err != nil {
-				log.Infof("Sync ETH Height Error : %v", err.Error())
+				fmt.Printf("Sync ETH Height Error : %v \n", err.Error())
 			} else {
 				err := le.l.Write(le.b, nil)
 				if err != nil {
-					log.Errorf(" Error Syncing From Height : %d", le.currHeight+1)
+					fmt.Printf(" Error Syncing From Height : %d \n", le.currHeight+1)
 				}
 			}
 			<-time.After(time.Millisecond * 1000)
@@ -651,7 +650,7 @@ func doSyncEth(le *level) error {
 		} else {
 			waitSize = gap
 		}
-		log.Infof("Syncing ETH , Height From %d To %d \n", le.currHeight+1, le.currHeight+int64(waitSize)+1)
+		fmt.Sprintf("Syncing ETH , Height From %d To %d \n", le.currHeight+1, le.currHeight+int64(waitSize)+1)
 		le.waitGroup.Add(waitSize)
 		count := 0
 		for curr := le.currHeight; curr <= int64(height); {
@@ -727,12 +726,12 @@ func handleHeightEth(curr int) error {
 			return err
 		}
 		if resp["result"] == nil {
-			log.Errorf("%v ", resp)
+			fmt.Errorf("%v \n", resp)
 			return errors.New("Invalid ETH Node , please change your ethereum node")
 		}
 		receipt := resp["result"].(map[string]interface{})
 		if _, ok := receipt["gasUsed"]; !ok {
-			log.Errorf("%v ", receipt)
+			fmt.Errorf("%v \n", receipt)
 			return errors.New("Invalid ETH Node , please change your ethereum node")
 		}
 		gasUsed := receipt["gasUsed"]
@@ -843,10 +842,10 @@ func handleHeightEth(curr int) error {
 							tah[ett.Address] = true
 							token, err := Call(ett.Address, curr)
 							if err != nil {
-								log.Warnf("contract call %s", err.Error())
+								fmt.Printf("contract call %s", err.Error())
 								continue
 							}
-							log.Info("token details ,token address ", token.Address, " token decimals ", token.Decimals,
+							fmt.Printf("token details ,token address ", token.Address, " token decimals ", token.Decimals,
 								" token name ", token.Name, " token address ", token.Symbol)
 							var keyTokenList bytes.Buffer
 							keyTokenList.Write([]byte{byte(eth_token_list_prefix)})
@@ -970,7 +969,7 @@ func decodeHexToByte(str string) []byte {
 	}
 	b, err := hex.DecodeString(str[2:])
 	if err != nil {
-		log.Errorf("Error decodeHexToByte %s", str)
+		fmt.Printf("Error decodeHexToByte %s \n", str)
 		return nil
 	}
 	return b

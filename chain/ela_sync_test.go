@@ -4,19 +4,16 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/elastos/Elastos.ORG.API.Misc/log"
 	"github.com/elastos/Elastos.ORG.API.Misc/tools"
 	"reflect"
 	"testing"
 )
 
 func Test_SyncChain(t *testing.T) {
-	log.Debug("start syncing ")
 	Sync()
 }
 
 func Test_handleMemo(t *testing.T) {
-	log.Debug("str to byte")
 	jsonStr := `{
       "msg": "7B22546167223A224449442050726F7065727479222C22566572223A22312E30222C22537461747573223A312C2250726F70657274696573223A5B7B224B6579223A224E616D65222C2256616C7565223A2261736466617364666166222C22537461747573223A317D5D7D",
       "pub": "02B536B5BC083883CF645ED60006AEB421575CA536C152366DF8F1085C7CCD7547",
@@ -27,7 +24,6 @@ func Test_handleMemo(t *testing.T) {
 	err := handleMemo(hexStr, 10, "asdfafda", 190281, tx)
 	if err != nil {
 		dba.Rollback(tx)
-		log.Fatal(err.Error())
 	}
 	dba.Commit(tx)
 
@@ -62,8 +58,4 @@ func Test_(t *testing.T) {
 	var b float64 = 100000000
 	a := b / ELA
 	println(a, reflect.TypeOf(a).Name())
-}
-
-func init() {
-	log.InitLog(0, 0)
 }

@@ -9,13 +9,13 @@ import (
 	"github.com/elastos/Elastos.ORG.API.Misc/chain"
 	"github.com/elastos/Elastos.ORG.API.Misc/config"
 	"github.com/elastos/Elastos.ORG.API.Misc/db"
-	"github.com/elastos/Elastos.ORG.API.Misc/log"
 	"github.com/elastos/Elastos.ORG.API.Misc/tools"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/gorilla/mux"
 	"html/template"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -29,10 +29,11 @@ func StartServer() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Hello World!")
 	})
-	log.Infof("start server at: %s", config.Conf.ServerPort)
+	fmt.Printf("start server at: %s \n", config.Conf.ServerPort)
 	err := http.ListenAndServe(":"+config.Conf.ServerPort, router)
 	if err != nil {
-		log.Fatal("Error start server :" + err.Error())
+		fmt.Println("Error start server :" + err.Error())
+		os.Exit(-1)
 	}
 }
 
@@ -329,13 +330,13 @@ func voterStatistic(w http.ResponseWriter, r *http.Request) {
 				vi := r.(*chain.Vote_info)
 				addr, err := tools.GetAddress(vi.Ownerpublickey)
 				if err != nil {
-					log.Warn("Invalid Ownerpublickey " + vi.Ownerpublickey)
+					fmt.Println("Invalid Ownerpublickey " + vi.Ownerpublickey)
 					continue
 				}
 				vi.Address = addr
 				val, err := dba.ToString("select value from chain_block_transaction_history where height = " + strconv.Itoa(int(v.Height)) + " and txType = 'CoinBase' and value < " + strconv.Itoa(tools.Miner_Reward_PerBlock) + " and address = '" + addr + "'")
 				if err != nil {
-					log.Warn("Invalid Ownerpublickey " + vi.Ownerpublickey)
+					fmt.Println("Invalid Ownerpublickey " + vi.Ownerpublickey)
 					continue
 				}
 				if val != "" {
@@ -425,13 +426,13 @@ func producerRankByHeight(w http.ResponseWriter, r *http.Request) {
 		vi := r.(*chain.Vote_info)
 		addr, err := tools.GetAddress(vi.Ownerpublickey)
 		if err != nil {
-			log.Warn("Invalid Ownerpublickey " + vi.Ownerpublickey)
+			fmt.Println("Invalid Ownerpublickey " + vi.Ownerpublickey)
 			continue
 		}
 		vi.Address = addr
 		val, err := dba.ToString("select sum(value) from chain_block_transaction_history where txType = 'CoinBase' and address = '" + addr + "'")
 		if err != nil {
-			log.Warn("Invalid Ownerpublickey " + vi.Ownerpublickey)
+			fmt.Println("Invalid Ownerpublickey " + vi.Ownerpublickey)
 			continue
 		}
 		if val != "" {
